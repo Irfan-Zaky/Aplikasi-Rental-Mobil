@@ -36,8 +36,7 @@
                             @csrf
                             <div class="mb-3">
                                 <label for="username" class="form-label" style="color: white">Username atau Email</label>
-                                <input type="text" class="form-control bg-light text-dark" id="username" name="username" value="{{ old('username') }}" placeholder="octavia atau octaimub@gmail.com" autocomplete="username" required>
-                                <div class="form-text text-white-50 small">Masukkan username admin atau email yang terdaftar.</div>
+                                <input type="text" class="form-control bg-light text-dark" id="username" name="username" value="{{ old('username') }}" placeholder="username atau Email" autocomplete="username" required>
                             </div>
 
                             <div class="mb-3">
