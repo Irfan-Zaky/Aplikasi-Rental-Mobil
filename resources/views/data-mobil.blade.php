@@ -38,7 +38,7 @@
 
         <form action="{{ route('admin.data-mobil.index') }}" method="GET" class="d-flex align-items-center mb-4 gap-3">
             <div class="flex-grow-1">
-                <input type="search" name="keyword" value="{{ request('keyword') }}" class="form-control bg-light border-1 py-2 px-4 rounded-pill shadow-sm" style="background-color: aliceblue;" placeholder="Cari nama, merk, atau plat nomor" />
+                <input type="search" name="keyword" value="{{ request('keyword') }}" class="form-control bg-light border-1 py-2 px-4 rounded-pill shadow-sm" style="background-color: aliceblue;" placeholder="Cari nama, merk, atau plat nomor — tekan Enter" />
             </div>
 
             <div style="width: 130px;">
@@ -58,6 +58,8 @@
                     @endforeach
                 </select>
             </div>
+
+            <button type="submit" class="visually-hidden">Cari</button>
         </form>
 
         <div class="table-responsive rounded-top-4 overflow-hidden shadow-sm">

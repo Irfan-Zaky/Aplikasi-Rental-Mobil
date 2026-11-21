@@ -22,6 +22,30 @@ class MobilFlowTest extends TestCase
             ->assertSee(route('admin.data-mobil.create'), false);
     }
 
+    public function test_pencarian_keyword_dan_filter_menampilkan_hanya_mobil_yang_cocok(): void
+    {
+        Mobil::factory()->create([
+            'merk' => 'Toyota',
+            'nama_mobil' => 'Avanza',
+            'jenis' => 'MPV',
+            'status' => 'Tersedia',
+            'nomor_polisi' => 'B 1111 AAA',
+        ]);
+        Mobil::factory()->create([
+            'merk' => 'Daihatsu',
+            'nama_mobil' => 'Xenia',
+            'jenis' => 'MPV',
+            'status' => 'Tersedia',
+            'nomor_polisi' => 'B 2222 BBB',
+        ]);
+
+        $response = $this->get('/admin/data-mobil?keyword=Avanza&jenis=MPV&status=Tersedia');
+
+        $response->assertOk()
+            ->assertSee('Avanza')
+            ->assertDontSee('Xenia');
+    }
+
     public function test_halaman_tambah_mobil_menampilkan_form_simpan_kendaraan(): void
     {
         $response = $this->get('/admin/data-mobil/create');
