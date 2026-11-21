@@ -170,6 +170,4 @@
     </style>
 @endpush
 
-@push('scripts')
-    <script src="{{ asset('js/konfirmasi.js') }}"></script>
-@endpush
+

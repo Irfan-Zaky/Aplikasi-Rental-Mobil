@@ -35,8 +35,9 @@
                         <form action="{{ url('admin/login') }}" method="POST" class="mb-3">
                             @csrf
                             <div class="mb-3">
-                                <label for="username" class="form-label" style="color: white">Username</label>
-                                <input type="text" class="form-control bg-light text-dark" id="username" name="username" value="{{ old('username') }}" placeholder="Admin@user.id" autocomplete="username" required>
+                                <label for="username" class="form-label" style="color: white">Username atau Email</label>
+                                <input type="text" class="form-control bg-light text-dark" id="username" name="username" value="{{ old('username') }}" placeholder="octavia atau octaimub@gmail.com" autocomplete="username" required>
+                                <div class="form-text text-white-50 small">Masukkan username admin atau email yang terdaftar.</div>
                             </div>
 
                             <div class="mb-3">

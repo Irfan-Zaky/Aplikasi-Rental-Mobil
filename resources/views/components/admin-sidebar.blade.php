@@ -46,7 +46,7 @@
     </div>
 
     <div>
-        <form action="{{ url('admin/logout') }}" method="POST">
+        <form action="{{ route('logout') }}" method="POST" class="form-konfirmasi" data-pesan="Yakin ingin keluar dari akun ini?">
             @csrf
             <button type="submit" class="btn text-white-50 d-flex align-items-center gap-3 p-0 border-0 bg-transparent">
                 <img src="{{ asset('img_admin/data-mobil/log-out.svg') }}" alt="" width="20" height="20" />

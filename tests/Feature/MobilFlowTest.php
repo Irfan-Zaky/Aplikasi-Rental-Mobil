@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\FotoMobil;
 use App\Models\Mobil;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,8 @@ class MobilFlowTest extends TestCase
 
     public function test_halaman_data_mobil_memiliki_tautan_tambah_mobil(): void
     {
+        $this->authenticateAsAdmin();
+
         $response = $this->get('/admin/data-mobil');
 
         $response->assertOk()
@@ -24,6 +27,8 @@ class MobilFlowTest extends TestCase
 
     public function test_pencarian_keyword_dan_filter_menampilkan_hanya_mobil_yang_cocok(): void
     {
+        $this->authenticateAsAdmin();
+
         Mobil::factory()->create([
             'merk' => 'Toyota',
             'nama_mobil' => 'Avanza',
@@ -48,6 +53,8 @@ class MobilFlowTest extends TestCase
 
     public function test_halaman_tambah_mobil_menampilkan_form_simpan_kendaraan(): void
     {
+        $this->authenticateAsAdmin();
+
         $response = $this->get('/admin/data-mobil/create');
 
         $response->assertOk()
@@ -58,6 +65,7 @@ class MobilFlowTest extends TestCase
 
     public function test_payload_valid_menyimpan_mobil_beserta_foto_utama(): void
     {
+        $this->authenticateAsAdmin();
         Storage::fake('public');
 
         $response = $this->post('/admin/data-mobil', [
@@ -97,6 +105,8 @@ class MobilFlowTest extends TestCase
 
     public function test_halaman_detail_dan_edit_menampilkan_data_mobil(): void
     {
+        $this->authenticateAsAdmin();
+
         $mobil = Mobil::factory()->create();
         FotoMobil::factory()->create([
             'mobil_id' => $mobil->id,
@@ -116,7 +126,9 @@ class MobilFlowTest extends TestCase
 
     public function test_hapus_mobil_menghapus_data_dan_file_fotonya(): void
     {
+        $this->authenticateAsAdmin();
         Storage::fake('public');
+
         $mobil = Mobil::factory()->create();
         $foto = FotoMobil::factory()->create(['mobil_id' => $mobil->id]);
         Storage::disk('public')->put($foto->path_foto, 'isi foto');
@@ -131,6 +143,7 @@ class MobilFlowTest extends TestCase
 
     public function test_payload_kosong_ditolak_dan_tidak_menyimpan_data(): void
     {
+        $this->authenticateAsAdmin();
         Storage::fake('public');
 
         $response = $this->from('/admin/data-mobil/create')
@@ -149,5 +162,10 @@ class MobilFlowTest extends TestCase
             ]);
         $this->assertSame(0, Mobil::count());
         Storage::disk('public')->assertEmpty();
+    }
+
+    private function authenticateAsAdmin(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
     }
 }
