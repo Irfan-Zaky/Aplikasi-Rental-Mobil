@@ -60,3 +60,4 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 ## sedikit tambahan 
 
 folder laravel ini sudah terintegrasi dengan opencode dan antigravity.
+
