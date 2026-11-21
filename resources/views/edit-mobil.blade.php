@@ -14,6 +14,7 @@
                 'utama' => (bool) data_get($foto, 'utama'),
             ];
         })->values();
+        $fotoUtama = $fotoAwal->firstWhere('utama', true) ?? $fotoAwal->first();
     @endphp
 
     @include('components.admin-header', [
@@ -33,7 +34,7 @@
                         </div>
 
                         <div class="mb-3 text-center">
-                            <img src="{{ ($mobil->foto ?? null) ? asset($mobil->foto) : asset('img_admin/edit-mobil/Current vehicle photo.png') }}" alt="Foto Mobil" id="foto-mobil" class="img-fluid rounded-4 object-fit-cover shadow-sm" style="height: 220px; width: 100%;" />
+                            <img src="{{ $fotoUtama['src'] ?? asset('img_admin/edit-mobil/Current vehicle photo.png') }}" alt="Foto Mobil" id="foto-mobil" class="img-fluid rounded-4 object-fit-cover shadow-sm" style="height: 220px; width: 100%;" />
                         </div>
                         <button type="button" id="btn-ganti-foto" class="btn btn-outline-secondary w-100 rounded-pill py-2 d-flex align-items-center justify-content-center gap-2 fw-medium">
                             <img src="{{ asset('img_admin/edit-mobil/image.svg') }}" alt="" width="18" height="18" />
@@ -44,7 +45,7 @@
 
                 <div class="col-12 col-lg-8">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                        <form id="form-edit" action="{{ url('admin/data-mobil/' . ($mobil->id ?? '')) }}" method="POST" enctype="multipart/form-data">
+                        <form id="form-edit" action="{{ route('admin.data-mobil.update', $mobil) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
                             <input type="hidden" name="foto_utama" id="foto-utama" value="" />
@@ -53,7 +54,7 @@
                             <header class="mb-4">
                                 <h3 class="fw-bold text-dark">Informasi kendaraan</h3>
                                 <p class="text-muted small mb-1">Terakhir diperbarui {{ optional($mobil->updated_at ?? null)->format('d F Y') ?? '28 September 2026' }} oleh Admin Operasional.</p>
-                                <p class="text-secondary small fw-medium mb-0">Kode_Mobil.{{ $mobil->id ?? 'xxxxxx' }}</p>
+                                <p class="text-secondary small fw-medium mb-0">Kode_Mobil.{{ $mobil->kode_mobil }}</p>
                             </header>
 
                             <div class="row g-3 mb-3">
@@ -64,7 +65,7 @@
 
                                 <div class="col-12 col-md-6">
                                     <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Mobil</label>
-                                    <input type="text" name="nama" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('nama', $mobil->nama ?? '') }}" required />
+                                    <input type="text" name="nama" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('nama', $mobil->nama_mobil ?? '') }}" required />
                                 </div>
 
                                 <div class="col-12 col-md-6">
@@ -84,19 +85,18 @@
                                         <option value="">Pilih Status</option>
                                         <option value="Tersedia" @selected(old('status', $mobil->status ?? '') === 'Tersedia')>Tersedia</option>
                                         <option value="Disewa" @selected(old('status', $mobil->status ?? '') === 'Disewa')>Disewa</option>
-                                        <option value="Perbaikan" @selected(old('status', $mobil->status ?? '') === 'Perbaikan')>Perbaikan</option>
-                                        <option value="Nonaktif" @selected(old('status', $mobil->status ?? '') === 'Nonaktif')>Nonaktif</option>
+                                        <option value="Perawatan" @selected(old('status', $mobil->status ?? '') === 'Perawatan')>Perawatan</option>
                                     </select>
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label for="harga-sewa" class="form-label fw-medium small text-dark">Harga Sewa / hari</label>
-                                    <input type="number" name="harga" id="harga-sewa" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('harga', is_numeric($mobil->harga ?? null) ? $mobil->harga : 0) }}" required />
+                                    <input type="number" name="harga" id="harga-sewa" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('harga', $mobil->harga_sewa ?? 0) }}" required />
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label for="plat-nomor" class="form-label fw-medium small text-dark">Nomor Polisi</label>
-                                    <input type="text" name="plat" id="plat-nomor" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('plat', $mobil->plat ?? '') }}" required />
+                                    <input type="text" name="plat" id="plat-nomor" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('plat', $mobil->nomor_polisi ?? '') }}" required />
                                 </div>
                             </div>
 
@@ -107,7 +107,7 @@
 
                             <div class="d-flex align-items-center gap-2">
                                 <button type="submit" class="btn text-white px-4 py-2 rounded-pill fw-medium shadow-sm" style="background-color: #ff7a3d; border: none;">Simpan Perubahan</button>
-                                <a href="{{ url('admin/data-mobil') }}" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium text-dark shadow-sm bg-white text-decoration-none" style="border-color: #cbd5e1;">Batal</a>
+                                <a href="{{ route('admin.data-mobil.index') }}" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium text-dark shadow-sm bg-white text-decoration-none" style="border-color: #cbd5e1;">Batal</a>
                             </div>
                         </form>
                     </div>

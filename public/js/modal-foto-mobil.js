@@ -1,7 +1,8 @@
 /*
  * Modal "Unggah foto mobil" - hanya mengelola interaksi antarmuka:
  * pilih, hapus, dan tentukan foto utama. Seluruh penyimpanan dan
- * pemrosesan file ditangani oleh backend PHP melalui form.
+ * pemrosesan file ditangani oleh backend PHP melalui form. Input tersembunyi
+ * "foto_utama" berisi indeks foto terpilih di antara file yang diunggah.
  */
 (function (global) {
     'use strict';
@@ -46,7 +47,10 @@
             var utama = fotoUtama();
 
             if (inputFotoUtama) {
-                inputFotoUtama.value = utama ? utama.id : '';
+                var fotoDiunggah = daftarFoto.filter(function (foto) { return foto.file; });
+                var indeksUtama = utama ? fotoDiunggah.indexOf(utama) : -1;
+
+                inputFotoUtama.value = indeksUtama >= 0 ? String(indeksUtama) : '0';
             }
 
             if (global.DataTransfer && inputFoto) {

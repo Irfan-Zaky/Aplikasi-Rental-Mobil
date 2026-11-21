@@ -1,6 +1,7 @@
-@extends('layouts.admin')
+@extends('layouts.admin', ['active' => 'dashboard'])
 
 @section('title', 'Beranda Admin')
+
 
 @section('content')
     @include('components.admin-header', [

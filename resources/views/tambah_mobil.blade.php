@@ -9,6 +9,18 @@
         'deskripsi' => 'Lengkapi profil kendaraan baru agar siap dipublikasi ke katalog penyewaan',
     ])
 
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm" role="alert">
+            <strong>Periksa kembali data kendaraan.</strong>
+            <ul class="mb-0 mt-2">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+        </div>
+    @endif
+
     <main>
         <div class="container py-4">
             <div class="row g-4 align-items-start">
@@ -25,6 +37,9 @@
                             <p class="text-dark small mb-0 fw-medium">Unggah foto mobil</p>
                             <p class="text-muted small mb-0">Tarik file ke area ini atau pilih dari perangkat. JPG/PNG, maksimal 8 MB</p>
                         </div>
+                        @error('fotos')
+                            <div class="text-danger small mt-2">{{ $message }}</div>
+                        @enderror
 
                         <div class="p-3 rounded-4 d-flex align-items-center gap-3 mt-3" style="background-color: #fff4ee; border-left: 4px solid #ff7a3d;">
                             <p class="mb-0 small" style="color: #5c6b73; font-weight: 500;">
@@ -36,68 +51,86 @@
 
                 <div class="col-12 col-lg-8">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                        <form id="form-tambah" action="{{ url('admin/data-mobil') }}" method="POST" enctype="multipart/form-data">
+                        <form id="form-tambah" action="{{ route('admin.data-mobil.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="foto_utama" id="foto-utama" value="" />
 
                             <header class="mb-4">
                                 <h3 class="fw-bold text-dark">Informasi kendaraan</h3>
-                                <p class="text-muted small mb-1">Terakhir diperbarui 28 September 2026 oleh Admin Operasional.</p>
-                                <p class="text-secondary small fw-medium mb-0">Kode_Mobil.xxxxxx</p>
+                                <p class="text-secondary small fw-medium mb-0">Kode mobil akan dibuat otomatis setelah disimpan.</p>
                             </header>
 
                             <div class="row g-3 mb-3">
                                 <div class="col-12 col-md-6">
                                     <label for="merk" class="form-label fw-medium small text-dark">Merk</label>
-                                    <input type="text" name="merk" id="merk" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('merk') }}" required />
+                                    <input type="text" name="merk" id="merk" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm @error('merk') is-invalid @enderror" value="{{ old('merk') }}" required />
+                                    @error('merk')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Mobil</label>
-                                    <input type="text" name="nama" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('nama') }}" required />
+                                    <input type="text" name="nama" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm @error('nama') is-invalid @enderror" value="{{ old('nama') }}" required />
+                                    @error('nama')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label for="jenis" class="form-label fw-medium small text-dark">Jenis</label>
-                                    <select name="jenis" id="jenis" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm" required>
+                                    <select name="jenis" id="jenis" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm @error('jenis') is-invalid @enderror" required>
                                         <option value="">Pilih Jenis</option>
-                                        <option value="MPV" @selected(old('jenis', 'MPV') === 'MPV')>MPV</option>
-                                        <option value="SUV" @selected(old('jenis') === 'SUV')>SUV</option>
-                                        <option value="Hatchback" @selected(old('jenis') === 'Hatchback')>Hatchback</option>
-                                        <option value="Sedan" @selected(old('jenis') === 'Sedan')>Sedan</option>
+                                        @foreach (['MPV', 'SUV', 'Hatchback', 'Sedan'] as $jenis)
+                                            <option value="{{ $jenis }}" @selected(old('jenis', 'MPV') === $jenis)>{{ $jenis }}</option>
+                                        @endforeach
                                     </select>
+                                    @error('jenis')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label for="status" class="form-label fw-medium small text-dark">Status</label>
-                                    <select name="status" id="status" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm" required>
+                                    <select name="status" id="status" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm @error('status') is-invalid @enderror" required>
                                         <option value="">Pilih Status</option>
-                                        <option value="Tersedia" @selected(old('status', 'Tersedia') === 'Tersedia')>Tersedia</option>
-                                        <option value="Disewa" @selected(old('status') === 'Disewa')>Disewa</option>
-                                        <option value="Perbaikan" @selected(old('status') === 'Perbaikan')>Perbaikan</option>
-                                        <option value="Nonaktif" @selected(old('status') === 'Nonaktif')>Nonaktif</option>
+                                        @foreach (['Tersedia', 'Disewa', 'Perawatan'] as $status)
+                                            <option value="{{ $status }}" @selected(old('status', 'Tersedia') === $status)>{{ $status }}</option>
+                                        @endforeach
                                     </select>
+                                    @error('status')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label for="harga-sewa" class="form-label fw-medium small text-dark">Harga Sewa / hari</label>
-                                    <input type="number" name="harga" id="harga-sewa" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('harga', 525000) }}" required />
+                                    <input type="number" name="harga" id="harga-sewa" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm @error('harga') is-invalid @enderror" value="{{ old('harga', 525000) }}" min="0" required />
+                                    @error('harga')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label for="plat-nomor" class="form-label fw-medium small text-dark">Nomor Polisi</label>
-                                    <input type="text" name="plat" id="plat-nomor" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('plat') }}" required />
+                                    <input type="text" name="plat" id="plat-nomor" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm @error('plat') is-invalid @enderror" value="{{ old('plat') }}" required />
+                                    @error('plat')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="mb-4">
                                 <label for="spesifikasi" class="form-label fw-medium small text-dark">Spesifikasi</label>
-                                <textarea name="spesifikasi" id="spesifikasi" class="form-control bg-light border-1 p-3 rounded-4 shadow-sm" rows="3" required>{{ old('spesifikasi', 'Otomatis, 7 penumpang, bensin, 2023, AC double blower, bagasi luas') }}</textarea>
+                                <textarea name="spesifikasi" id="spesifikasi" class="form-control bg-light border-1 p-3 rounded-4 shadow-sm @error('spesifikasi') is-invalid @enderror" rows="3" required>{{ old('spesifikasi', 'Otomatis, 7 penumpang, bensin, 2023, AC double blower, bagasi luas') }}</textarea>
+                                @error('spesifikasi')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="d-flex align-items-center gap-2">
                                 <button type="submit" class="btn text-white px-4 py-2 rounded-pill fw-medium shadow-sm" style="background-color: #ff7a3d; border: none;">Simpan Kendaraan</button>
-                                <a href="{{ url('admin/data-mobil') }}" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium text-dark shadow-sm bg-white text-decoration-none" style="border-color: #cbd5e1;">Batal</a>
+                                <a href="{{ route('admin.data-mobil.index') }}" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium text-dark shadow-sm bg-white text-decoration-none" style="border-color: #cbd5e1;">Batal</a>
                             </div>
                         </form>
                     </div>

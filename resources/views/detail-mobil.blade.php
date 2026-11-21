@@ -56,12 +56,12 @@
 
                 <div class="col-12 col-lg-8">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                        <form action="{{ url('admin/data-mobil/' . ($mobil->id ?? '')) }}" method="POST">
+                        <form action="{{ route('admin.data-mobil.show', $mobil) }}" method="POST">
                             @csrf
                             <header class="mb-4">
                                 <h3 class="fw-bold text-dark">Informasi kendaraan</h3>
                                 <p class="text-muted small mb-1">Terakhir diperbarui {{ optional($mobil->updated_at ?? null)->format('d F Y') ?? '28 September 2026' }} oleh Admin Operasional.</p>
-                                <p class="text-secondary small fw-medium mb-0" id="kode-mobil">Kode_Mobil.{{ $mobil->id ?? 'xxxxxx' }}</p>
+                                <p class="text-secondary small fw-medium mb-0" id="kode-mobil">Kode_Mobil.{{ $mobil->kode_mobil }}</p>
                             </header>
 
                             <div class="row g-3 mb-3">
@@ -72,7 +72,7 @@
 
                                 <div class="col-12 col-md-6">
                                     <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Mobil</label>
-                                    <input type="text" name="nama" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ $mobil->nama ?? '' }}" readonly />
+                                    <input type="text" name="nama" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ $mobil->nama_mobil ?? '' }}" readonly />
                                 </div>
 
                                 <div class="col-12 col-md-6">
@@ -92,19 +92,18 @@
                                         <option value="">Pilih Status</option>
                                         <option value="Tersedia" @selected(($mobil->status ?? '') === 'Tersedia')>Tersedia</option>
                                         <option value="Disewa" @selected(($mobil->status ?? '') === 'Disewa')>Disewa</option>
-                                        <option value="Perbaikan" @selected(($mobil->status ?? '') === 'Perbaikan')>Perbaikan</option>
-                                        <option value="Nonaktif" @selected(($mobil->status ?? '') === 'Nonaktif')>Nonaktif</option>
+                                        <option value="Perawatan" @selected(($mobil->status ?? '') === 'Perawatan')>Perawatan</option>
                                     </select>
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label for="harga-sewa" class="form-label fw-medium small text-dark">Harga Sewa / hari</label>
-                                    <input type="text" name="harga" id="harga-sewa" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ is_numeric($mobil->harga ?? null) ? 'Rp ' . number_format($mobil->harga, 0, ',', '.') : ($mobil->harga ?? '') }}" readonly />
+                                    <input type="text" name="harga" id="harga-sewa" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="Rp {{ number_format($mobil->harga_sewa, 0, ',', '.') }}" readonly />
                                 </div>
 
                                 <div class="col-12 col-md-6">
                                     <label for="plat-nomor" class="form-label fw-medium small text-dark">Nomor Polisi</label>
-                                    <input type="text" name="plat" id="plat-nomor" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ $mobil->plat ?? '' }}" readonly />
+                                    <input type="text" name="plat" id="plat-nomor" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ $mobil->nomor_polisi ?? '' }}" readonly />
                                 </div>
                             </div>
 
@@ -114,8 +113,8 @@
                             </div>
 
                             <div class="d-flex align-items-center gap-2">
-                                <a href="{{ url('admin/data-mobil') }}" class="btn text-white px-4 py-2 rounded-pill fw-medium shadow-sm text-decoration-none" style="background-color: #ff7a3d;">Kembali</a>
-                                <a href="{{ url('admin/data-mobil/' . ($mobil->id ?? '') . '/edit') }}" id="btn-edit-mobil" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium shadow-sm text-decoration-none">Edit</a>
+                                <a href="{{ route('admin.data-mobil.index') }}" class="btn text-white px-4 py-2 rounded-pill fw-medium shadow-sm text-decoration-none" style="background-color: #ff7a3d;">Kembali</a>
+                                <a href="{{ route('admin.data-mobil.edit', $mobil) }}" id="btn-edit-mobil" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium shadow-sm text-decoration-none">Edit</a>
                             </div>
                         </form>
                     </div>
