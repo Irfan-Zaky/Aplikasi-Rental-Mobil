@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riwayat Pesanan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+
+<body class="m-0 p-0 min-vh-100" style="color: #0b1d33; background-color: #eef7fc;">
+    <nav class="navbar px-3 w-100" style="background-color: white;">
+        <div class="container-fluid px-2">
+            <div class="w-100 px-3 py-1 d-flex align-items-center justify-content-center">
+                <h1 class="fw-bold m-0 fs-3" style="color:#0b1d33">Riwayat Pesanan</h1>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="py-4">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-10 col-lg-11">
+                        <div class="d-flex align-items-center container my-2 pb-3 px-3 gap-2">
+                            <button type="button" class="btn btn-dark rounded-pill px-4 py-2 fw-medium">Semua</button>
+                            <button type="button" class="btn btn-dark rounded-pill px-4 py-2 fw-medium">Aktif</button>
+                            <button type="button" class="btn btn-dark rounded-pill px-4 py-2 fw-medium">Selesai</button>
+                        </div>
+
+                        <!-- 🟢 KOTAK KOSONG TEMPAT JAVASCRIPT MENCETAK RIWAYAT -->
+                        <div id="daftar-riwayat-customer">
+                            <!-- Jika kosong, teks ini akan muncul -->
+                            <div class="text-center text-muted py-5">
+                                <p>Belum ada riwayat pesanan.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="navbar fixed-bottom bg-white border-top py-2 px-3 shadow-sm">
+        <div class="container-fluid d-flex justify-content-around align-items-center">
+            <a href="beranda.html" aria-label="Menuju beranda" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
+                <img src="../img/riwayaat pesaanan/rumah-biru.svg" alt="Beranda" style="width: 22px; height: 22px; opacity: 0.6;" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Beranda</span>
+            </a>
+            <a href="katalog.html" aria-label="Menuju katalog" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
+                <img src="../img/riwayaat pesaanan/logo-mobil-biru.svg" alt="Katalog" style="width: 22px; height: 22px; opacity: 0.6;" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Katalog</span>
+            </a>
+            <a href="riwayat.html" aria-label="Menuju riwayat" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3 rounded-pill" style="background-color: rgba(255, 107, 53, 0.12);">
+                <img src="../img/riwayaat pesaanan/jam-oren.svg" alt="Riwayat" style="width: 22px; height: 22px; filter: invert(41%) sepia(85%) saturate(1436%) hue-rotate(338deg) brightness(101%) contrast(97%);" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Riwayat</span>
+            </a>
+            <a href="profil.html" aria-label="Menuju profil" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
+                <img src="../img/riwayaat pesaanan/user.svg" alt="Profil" style="width: 22px; height: 22px; opacity: 0.6;" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Profil</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const wadahRiwayat = document.getElementById('daftar-riwayat-customer');
+
+            // Ambil data dari localStorage yang dikirim dari ringkasan-pemesanan
+            let riwayatPesanan = JSON.parse(localStorage.getItem('dbRiwayatPesanan')) || [];
+
+            if (riwayatPesanan.length === 0) {
+                wadahRiwayat.innerHTML = `
+                <div class="text-center text-muted py-5 bg-white rounded-4 shadow-sm">
+                    <p class="mb-0">Belum ada riwayat pesanan.</p>
+                    <small class="text-muted">Silakan sewa mobil melalui katalog.</small>
+                </div>
+            `;
+                return;
+            }
+
+            wadahRiwayat.innerHTML = ''; // Kosongkan
+
+            // Cetak riwayat secara otomatis
+            riwayatPesanan.forEach(pesanan => {
+                let warnaBadge = "bg-warning-subtle text-warning-emphasis";
+                if (pesanan.status === "Selesai") warnaBadge = "bg-secondary-subtle text-secondary";
+                else if (pesanan.status === "Berhasil" || pesanan.status === "Pembayaran Berhasil") warnaBadge = "bg-success-subtle text-success";
+
+                const cardHtml = `
+                <article class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
+                    <a href="detail-pesanan.html?id=${pesanan.id}" class="text-decoration-none text-dark">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="../img/foto-mobil-kecil.png" alt="${pesanan.nama_mobil}" class="rounded-3 object-fit-cover" width="90" height="65" />
+                                <div>
+                                    <h3 class="fw-bold fs-6 mb-1 text-dark">${pesanan.nama_mobil}</h3>
+                                    <p class="text-muted small mb-1">${pesanan.tgl_sewa}</p>
+                                    <p class="fw-bold text-dark mb-0">${pesanan.total_biaya}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-muted fs-5">›</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                            <span class="badge rounded-pill ${warnaBadge} px-3 py-2 fw-medium">${pesanan.status}</span>
+                            <span class="text-primary fw-medium small">Lihat detail</span>
+                        </div>
+                    </a>
+                </article>
+            `;
+                wadahRiwayat.innerHTML += cardHtml;
+            });
+        });
+    </script>
+
+</body>
+
+</html>

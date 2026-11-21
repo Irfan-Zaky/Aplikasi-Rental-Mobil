@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Pesanan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+</head>
+
+<body class="m-0 p-0 min-vh-100" style="color: #0b1d33; background-color: #eef7fc;">
+    <nav class="navbar bg-white py-3 border-bottom">
+        <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
+            <a href="riwayat.html" aria-label="Kembali ke Riwayat" class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1" style="width: 40px; height: 40px; color: #0b1d33;">‹</a>
+            <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Detail Pesanan</h2>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Tahapan Pesanan / Indikator Lingkaran -->
+        <section aria-label="Tahapan pesanan" class="px-4 py-3 bg-white rounded-4 shadow-sm my-3">
+            <ol class="d-flex justify-content-between align-items-center list-unstyled m-0 p-0 position-relative">
+                <li class="d-flex flex-column align-items-center text-center position-relative z-1">
+                    <img id="step-1-img" src="../img/detail pesanan/bulat-biru.svg" alt="Tahap 1" width="16" height="16" class="mb-2" />
+                    <span id="step-1-text" class="small fw-bold text-dark" style="font-size: 12px;">Menunggu<br>Pembayaran</span>
+                </li>
+
+                <li class="d-flex flex-column align-items-center text-center position-relative z-1">
+                    <img id="step-2-img" src="../img/detail pesanan/bulat-biru.svg" alt="Tahap 2" width="16" height="16" class="mb-2" />
+                    <span id="step-2-text" class="small fw-bold text-dark" style="font-size: 12px;">Pembayaran<br>Berhasil</span>
+                </li>
+
+                <li class="d-flex flex-column align-items-center text-center position-relative z-1">
+                    <img id="step-3-img" src="../img/detail pesanan/bulat-putih.svg" alt="Tahap 3" width="16" height="16" class="mb-2 border border-secondary rounded-circle" />
+                    <span id="step-3-text" class="small text-muted" style="font-size: 12px;">Selesai</span>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Kode Booking -->
+        <section aria-label="Kode booking" class="px-3 p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-4 my-3">
+            <p class="text-success small mb-1 fw-medium">Kode Booking</p>
+            <h5 id="info-booking" class="text-success fw-bold m-0">BK-ZN4X9K9</h5>
+        </section>
+
+        <!-- Informasi Pesanan -->
+        <section aria-label="Informasi Pesanan" class="card border-0 shadow-sm rounded-4 p-3 my-3">
+
+            <div class="d-flex flex-column gap-2 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Mobil</span>
+                    <strong id="info-mobil" class="text-dark">Toyota Avanza</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Tanggal</span>
+                    <strong id="info-tanggal" class="text-dark">12–14 Okt 2026</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Layanan</span>
+                    <strong id="info-layanan" class="text-dark">Lepas Kunci</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Penerimaan</span>
+                    <strong id="info-penerimaan" class="text-dark">Diantar</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Nama</span>
+                    <strong class="text-dark">Octavia Dezwan</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Nomor HP</span>
+                    <strong class="text-dark">081234567890</strong>
+                </div>
+            </div>
+
+            <hr class="text-muted opacity-25 my-2">
+
+            <div class="d-flex flex-column gap-2 pt-1">
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong class="text-dark">Total</strong>
+                    <strong id="info-total" class="text-dark fs-5">Rp 1.400.000</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Status</span>
+                    <strong id="info-status" class="text-success">Menunggu Pembayaran</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Metode</span>
+                    <strong id="info-metode" class="text-dark">QRIS</strong>
+                </div>
+            </div>
+        </section>
+
+        <div class="container my-4 pb-5 d-grid gap-3">
+            <a href="beranda.html" class="btn btn-outline-dark py-3 rounded-1 fw-bold" style="border-color: #0b1d33;">
+                Kembali ke Dashboard
+            </a>
+        </div>
+
+    </main>
+
+    <!-- Skrip JavaScript untuk Mengubah Data & Lingkaran Tahapan Berdasarkan ID -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Database tiruan (Mockup) untuk riwayat pesanan
+            const dataRiwayat = {
+                "1": {
+                    mobil: "Toyota Avanza",
+                    tanggal: "12-14 Okt 2026",
+                    layanan: "Lepas Kunci",
+                    penerimaan: "Diantar",
+                    total: "Rp 1.400.000",
+                    status: "Menunggu Pembayaran",
+                    metode: "QRIS",
+                    booking: "BK-ZN4X9K9",
+                    tahap: 1 // Tahap 1: Menunggu Pembayaran
+                },
+                "2": {
+                    mobil: "Honda BR-V",
+                    tanggal: "01-03 Okt 2026",
+                    layanan: "Dengan Sopir",
+                    penerimaan: "-",
+                    total: "Rp 1.860.000",
+                    status: "Pembayaran Berhasil",
+                    metode: "QRIS",
+                    booking: "BK-BRV8821",
+                    tahap: 2 // Tahap 2: Pembayaran Berhasil (Aktif)
+                },
+                "3": {
+                    mobil: "Toyota Innova",
+                    tanggal: "20-22 Sep 2026",
+                    layanan: "Lepas Kunci",
+                    penerimaan: "Ambil di garasi",
+                    total: "Rp 2.250.000",
+                    status: "Selesai",
+                    metode: "Tunai",
+                    booking: "BK-INV9930",
+                    tahap: 3 // Tahap 3: Selesai
+                }
+            };
+
+            // Tangkap parameter 'id' dari URL (contoh: detail-pesanan.html?id=2)
+            const params = new URLSearchParams(window.location.search);
+            const idPesanan = params.get('id') || "1"; // Default ke ID 1 jika kosong
+
+            const pesanan = dataRiwayat[idPesanan];
+
+            if (pesanan) {
+                // Masukkan data teks ke elemen HTML
+                document.getElementById('info-mobil').textContent = pesanan.mobil;
+                document.getElementById('info-tanggal').textContent = pesanan.tanggal;
+                document.getElementById('info-layanan').textContent = pesanan.layanan;
+                document.getElementById('info-penerimaan').textContent = pesanan.penerimaan;
+                document.getElementById('info-total').textContent = pesanan.total;
+                document.getElementById('info-status').textContent = pesanan.status;
+                document.getElementById('info-metode').textContent = pesanan.metode;
+                document.getElementById('info-booking').textContent = pesanan.booking;
+
+                // Atur logika tampilan bulatan/tahapan status pesanan
+                const img1 = document.getElementById('step-1-img');
+                const img2 = document.getElementById('step-2-img');
+                const img3 = document.getElementById('step-3-img');
+                const txt3 = document.getElementById('step-3-text');
+
+                const iconBiru = "../img/detail pesanan/bulat-biru.svg";
+                const iconPutih = "../img/detail pesanan/bulat-putih.svg";
+
+                if (pesanan.tahap === 1) {
+                    // Tahap 1: Menunggu Pembayaran
+                    img1.src = iconBiru;
+                    img2.src = iconPutih;
+                    img3.src = iconPutih;
+                } else if (pesanan.tahap === 2) {
+                    // Tahap 2: Pembayaran Berhasil
+                    img1.src = iconBiru;
+                    img2.src = iconBiru;
+                    img3.src = iconPutih;
+                } else if (pesanan.tahap === 3) {
+                    // Tahap 3: Selesai (Semua biru tercentang/penuh)
+                    img1.src = iconBiru;
+                    img2.src = iconBiru;
+                    img3.src = iconBiru;
+                    img3.classList.remove('border', 'border-secondary', 'rounded-circle');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

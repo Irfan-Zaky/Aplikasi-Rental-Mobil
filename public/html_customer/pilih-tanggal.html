@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pilih Tanggal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+
+<body class="m-0 p-0 min-vh-100" style="color: #0b1d33; background-color: #eef7fc;">
+    <nav class="navbar bg-white py-3 border-bottom">
+        <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
+            <!-- Tombol Kembali dinamis membawa ID mobil -->
+            <a id="btn-kembali" href="detail-mobil.html" aria-label="Kembali ke Detail Mobil" class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1" style="width: 40px; height: 40px; color: #0b1d33;">‹</a>
+            <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Pilih Tanggal</h2>
+        </div>
+    </nav>
+
+    <main class="d-flex flex-column gap-3 pb-5 mb-5">
+
+        <!-- Ringkasan Mobil -->
+        <section class="card rounded-4 border p-3 px-3 mt-3 shadow-sm bg-white">
+            <div class="d-flex align-items-center gap-3">
+                <img id="img-mobil" src="../img/foto-mobil-kecil.png" alt="Mobil" class="rounded-3 img-fluid object-fit-cover" style="width: 100px; height: 70px;" />
+                <div>
+                    <h6 id="nama-mobil" class="fw-bold mb-1 text-dark">Toyota Avanza</h6>
+                    <p id="kategori-mobil" class="text-muted small mb-1">MPV Keluarga • Otomatis • 7 Kursi</p>
+                    <span class="fw-bold text-dark small"><span id="harga-mobil" data-harga-asli="450000">Rp 450.000</span> <span class="text-muted fw-normal">/ hari</span></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Input Tanggal -->
+        <section class="row g-2 px-3" aria-label="Tanggal sewa">
+            <div class="col-6">
+                <label for="tanggal-mulai" class="form-label small text-muted fw-semibold">Tanggal Mulai</label>
+                <input type="date" id="tanggal-mulai" name="tanggal-mulai" class="form-control rounded-3 py-2 text-dark bg-white" value="2026-10-12" required />
+            </div>
+            <div class="col-6">
+                <label for="tanggal-selesai" class="form-label small text-muted fw-semibold">Tanggal Selesai</label>
+                <input type="date" id="tanggal-selesai" name="tanggal-selesai" class="form-control rounded-3 py-2 text-dark bg-white" value="2026-10-14" required />
+            </div>
+        </section>
+
+        <!-- Ringkasan Durasi & Biaya (Diberi ID agar dinamis) -->
+        <section class="card rounded-4 border px-3 p-3 shadow-sm bg-white" aria-label="Ringkasan sewa">
+            <div class="d-flex justify-content-between mb-2 px-3">
+                <span class="text-muted small">Durasi sewa</span>
+                <strong id="teks-durasi" class="fw-semibold text-dark small">3 hari</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center px-3">
+                <span class="text-muted small">Estimasi biaya</span>
+                <strong id="teks-estimasi" class="fw-bold text-dark">Rp 1.350.000</strong>
+            </div>
+        </section>
+
+        <!-- Form lanjut ke halaman ketersediaan -->
+        <form id="form-lanjut" action="ketersediaan-mobil.html" method="get">
+            <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
+                <div class="container p-0">
+                    <button type="submit" class="btn text-white w-100 py-3 rounded-1 fw-bold d-flex align-items-center justify-content-center gap-2" style="background-color: #0b1d33;"> Cek Ketersediaan
+                        <img src="../img/pilih tanggal/panah-kanan-bold.svg" alt="lanjut" width="18" height="18" />
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </main>
+
+    <!-- Script JavaScript untuk Logika Dinamis Mobil & Tanggal -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Database Mockup dengan nilai harga angka asli untuk perhitungan
+            const databaseMobil = {
+                "avanza": {
+                    nama: "Toyota Avanza",
+                    kategori: "MPV Keluarga · Otomatis · 7 Kursi",
+                    hargaTeks: "Rp 450.000",
+                    hargaAngka: 450000,
+                    gambar: "../img/Toyota-Avanza.jpeg"
+                },
+                "brv": {
+                    nama: "Honda BR-V",
+                    kategori: "SUV Keluarga · Otomatis · 7 Kursi",
+                    hargaTeks: "Rp 620.000",
+                    hargaAngka: 620000,
+                    gambar: "../img/Honda-BR-V.jpeg"
+                },
+                "innova": {
+                    nama: "Toyota Innova",
+                    kategori: "MPV Keluarga · Otomatis · 7 Kursi",
+                    hargaTeks: "Rp 750.000",
+                    hargaAngka: 750000,
+                    gambar: "../img/Toyota-Innova.jpeg"
+                },
+                "brio": {
+                    nama: "Honda Brio",
+                    kategori: "City Car · Otomatis · 5 Kursi",
+                    hargaTeks: "Rp 350.000",
+                    hargaAngka: 350000,
+                    gambar: "../img/Honda-Brio.jpeg"
+                },
+                "rush": {
+                    nama: "Toyota Rush",
+                    kategori: "SUV Keluarga · Otomatis · 7 Kursi",
+                    hargaTeks: "Rp 550.000",
+                    hargaAngka: 550000,
+                    gambar: "../img/Toyota-Rush.jpeg"
+                },
+                "ayla": {
+                    nama: "Daihatsu Ayla",
+                    kategori: "City Car · Otomatis · 5 Kursi",
+                    hargaTeks: "Rp 350.000",
+                    hargaAngka: 350000,
+                    gambar: "../img/Daihatsu-Ayla.jpeg"
+                }
+            };
+
+            // Ambil parameter id dari URL
+            const params = new URLSearchParams(window.location.search);
+            const idMobil = params.get('id');
+
+            // Harga default (kalau tidak ada id) diset ke Avanza
+            let hargaPerHari = 450000;
+
+            if (idMobil && databaseMobil[idMobil]) {
+                const data = databaseMobil[idMobil];
+
+                // Timpa teks, gambar, dan simpan harga angka asli
+                document.getElementById('nama-mobil').textContent = data.nama;
+                document.getElementById('kategori-mobil').textContent = data.kategori;
+                document.getElementById('harga-mobil').textContent = data.hargaTeks;
+                document.getElementById('img-mobil').src = data.gambar;
+
+                hargaPerHari = data.hargaAngka;
+
+                // Perbarui link tombol kembali dan form lanjut agar membawa id
+                document.getElementById('btn-kembali').href = `detail-mobil.html?id=${idMobil}`;
+                document.getElementById('form-lanjut').action = `ketersediaan-mobil.html?id=${idMobil}`;
+            }
+
+            // --- LOGIKA HITUNG DURASI DAN ESTIMASI BIAYA ---
+            const inputMulai = document.getElementById('tanggal-mulai');
+            const inputSelesai = document.getElementById('tanggal-selesai');
+            const teksDurasi = document.getElementById('teks-durasi');
+            const teksEstimasi = document.getElementById('teks-estimasi');
+
+            function hitungTotal() {
+                const tglMulai = new Date(inputMulai.value);
+                const tglSelesai = new Date(inputSelesai.value);
+
+                // Hitung selisih waktu dalam milidetik, lalu ubah jadi hari
+                const selisihWaktu = tglSelesai - tglMulai;
+                let durasiHari = Math.ceil(selisihWaktu / (1000 * 60 * 60 * 24));
+
+                // Minimal sewa 1 hari jika tanggal sama atau terbalik
+                if (isNaN(durasiHari) || durasiHari < 1) {
+                    durasiHari = 1;
+                }
+
+                // Hitung total biaya
+                const totalBiaya = durasiHari * hargaPerHari;
+
+                // Format ke Rupiah (contoh: Rp 1.350.000)
+                const formatRupiah = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    maximumFractionDigits: 0
+                }).format(totalBiaya);
+
+                // Tampilkan ke layar
+                teksDurasi.textContent = durasiHari + " hari";
+                teksEstimasi.textContent = formatRupiah;
+            }
+
+            // Jalankan perhitungan saat tanggal mulai atau selesai diubah oleh user
+            inputMulai.addEventListener('change', hitungTotal);
+            inputSelesai.addEventListener('change', hitungTotal);
+
+            // Jalankan sekali saat halaman pertama kali dimuat
+            hitungTotal();
+
+            // --- TAMBAHAN BARU: Simpan data ke localStorage saat klik "Cek Ketersediaan" ---
+            const formLanjut = document.getElementById('form-lanjut');
+            if (formLanjut) {
+                formLanjut.addEventListener('submit', function(e) {
+                    localStorage.setItem('sewa_mulai', inputMulai.value);
+                    localStorage.setItem('sewa_selesai', inputSelesai.value);
+                    localStorage.setItem('sewa_durasi', teksDurasi.textContent);
+                    localStorage.setItem('sewa_biaya', teksEstimasi.textContent);
+
+                    // 🟢 TAMBAHAN BARU: Simpan ID mobil ke localStorage
+                    if (idMobil) {
+                        localStorage.setItem('sewa_mobil_id', idMobil);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tambah Mobil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+</head>
+
+<body class="m-0 bg-light d-flex vh-100 overflow-hidden" style="color: #0b1d33 ">
+
+    <nav class="d-flex flex-column justify-content-between p-4 text-white flex-shrink-0" style="background-color: #0b1d33; width: 280px;">
+        <div>
+            <div class="d-flex align-items-center gap-3 mb-5">
+                <div class="rounded-circle d-flex justify-content-center align-items-center p-2" style="background: aliceblue; width: 50px; height: 50px;">
+                    <img src="../img_admin/data-mobil/gambar.svg" alt="Foto Admin" width="28" height="28" />
+                </div>
+                <div>
+                    <h6 class="m-0 text-white-50 small" style="color: white">Halo,</h6>
+                    <h5 class="m-0 fw-bold fs-6" style="color: white">Nama Admin</h5>
+                </div>
+            </div>
+
+            <ul class="nav flex-column gap-2">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link text-white d-flex align-items-center gap-3 py-2 px-3 rounded-pill" title="Beranda">
+                        <img src="../img_admin/data-mobil/home.svg" alt="" width="20" height="20" />
+                        <span style="color: #ff7a3d">Beranda</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="data-mobil.html" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2 px-2 rounded-pill" style="background-color: #ff7a3d;" title="Data Mobil">
+                        <img src="../img_admin/dashboard/icon-data-mobil.svg" alt="" width="20" height="20" />
+                        <span class="fw-medium" style="color: white">Data Mobil</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="transaksi.html" class="nav-link text-black-50 d-flex align-items-center gap-3 py-2 px-3 rounded-pill" title="Transaksi">
+                        <img src="../img_admin/data-mobil/icon-pesanan.svg" alt="" width="20" height="20" />
+                        <span style="color: #ff7a3d ">Pesanan</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="riwayat-transaksi.html" class="nav-link text-white-50 d-flex align-items-center gap-3 py-2 px-3 rounded-pill" title="Riwayat">
+                        <img src="../img_admin/data-mobil/icon-riwayat.svg" alt="" width="20" height="20" />
+                        <span style="color: #ff7a3d">Riwayat</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div>
+            <button type="button" class="btn text-white-50 d-flex align-items-center gap-3 p-0 border-0 bg-transparent">
+          <img src="../img_admin/data-mobil/log-out.svg" alt="" width="20" height="20" />
+          <span style="color: white">Log Out</span>
+        </button>
+        </div>
+    </nav>
+
+    <div class="flex-grow-1 overflow-y-auto p-4" style="background-color: aliceblue;">
+        <div class="container-fluid">
+
+            <header class="d-flex justify-content-between align-items-center mb-4" style="color:#0d1b2a">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div style="width: 16px; height: 3px; background-color: #ff7a3d;"></div>
+                        <span class="text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 1px; color:cornflowerblue">MANAJEMEN ARMADA</span>
+                    </div>
+                    <h2 class="fw-bold m-0 text-dark">Tambah Mobil</h2>
+                    <p class="text-muted m-0 small">Lengkapi profil kendaraan baru agar siap dipublikasi ke katalog penyewaan</p>
+                </div>
+
+                <div class="card border-0 shadow-sm px-3 py-2 rounded-pill" style="background-color: #0d1b2a;">
+                    <div class="d-flex align-items-center gap-2 text-white small fw-medium">
+                        <div class="rounded-circle bg-danger" style="width: 8px; height: 8px;"></div>
+                        <span style="color: white">OPERASIONAL ARMADA</span>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+
+                <div class="container py-4">
+                    <div class="row g-4 align-items-start">
+
+                        <div class="col-12 col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                                <label class="form-label fw-bold" style="color: #0b1d33;">Foto Mobil</label>
+
+                                <div id="preview-foto-profil" class="mb-3 d-none">
+                                    <img id="preview-foto-profil-img" src="" alt="Foto mobil" class="img-fluid rounded-4 object-fit-cover w-100 shadow-sm" style="height: 220px;" />
+                                </div>
+
+                                <div id="kotak-upload-foto" role="button" tabindex="0" class="w-100 bg-white rounded-4 p-4 text-center d-block" style="border: 2px dashed #a0aec0; cursor: pointer;">
+                                <img src="..\img_admin\tambah-mobil\upload-cloud.svg" alt="Upload Icon" class="mb-2" width="30" height="30" />
+                                <p class="text-dark small mb-0 fw-medium">Unggah foto mobil</p>
+                                <p class="text-muted small mb-0">Tarik file ke area ini atau pilih dari perangkat. JPG/PNG, maksimal 8 MB</p>
+                              </div>
+                                <div class="p-3 rounded-4 d-flex align-items-center gap-3 mt-3" style="background-color: #fff4ee; border-left: 4px solid #ff7a3d;">
+                                    <p class="mb-0 small" style="color: #5c6b73; font-weight: 500;">
+                                        Gunakan foto utama dengan kendaraan terlihat penuh. Semua kolom wajib diisi.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-8">
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+
+                                <form id="form-tambah" action="" method="post">
+                                    <header class="mb-4">
+                                        <h3 class="fw-bold text-dark">Informasi kendaraan</h3>
+                                        <p class="text-muted small mb-1">Terakhir diperbarui 28 September 2026 oleh Admin Operasional.</p>
+                                        <p class="text-secondary small fw-medium mb-0">Kode_Mobil.xxxxxx</p>
+                                    </header>
+
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-12 col-md-6">
+                                            <label for="merk" class="form-label fw-medium small text-dark">Merk</label>
+                                            <input type="text" name="merk" id="merk" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="" required />
+                                        </div>
+
+                                        <div class="col-12 col-md-6">
+                                            <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Mobil</label>
+                                            <input type="text" name="nama-mobil" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value=" " required />
+                                        </div>
+
+                                        <div class="col-12 col-md-6">
+                                            <label for="jenis" class="form-label fw-medium small text-dark">Jenis</label>
+                                            <select name="jenis" id="jenis" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm" required>
+                                        <option value="">Pilih Jenis</option>
+                                        <option value="MPV" selected>MPV</option>
+                                        <option value="SUV">SUV</option>
+                                        <option value="Hatchback">Hatchback</option>
+                                        <option value="Sedan">Sedan</option>
+                                    </select>
+                                        </div>
+
+                                        <div class="col-12 col-md-6">
+                                            <label for="status" class="form-label fw-medium small text-dark">Status</label>
+                                            <select name="status" id="status" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm" required>
+                                        <option value="">Pilih Status</option>
+                                        <option value="Tersedia" selected>Tersedia</option>
+                                        <option value="Disewa">Disewa</option>
+                                        <option value="Perbaikan">Perbaikan</option>
+                                        <option value="Nonaktif">Nonaktif</option>
+                                    </select>
+                                        </div>
+
+                                        <div class="col-12 col-md-6">
+                                            <label for="harga-sewa" class="form-label fw-medium small text-dark">Harga Sewa / hari</label>
+                                            <input type="text" name="harga-sewa" id="harga-sewa" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="Rp 525.000" required />
+                                        </div>
+
+                                        <div class="col-12 col-md-6">
+                                            <label for="plat-nomor" class="form-label fw-medium small text-dark">Nomor Polisi</label>
+                                            <input type="text" name="plat-nomor" id="plat-nomor" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="B 1842 KXZ" required />
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="spesifikasi" class="form-label fw-medium small text-dark">Spesifikasi</label>
+                                        <textarea name="spesifikasi" id="spesifikasi" class="form-control bg-light border-1 p-3 rounded-4 shadow-sm" rows="3" required>Otomatis, 7 penumpang, bensin, 2023, AC double blower, bagasi luas</textarea>
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button type="submit" class="btn text-white px-4 py-2 rounded-pill fw-medium shadow-sm" style="background-color: #ff7a3d; border: none;">Simpan Kendaraan</button>
+                                        <a href="data-mobil.html" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-medium text-dark shadow-sm bg-white text-decoration-none" style="border-color: #cbd5e1;">
+                                            Batal
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+
+    <!-- Modal unggah foto mobil start -->
+    <div class="modal fade" id="modalFotoMobil" tabindex="-1" aria-labelledby="modalFotoMobilLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 860px;">
+            <div class="modal-content border-0 rounded-4 shadow">
+
+                <div class="modal-header border-0 align-items-start px-4 pt-4 pb-3">
+                    <div>
+                        <h4 class="modal-title fw-bold" id="modalFotoMobilLabel" style="color: #0b1d33;">Unggah foto mobil</h4>
+                        <p class="text-muted small mb-0 mt-1">Tambahkan beberapa foto dan pilih satu sebagai foto utama.</p>
+                    </div>
+                    <button type="button" class="btn d-flex align-items-center justify-content-center rounded-3 border-0 flex-shrink-0" data-bs-dismiss="modal" aria-label="Tutup" style="width: 36px; height: 36px; background-color: #f4f7fa; color: #64748b; font-size: 20px; line-height: 1;">
+                        &times;
+                    </button>
+                </div>
+
+                <div style="height: 1px; background-color: #e9eef4;"></div>
+
+                <div class="modal-body px-4 py-4">
+
+                    <input type="file" id="input-foto-modal" class="d-none" accept="image/jpeg,image/png" multiple />
+
+                    <div id="dropzone-foto" class="d-flex flex-wrap align-items-center gap-3 p-3 rounded-4" style="border: 1.5px dashed #cbd5e1; background-color: #f8fafc; cursor: pointer;">
+                        <img src="../img_admin/tambah-mobil/upload-cloud.svg" alt="" width="52" height="52" class="flex-shrink-0" />
+                        <div class="flex-grow-1" style="min-width: 200px;">
+                            <p class="fw-semibold mb-1" style="color: #0b1d33; font-size: 14px;">Tarik foto ke sini atau pilih dari perangkat</p>
+                            <p class="text-muted small mb-0">Bisa pilih banyak file sekaligus.</p>
+                            <p class="text-muted small mb-0">JPG atau PNG. Maks. 8 MB per foto</p>
+                        </div>
+                        <button type="button" id="btn-tambah-foto" class="btn bg-white rounded-3 px-3 py-2 fw-semibold small flex-shrink-0" style="border: 1px solid #dbe3ec; color: #0b1d33;">
+                            + Tambah foto
+                        </button>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 mt-4 mb-3">
+                        <h6 class="fw-bold m-0" style="color: #0b1d33;">Foto dipilih</h6>
+                        <span class="badge rounded-pill fw-medium" id="jumlah-foto" style="background-color: #eef2f7; color: #64748b; font-size: 12px; padding: 8px 14px;">0 foto</span>
+                    </div>
+
+                    <div class="row g-3" id="daftar-foto"></div>
+
+                    <div class="d-flex align-items-start gap-2 mt-4 p-3 rounded-4" style="background-color: #fff4ee;">
+                        <svg class="flex-shrink-0 mt-1" width="15" height="15" viewBox="0 0 24 24" fill="#ff7a3d" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        <p class="small mb-0" style="color: #5c6b73;">
+                            Foto berbintang akan muncul di card profil mobil.<br />
+                            Anda masih bisa menambah foto sebelum menekan Save.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="height: 1px; background-color: #e9eef4;"></div>
+
+                <div class="modal-footer border-0 d-flex flex-wrap justify-content-between align-items-center gap-2 px-4 py-3">
+                    <p class="small text-muted m-0" id="status-foto">Belum ada foto dipilih</p>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn bg-white px-4 py-2 rounded-3 fw-semibold" data-bs-dismiss="modal" style="border: 1px solid #dbe3ec; color: #0b1d33;">Cancel</button>
+                        <button type="button" id="btn-simpan-foto" class="btn px-4 py-2 rounded-3 fw-semibold text-white" style="background-color: #ff7a3d; border: none;">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal unggah foto mobil end -->
+
+    <!-- link scrip js bostrap  -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+    <!-- script js manual -->
+    <script src="js/mobil-store.js"></script>
+    <script src="js/modal-foto-mobil.js"></script>
+    <script src="js/tambah-mobil.js"></script>
+
+</body>
+
+
+
+</html>

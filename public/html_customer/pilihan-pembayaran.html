@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pilihan Pembayaran</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+
+
+<body class="m-0 p-0 min-vh-100" style="color: #0b1d33; background-color: #eef7fc;">
+    <nav class="navbar bg-white py-3 mb-3 border-bottom">
+        <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
+            <a href="ringkasan-pemesanan.html" aria-label="Kembali ke ringkasan" class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1" style="width: 40px; height: 40px; color: #0b1d33;">‹</a>
+            <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Pembayaran</h2>
+        </div>
+    </nav>
+
+    <main>
+        <section class="card rounded-4 border p-4 shadow-sm mx-auto" style="max-width: 450px;">
+            <h6 class="fw-bold mb-3 text-dark">Detail Pesanan</h6>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Mobil</span>
+                <strong id="bayar-mobil" class="fw-semibold text-dark">Toyota Avanza</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Tanggal</span>
+                <strong id="bayar-tanggal" class="fw-semibold text-dark">12-14 Okt 2026</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Layanan</span>
+                <strong id="bayar-layanan" class="fw-semibold text-dark">Lepas Kunci</strong>
+            </div>
+
+            <hr class="my-3 text-muted opacity-25">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <strong class="fw-bold text-dark">Total Pembayaran</strong>
+                <strong id="bayar-total" class="fw-bold text-dark">Rp 1.400.000</strong>
+            </div>
+        </section>
+
+        <section>
+            <form id="formPembayaran" method="get">
+                <h3 class="fw-bold text-dark mb-3 px-3">Pilih metode pembayaran</h3>
+
+                <main class="mb-5 pb-5">
+
+                    <div class="d-flex flex-column gap-3 px-3">
+                        <div class="card p-3 rounded-4 shadow-sm border position-relative">
+                            <div class="d-flex align-items-center justify-content-between">
+
+                                <label class="stretched-link d-flex align-items-center gap-3 text-decoration-none" for="qris">
+                                    <div class="p-2 rounded-circle bg-warning bg-opacity-10">
+                                        <img src="../img/option-bayar/qr-code.svg" alt="" width="24" height="24" />
+                                    </div>
+                                    <div>
+                                        <strong class="d-block fs-6 text-dark">QRIS</strong>
+                                        <small class="text-muted">Scan QR, pembayaran diverifikasi otomatis. Berlaku 10 menit.</small>
+                                    </div>
+                                 </label>
+
+                                <div class="form-check z-index-2">
+                                    <input class="form-check-input fs-5 cursor-pointer" type="radio" name="pembayaran" id="qris" value="qris" checked required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-3 rounded-4 shadow-sm border position-relative">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <label class="stretched-link d-flex align-items-center gap-3 text-decoration-none" for="tunai">
+                                    <div class="p-2 rounded-circle bg-secondary bg-opacity-10">
+                                        <img src="../img/option-bayar/tunai.svg" alt="" width="24" height="24" />
+                                    </div>
+
+                                    <div>
+                                        <strong class="d-block fs-6 text-dark">Tunai</strong>
+                                        <small class="text-muted"> Bayar di garasi dengan kode pembayaran. Berlaku 3 jam.</small>
+                                    </div>
+                                </label>
+
+                                <div class="form-check z-index-2">
+                                    <input class="form-check-input fs-5 cursor-pointer" type="radio" name="pembayaran" id="tunai" value="tunai">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert bg-warning bg-opacity-10 border-0 rounded-4 p-3 mt-3 d-flex align-items-center gap-3 w-100" role="alert">
+                        <img src="../img/option-bayar/info.svg" alt="info" width="22" height="22" class="flex-shrink-0" />
+                        <p class="mb-0 text-warning-emphasis small fw-medium">
+                            Pesanan dikonfirmasi setelah pembayaran berhasil diverifikasi.
+                        </p>
+                    </div>
+                    <div class="container p-0">
+                        <button type="submit" class="btn text-white w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2" style="background-color: #0b1d33;"> Lanjut 
+                  <img src="../img/option-bayar/lanjutkn.svg" alt="lanjut" width="18" height="18" />
+                </button>
+                    </div>
+                    </div>
+            </form>
+        </section>
+
+        </main>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const databaseMobil = {
+                    "avanza": "Toyota Avanza",
+                    "brv": "Honda BR-V",
+                    "innova": "Toyota Innova",
+                    "brio": "Honda Brio",
+                    "rush": "Toyota Rush",
+                    "ayla": "Daihatsu Ayla"
+                };
+
+                // Ambil data dari LocalStorage
+                const idMobil = localStorage.getItem('sewa_mobil_id') || 'avanza';
+                const tglMulai = localStorage.getItem('sewa_mulai');
+                const tglSelesai = localStorage.getItem('sewa_selesai');
+                const layanan = localStorage.getItem('sewa_tipe_layanan') || "Lepas Kunci";
+                const totalBiaya = localStorage.getItem('sewa_total_biaya_akhir') || "Rp 0";
+
+                // Timpa teks HTML berdasarkan ID tanpa merusak desain
+                if (databaseMobil[idMobil]) {
+                    document.getElementById('bayar-mobil').textContent = databaseMobil[idMobil];
+                }
+                document.getElementById('bayar-layanan').textContent = layanan;
+                document.getElementById('bayar-total').textContent = totalBiaya;
+
+                if (tglMulai && tglSelesai) {
+                    const t1 = new Date(tglMulai).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short'
+                    });
+                    const t2 = new Date(tglSelesai).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                    document.getElementById('bayar-tanggal').textContent = `${t1} - ${t2}`;
+                }
+            });
+
+            document.getElementById('formPembayaran').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const selectedMethod = document.querySelector('input[name="pembayaran"]:checked');
+
+                if (selectedMethod) {
+                    const value = selectedMethod.value;
+                    if (value === 'qris') {
+                        window.location.href = 'pembayaran-QRIS.html';
+                    } else if (value === 'tunai') {
+                        window.location.href = 'pembayaran-tunai.html';
+                    }
+                } else {
+                    alert('Silakan pilih metode pembayaran terlebih dahulu!');
+                }
+            });
+        </script>
+</body>
+
+</html>

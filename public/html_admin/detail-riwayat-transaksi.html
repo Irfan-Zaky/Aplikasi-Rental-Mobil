@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Riwayat Transaksi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+
+<body class="m-0 bg-light d-flex vh-100 overflow-hidden" style="color: #0b1d33">
+    <nav class="d-flex flex-column justify-content-between p-4 text-white flex-shrink-0" style="background-color: #0b1d33; width: 280px;">
+        <div>
+            <div class="d-flex align-items-center gap-3 mb-5">
+                <div class="rounded-circle d-flex justify-content-center align-items-center p-2" style="background: aliceblue; width: 50px; height: 50px;">
+                    <img src="../img_admin/data-mobil/gambar.svg" alt="Foto Admin" width="28" height="28" />
+                </div>
+                <div>
+                    <h6 class="m-0 text-white-50 small" style="color: white">Halo,</h6>
+                    <h5 class="m-0 fw-bold fs-6" style="color: white">Nama Admin</h5>
+                </div>
+            </div>
+
+            <ul class="nav flex-column gap-2">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link text-white d-flex align-items-center gap-3 py-2 px-3 rounded-pill" title="Beranda">
+                        <img src="../img_admin/data-mobil/home.svg" alt="" width="20" height="20" />
+                        <span style="color: #ff7a3d">Beranda</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="data-mobil.html" class="nav-link text-white d-flex align-items-center gap-3 py-2 px-3 rounded-pill" title="Data Mobil">
+                        <img src="../img_admin/dashboard/icon-data-mobil.svg" alt="" width="20" height="20" />
+                        <span style="color: #ff7a3d ">Data Mobil</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="transaksi.html" class="nav-link text-black-50 d-flex align-items-center gap-3 py-2 px-3 rounded-pill" title="Transaksi">
+                        <img src="../img_admin/data-mobil/icon-pesanan.svg" alt="" width="20" height="20" />
+                        <span style="color: #ff7a3d">Pesanan</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="riwayat-transaksi.html" class="nav-link text-white d-flex align-items-center gap-2 py-2 px-2 rounded-pill" style="background-color: #ff7a3d;" title="Riwayat">
+                        <img src="../img_admin/data-mobil/icon-riwayat.svg" alt="" width="20" height="20" />
+                        <span class="fw-medium" style="color: white">Riwayat</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div>
+            <button type="button" class="btn text-white-50 d-flex align-items-center gap-3 p-0 border-0 bg-transparent">
+          <img src="../img_admin/data-mobil/log-out.svg" alt="" width="20" height="20" />
+          <span style="color: white">Log Out</span>
+        </button>
+        </div>
+    </nav>
+
+    <div class="flex-grow-1 overflow-y-auto p-4" style="background-color: aliceblue;">
+        <div class="container-fluid">
+            <header class="d-flex justify-content-between align-items-center mb-4" style="color:#0d1b2a">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div style="width: 16px; height: 3px; background-color: #ff7a3d;"></div>
+                        <span class="text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 1px; color:cornflowerblue">ARSIP SELESAI</span>
+                    </div>
+                    <h2 class="fw-bold m-0 text-dark">Detail Riwayat Transaksi</h2>
+                    <p class="text-muted m-0 small">Rekam lengkap transaksi, pembayaran, dan perubahan status untuk referensi operasional</p>
+                </div>
+
+                <div class="card border-0 shadow-sm px-3 py-2 rounded-pill" style="background-color: #0d1b2a;">
+                    <div class="d-flex align-items-center gap-2 text-white small fw-medium">
+                        <div class="rounded-circle bg-danger" style="width: 8px; height: 8px;"></div>
+                        <span style="color: white">OPERASIONAL ARMADA</span>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <div class="container py-4">
+                    <div class="row g-4 align-items-start">
+                        <!-- Kolom Kiri: Data Transaksi -->
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                                <h4 class="fw-bold mb-4">Data Transaksi</h4>
+                                <ul class="list-unstyled mb-4">
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Nama customer</span>
+                                        <strong id="detail-nama">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Mobil</span>
+                                        <strong id="detail-mobil">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Tanggal</span>
+                                        <strong id="detail-tgl">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Durasi</span>
+                                        <strong id="detail-durasi">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Layanan</span>
+                                        <strong id="detail-layanan">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Penerimaan</span>
+                                        <strong id="detail-penerimaan">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Status pesanan</span>
+                                        <span id="detail-status" class="badge px-3 py-2 rounded-pill">Memuat...</span>
+                                    </li>
+                                </ul>
+                                <div class="d-flex justify-content-between align-items-center pt-2">
+                                    <strong class="fw-bold">Kode Booking</strong>
+                                    <span id="detail-kode" class="badge border bg-light px-3 py-2 rounded-pill" style="border-color: #ff7a00 !important; color: #ff7a00 !important;">Memuat...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                                <h4 class="fw-bold mb-4">Pembayaran & Status</h4>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Metode</span>
+                                        <strong id="detail-metode">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Harga/hari</span>
+                                        <strong id="detail-harga-hari">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Subtotal sewa</span>
+                                        <strong id="detail-subtotal">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Biaya tambahan</span>
+                                        <strong id="detail-biaya-tambahan">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Denda keterlambatan</span>
+                                        <strong id="detail-denda">Rp 0</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center py-2">
+                                        <span class="text-muted">Total pembayaran</span>
+                                        <strong id="detail-total">Memuat...</strong>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center pt-3">
+                                        <span class="text-muted">Status pembayaran</span>
+                                        <span id="detail-status-bayar" class="badge px-3 py-2 rounded-pill">Memuat...</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+
+                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                            <h4 class="fw-bold mb-4">Riwayat Status</h4>
+                            <div class="row g-3">
+
+                                <div class="col-md-3">
+                                    <div class="card border border-secondary-subtle shadow-sm rounded-3 p-3 h-100 bg-white">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <img src="../img_admin/detail-riwayat-transaksi/check.svg" alt="" width="20" />
+                                            <h6 class="fw-bold mb-0" style="font-size: 14px;">Menunggu Pembayaran</h6>
+                                        </div>
+                                        <div>
+                                            <p class="text-primary small mb-1 fw-semibold" style="font-size: 12px;">05 Okt 2026 · 09.10 WIB</p>
+                                            <small class="text-muted" style="font-size: 11px;">Pesanan dibuat melalui aplikasi</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="card border border-secondary-subtle shadow-sm rounded-3 p-3 h-100 bg-white">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <img src="../img_admin/detail-riwayat-transaksi/check.svg" alt="" width="20" />
+                                            <h6 class="fw-bold mb-0" style="font-size: 14px;">Pembayaran Berhasil</h6>
+                                        </div>
+                                        <div>
+                                            <p class="text-primary small mb-1 fw-semibold" style="font-size: 12px;">05 Okt 2026 · 09.14 WIB</p>
+                                            <small class="text-muted" style="font-size: 11px;">QRIS diverifikasi otomatis</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="card border border-secondary-subtle shadow-sm rounded-3 p-3 h-100 bg-white">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <img src="../img_admin/detail-riwayat-transaksi/check.svg" alt="" width="20" />
+                                            <h6 class="fw-bold mb-0" style="font-size: 14px;">Kendaraan Diserahkan</h6>
+                                        </div>
+                                        <div>
+                                            <p class="text-primary small mb-1 fw-semibold" style="font-size: 12px;">05 Okt 2026 · 08.02 WIB</p>
+                                            <small class="text-muted" style="font-size: 11px;">Serah terima oleh petugas</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="card shadow-sm rounded-3 p-3 h-100" style="background-color: #f0fdf4; border: 1px solid #22c55e;">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <img src="../img_admin/detail-riwayat-transaksi/check.svg" alt="" width="20" />
+                                            <h6 class="fw-bold mb-0 text-success" style="font-size: 14px;">Selesai</h6>
+                                        </div>
+                                        <div>
+                                            <p class="text-success small mb-1 fw-semibold" style="font-size: 12px;">08 Okt 2026 · 16.30 WIB</p>
+                                            <small class="text-muted" style="font-size: 11px;">Kendaraan diterima tanpa kerusakan</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <a href="riwayat-transaksi.html" class="btn btn-outline-warning px-4 py-2 rounded-3 fw-medium shadow-sm bg-light-subtle text-decoration-none" style="border-color: #ff7a00; color:#ff7a00">
+                                Kembali
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Tangkap ID dari URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const idPesanan = urlParams.get('id');
+
+            // 2. Cari data pesanan di localStorage
+            let riwayatPesanan = JSON.parse(localStorage.getItem('dbRiwayatPesanan')) || [];
+            const pesanan = riwayatPesanan.find(p => p.id === idPesanan);
+
+            // 3. Timpa teks HTML dengan data asli jika pesanan ditemukan
+            if (pesanan) {
+                // Data Transaksi
+                document.getElementById('detail-nama').textContent = pesanan.nama_customer;
+                document.getElementById('detail-mobil').textContent = pesanan.nama_mobil;
+                document.getElementById('detail-tgl').textContent = pesanan.tgl_sewa;
+                document.getElementById('detail-kode').textContent = pesanan.kode;
+
+                // Menangani data tambahan yang ada di localStorage tapi tidak tersimpan di dbRiwayatPesanan awal
+                document.getElementById('detail-durasi').textContent = localStorage.getItem('sewa_durasi') || "4 Hari";
+                document.getElementById('detail-layanan').textContent = localStorage.getItem('sewa_tipe_layanan') || "Lepas Kunci";
+                document.getElementById('detail-penerimaan').textContent = localStorage.getItem('sewa_penerimaan') || "Diantar";
+
+                // Pembayaran
+                document.getElementById('detail-metode').textContent = "QRIS"; // Default simulasi
+                document.getElementById('detail-harga-hari').textContent = localStorage.getItem('sewa_biaya') || "Rp 0";
+
+                // Kalkulasi Subtotal (Sewa Dasar tanpa Biaya Tambahan)
+                const biayaSewa = localStorage.getItem('sewa_biaya') || "Rp 0";
+                const angkaSewa = parseInt(biayaSewa.replace(/[^0-9]/g, '')) || 0;
+                const durasiAngka = parseInt(localStorage.getItem('sewa_durasi')) || 1;
+                const subtotal = angkaSewa * durasiAngka;
+
+                document.getElementById('detail-subtotal').textContent = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    maximumFractionDigits: 0
+                }).format(subtotal);
+
+                const biayaTambahan = parseInt(localStorage.getItem('sewa_biaya_tambahan')) || 0;
+                document.getElementById('detail-biaya-tambahan').textContent = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    maximumFractionDigits: 0
+                }).format(biayaTambahan);
+
+                document.getElementById('detail-total').textContent = pesanan.total_biaya;
+
+                // Status Pesanan (Badge Styling)
+                const statusBadge = document.getElementById('detail-status');
+                statusBadge.textContent = pesanan.status;
+                if (pesanan.status === "Selesai") {
+                    statusBadge.className = "badge bg-light text-success border border-success px-3 py-2 rounded-pill";
+                } else if (pesanan.status === "Dibatalkan") {
+                    statusBadge.className = "badge bg-light text-danger border border-danger px-3 py-2 rounded-pill";
+                } else {
+                    statusBadge.className = "badge bg-light text-secondary border px-3 py-2 rounded-pill";
+                }
+
+                // Status Pembayaran (Badge Styling)
+                const bayarBadge = document.getElementById('detail-status-bayar');
+                if (pesanan.status === "Menunggu") {
+                    bayarBadge.textContent = "Menunggu";
+                    bayarBadge.className = "badge bg-light text-warning border border-warning px-3 py-2 rounded-pill";
+                } else {
+                    bayarBadge.textContent = "Berhasil";
+                    bayarBadge.className = "badge bg-light text-success border border-success-subtle px-3 py-2 rounded-pill";
+                }
+            } else {
+                alert("Data pesanan tidak ditemukan.");
+            }
+        });
+    </script>
+
+</body>
+
+</html>

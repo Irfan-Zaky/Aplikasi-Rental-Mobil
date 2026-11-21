@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Katalog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- 🟢 TAMBAHAN: Link CSS untuk Kalender Pop-up Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+</head>
+
+<body class="m-0 p-0 min-vh-100" style="color: #0b1d33; background-color: #eef7fc;">
+    <nav class="navbar px-3 w-100 " style="background-color: white ">
+        <div class="container-fluid px-2 ">
+            <div class="w-100 px-3 py-1 d-flex align-items-center ">
+                <h1 class="fw-bold m-0 fs-3 " style="color: #0b1d33">Katalog Mobil</h1>
+            </div>
+        </div>
+    </nav>
+
+    <main class="overflow-hidden">
+        <section class="py-4">
+            <div class="container">
+                <div class="row justify-content-between">
+                    <div class="col-12 col-md-8 col-lg-6">
+                        <div class="p-3 rounded-4 border-0" style="background-color: white; max-width: 480px;">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-calendar-event text-primary fs-5"></i>
+                                    <h2 class="h6 fw-bold mb-0 text-dark">Tanggal sewa</h2>
+                                </div>
+
+                                <!-- 🟢 TAMBAHAN: Mengubah href="tanggal" menjadi ID khusus dan memberi input tersembunyi -->
+                                <button id="btn-ubah-tanggal" type="button" class="btn btn-link p-0 text-primary fw-bold text-decoration-none small fs-6">Ubah</button>
+                                <input type="text" id="jangkar-kalender" class="d-none">
+
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-white rounded-3 p-3 flex-fill">
+                                    <p class="text-secondary small mb-1">Mulai</p>
+
+                                    <!-- 🟢 TAMBAHAN: Memberi ID agar tanggalnya bisa diganti oleh JS -->
+                                    <p id="teks-tgl-mulai" class="fw-bold text-dark mb-0">12 Okt 2026</p>
+                                </div>
+                                <i class="bi bi-arrow-right text-primary fs-5 px-1"></i>
+                                <div class="bg-white rounded-3 p-3 flex-fill">
+                                    <p class="text-secondary small mb-1">Selesai</p>
+
+                                    <!-- 🟢 TAMBAHAN: Memberi ID agar tanggalnya bisa diganti oleh JS -->
+                                    <p id="teks-tgl-selesai" class="fw-bold text-dark mb-0">14 Okt 2026</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center my-3 gap-2 overflow-x-auto text-nowrap pb-2">
+                    <button id="btn-semua" type="button" class="btn btn-dark rounded-pill px-4 py-2 fw-medium">Semua</button>
+                    <button id="btn-jenis" type="button" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-medium bg-white">Jenis</button>
+                    <button id="btn-merk" type="button" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-medium bg-white">Merk</button>
+                    <button id="btn-harga" type="button" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-medium bg-white">Harga</button>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center my-3">
+                    <h2 class="fw-bold m-0 fs-5 text-dark">Mobil Tersedia</h2>
+                    <p id="jumlah-mobil" class="text-secondary small mb-1">6 mobil</p>
+                </div>
+
+                <div id="daftar-mobil">
+                    <article class="card border-0 rounded-4 shadow-sm p-3 mb-3 bg-white item-mobil" data-merk="Toyota" data-jenis="MPV" data-harga="450000">
+                        <!-- 🟢 TAMBAHAN: Menambahkan ?id=avanza pada href -->
+                        <a href="detail-mobil.html?id=avanza" class="text-decoration-none text-dark d-flex align-items-center gap-3">
+                            <img src="../img/Toyota-Avanza.jpeg" alt="Toyota Avanza" class="rounded-3 object-fit-cover" style="width: 110px; height: 80px;" />
+                            <div class="flex-grow-1">
+                                <h3 class="h6 fw-bold mb-1" style="color: #0b1d33;">Toyota Avanza</h3>
+                                <p class="text-secondary small mb-2" style="color: #0b1d33;">MPV Keluarga · Otomatis · 7 Kursi</p>
+                                <p class="fw-bold mb-2" style="color: #0b1d33;">Rp 450.000 / hari</p>
+                                <span class="badge rounded-pill bg-success-subtle text-success fw-medium px-3 py-1">Tersedia</span>
+                            </div>
+                            <img src="../img/katalog mobil/panah-kanan-bold.svg " alt=" " />
+                        </a>
+                    </article>
+
+                    <article class="card border-0 rounded-4 shadow-sm p-3 mb-3 bg-white item-mobil" data-merk="Honda" data-jenis="SUV" data-harga="620000">
+                        <!-- 🟢 TAMBAHAN: Menambahkan ?id=brv pada href -->
+                        <a href="detail-mobil.html?id=brv" class="text-decoration-none text-dark d-flex align-items-center gap-3">
+                            <img src="../img/Honda-BR-V.jpeg " alt="Honda BR-V " class="rounded-3 object-fit-contain" style="width: 110px; height: 80px;" />
+                            <div class="flex-grow-1">
+                                <h3 class="h6 fw-bold mb-1" style="color: #0b1d33;">Honda BR-V</h3>
+                                <p class="text-secondary small mb-2" style="color: #0b1d33;">SUV Keluarga · Otomatis · 7 Kursi</p>
+                                <p class="fw-bold mb-2" style="color: #0b1d33;">Rp 620.000 / hari</p>
+                                <span class="badge rounded-pill bg-success-subtle text-success fw-medium px-3 py-1">Tersedia</span>
+                            </div>
+                            <img src="../img/katalog mobil/panah-kanan-bold.svg " alt=" " />
+                        </a>
+                    </article>
+
+                    <article class="card border-0 rounded-4 shadow-sm p-3 mb-3 bg-white item-mobil" data-merk="Toyota" data-jenis="MPV" data-harga="750000">
+                        <!-- 🟢 TAMBAHAN: Menambahkan ?id=innova pada href -->
+                        <a href="detail-mobil.html?id=innova" class="text-decoration-none text-dark d-flex align-items-center gap-3">
+                            <img src="../img/Toyota-Innova.jpeg " alt="Toyota Innova " class="rounded-3 object-fit-contain" style="width: 110px; height: 80px;" />
+                            <div class="flex-grow-1">
+                                <h3 class="h6 fw-bold mb-1" style="color: #0b1d33;">Toyota Innova</h3>
+                                <p class="text-secondary small mb-2" style="color: #0b1d33;">MPV Keluarga · Otomatis · 7 Kursi</p>
+                                <p class="fw-bold mb-2" style="color: #0b1d33;">Rp 750.000 / hari</p>
+                                <span class="badge rounded-pill bg-success-subtle text-success fw-medium px-3 py-1">Tersedia</span>
+                            </div>
+                            <img src="../img/katalog mobil/panah-kanan-bold.svg " alt=" " />
+                        </a>
+                    </article>
+
+                    <article class="card border-0 rounded-4 shadow-sm p-3 mb-3 bg-white item-mobil" data-merk="Honda" data-jenis="City Car" data-harga="350000">
+                        <!-- 🟢 TAMBAHAN: Menambahkan ?id=brio pada href -->
+                        <a href="detail-mobil.html?id=brio" class="text-decoration-none text-dark d-flex align-items-center gap-3">
+                            <img src="../img/Honda-Brio.jpeg " alt="Honda Brio" class="rounded-3 object-fit-contain" style="width: 110px; height: 80px;" />
+                            <div class="flex-grow-1">
+                                <h3 class="h6 fw-bold mb-1" style="color: #0b1d33;">Honda Brio</h3>
+                                <p class="text-secondary small mb-2" style="color: #0b1d33;">City Car · Otomatis · 5 Kursi</p>
+                                <p class="fw-bold mb-2" style="color: #0b1d33;">Rp 350.000 / hari</p>
+                                <span class="badge rounded-pill bg-success-subtle text-success fw-medium px-3 py-1">Tersedia</span>
+                            </div>
+                            <img src="../img/katalog mobil/panah-kanan-bold.svg " alt=" " />
+                        </a>
+                    </article>
+
+                    <article class="card border-0 rounded-4 shadow-sm p-3 mb-3 bg-white item-mobil" data-merk="Toyota" data-jenis="SUV" data-harga="550000">
+                        <!-- 🟢 TAMBAHAN: Menambahkan ?id=rush pada href -->
+                        <a href="detail-mobil.html?id=rush" class="text-decoration-none text-dark d-flex align-items-center gap-3">
+                            <img src="../img/Toyota-Rush.jpeg " alt="Toyota Rush" class="rounded-3 object-fit-contain" style="width: 110px; height: 80px;" />
+                            <div class="flex-grow-1">
+                                <h3 class="h6 fw-bold mb-1" style="color: #0b1d33;">Toyota Rush</h3>
+                                <p class="text-secondary small mb-2" style="color: #0b1d33;">SUV Keluarga · Otomatis · 7 Kursi</p>
+                                <p class="fw-bold mb-2" style="color: #0b1d33;">Rp 550.000 / hari</p>
+                                <span class="badge rounded-pill bg-success-subtle text-success fw-medium px-3 py-1">Tersedia</span>
+                            </div>
+                            <img src="../img/katalog mobil/panah-kanan-bold.svg " alt=" " />
+                        </a>
+                    </article>
+
+                    <article class="card border-0 rounded-4 shadow-sm p-3 mb-3 bg-white item-mobil" data-merk="Daihatsu" data-jenis="City Car" data-harga="350000">
+                        <!-- 🟢 TAMBAHAN: Menambahkan ?id=ayla pada href -->
+                        <a href="detail-mobil.html?id=ayla" class="text-decoration-none text-dark d-flex align-items-center gap-3">
+                            <img src="../img//Daihatsu-Ayla.jpeg " alt="Daihatsu Ayla" class="rounded-3 object-fit-contain" style="width: 110px; height: 80px;" />
+                            <div class="flex-grow-1">
+                                <h3 class="h6 fw-bold mb-1" style="color: #0b1d33;">Daihatsu Ayla</h3>
+                                <p class="text-secondary small mb-2" style="color: #0b1d33;">City Car · Otomatis · 5 Kursi</p>
+                                <p class="fw-bold mb-2" style="color: #0b1d33;">Rp 350.000 / hari</p>
+                                <span class="badge rounded-pill bg-success-subtle text-success fw-medium px-3 py-1">Tersedia</span>
+                            </div>
+                            <img src="../img/katalog mobil/panah-kanan-bold.svg " alt=" " />
+                        </a>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div style="height: 100px; background-color: aliceblue"></div>
+
+    <nav class="navbar fixed-bottom bg-white border-top py-2 px-3 shadow-sm">
+        <div class="container-fluid d-flex justify-content-around align-items-center">
+            <a href="beranda.html" aria-label="Menuju beranda" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
+                <img src="../img/katalog mobil/rumah-biru.svg" alt="Beranda" style="width: 22px; height: 22px; opacity: 0.6;" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Beranda</span>
+            </a>
+            <a href="katalog.html" aria-label="Menuju katalog" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3 rounded-pill" style="background-color: rgba(255, 107, 53, 0.12);">
+                <img src="../img/katalog mobil/logo-mobil-oren.svg" alt="Katalog" style="width: 22px; height: 22px;filter: invert(41%) sepia(85%) saturate(1436%) hue-rotate(338deg) brightness(101%) contrast(97%);" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Katalog</span>
+            </a>
+            <a href="riwayat.html" aria-label="Menuju riwayat" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
+                <img src="../img/katalog mobil/jam.svg" alt="Riwayat" style="width: 22px; height: 22px; opacity: 0.6;" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Riwayat</span>
+            </a>
+            <a href="profil.html" aria-label="Menuju profil" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
+                <img src="../img/katalog mobil/user.svg" alt="Profil" style="width: 22px; height: 22px; opacity: 0.6;" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Profil</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- 🟢 TAMBAHAN: Memanggil Mesin JS Kalender Flatpickr dari luar -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Script JavaScript Bawaan -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // ==========================================
+            // BAGIAN 1: LOGIKA KALENDER POP-UP
+            // ==========================================
+
+            const teksMulai = document.getElementById('teks-tgl-mulai');
+            const teksSelesai = document.getElementById('teks-tgl-selesai');
+
+            // Pengaturan Kalender Pintar
+            const kalenderSewa = flatpickr("#jangkar-kalender", {
+                mode: "range", // Fitur rentang waktu
+                minDate: "today", // Cegah pilih tanggal yang sudah lewat
+                dateFormat: "d M Y", // Format sesuai desain (Contoh: 12 Okt 2026)
+                showMonths: 1,
+                onClose: function(selectedDates, dateStr, instance) {
+                    // Ketika pop-up kalender ditutup
+                    if (selectedDates.length === 2) {
+                        // Ambil dan ubah format tanggal Mulai & Selesai
+                        const tglMulai = instance.formatDate(selectedDates[0], "d M Y");
+                        const tglSelesai = instance.formatDate(selectedDates[1], "d M Y");
+
+                        // Timpa tulisan di layar
+                        teksMulai.textContent = tglMulai;
+                        teksSelesai.textContent = tglSelesai;
+
+                    } else if (selectedDates.length === 1) {
+                        alert("Pilih tanggal selesai juga ya!");
+                    }
+                }
+            });
+
+            // Menyambungkan tombol "Ubah" agar memunculkan kalender
+            document.getElementById('btn-ubah-tanggal').addEventListener('click', function(e) {
+                kalenderSewa.open(); // Membuka pop-up kalender
+            });
+
+
+            // ==========================================
+            // BAGIAN 2: LOGIKA TAMPIL KENDARAAN (DARI ADMIN) & FILTER
+            // ==========================================
+
+            const wadahKatalog = document.getElementById('daftar-mobil');
+            const teksJumlah = document.getElementById('jumlah-mobil');
+
+            // 1. Ambil data dari localStorage (Database Sementara dari Admin)
+            let dbMobil = JSON.parse(localStorage.getItem('dbMobil')) || [];
+
+            // Filter hanya mobil yang berstatus "Tersedia"
+            let mobilTersedia = dbMobil.filter(mobil => mobil.status === 'Tersedia');
+
+            // Fungsi untuk mencetak card ke layar
+            function renderKatalog(dataArray) {
+                wadahKatalog.innerHTML = ''; // Kosongkan dulu layar
+                teksJumlah.textContent = dataArray.length + " mobil";
+
+                dataArray.forEach(mobil => {
+                    const cardHtml = `
+                    <article class="card border-0 rounded-4 shadow-sm p-3 mb-3 bg-white item-mobil" data-merk="${mobil.merk}" data-jenis="${mobil.jenis}" data-harga="${mobil.harga}">
+                        <!-- Jembatan ID ke halaman detail -->
+                        <a href="detail-mobil.html?id=${mobil.id}" class="text-decoration-none text-dark d-flex align-items-center gap-3">
+                            <img src="${mobil.foto}" class="rounded-3 object-fit-cover" style="width: 110px; height: 80px;" />
+                            <div class="flex-grow-1">
+                                <h3 class="h6 fw-bold mb-1" style="color: #0b1d33;">${mobil.merk} ${mobil.nama}</h3>
+                                <p class="text-secondary small mb-2" style="color: #0b1d33;">${mobil.jenis} · ${mobil.spesifikasi}</p>
+                                <p class="fw-bold mb-2" style="color: #0b1d33;">${mobil.harga} / hari</p>
+                                <span class="badge rounded-pill bg-success-subtle text-success fw-medium px-3 py-1">${mobil.status}</span>
+                            </div>
+                            <img src="../img/katalog mobil/panah-kanan-bold.svg" alt="" />
+                        </a>
+                    </article>
+                    `;
+                    wadahKatalog.innerHTML += cardHtml;
+                });
+            }
+
+            // Tampilkan semua mobil tersedia saat halaman pertama kali dibuka
+            renderKatalog(mobilTersedia);
+
+            // --- LOGIKA TOMBOL FILTER ---
+            const btnSemua = document.getElementById('btn-semua');
+            const btnJenis = document.getElementById('btn-jenis');
+            const btnMerk = document.getElementById('btn-merk');
+            const btnHarga = document.getElementById('btn-harga');
+
+            function setTombolAktif(tombolAktif) {
+                const semuaTombol = [btnSemua, btnJenis, btnMerk, btnHarga];
+                semuaTombol.forEach(btn => {
+                    btn.classList.remove('btn-dark');
+                    btn.classList.add('btn-outline-dark', 'bg-white');
+                });
+                tombolAktif.classList.remove('btn-outline-dark', 'bg-white');
+                tombolAktif.classList.add('btn-dark');
+            }
+
+            btnSemua.addEventListener('click', () => {
+                setTombolAktif(btnSemua);
+                renderKatalog(mobilTersedia);
+            });
+
+            btnJenis.addEventListener('click', () => {
+                setTombolAktif(btnJenis);
+                // Contoh: Menyaring khusus jenis SUV
+                let filterJenis = mobilTersedia.filter(mobil => mobil.jenis.toUpperCase() === 'SUV');
+                renderKatalog(filterJenis);
+            });
+
+            btnMerk.addEventListener('click', () => {
+                setTombolAktif(btnMerk);
+                // Contoh: Menyaring khusus merk Toyota
+                let filterMerk = mobilTersedia.filter(mobil => mobil.merk.toUpperCase() === 'TOYOTA');
+                renderKatalog(filterMerk);
+            });
+
+            btnHarga.addEventListener('click', () => {
+                setTombolAktif(btnHarga);
+                // Menyaring harga di bawah Rp 500.000
+                let filterHarga = mobilTersedia.filter(mobil => {
+                    let angkaHarga = parseInt(mobil.harga.replace(/[^0-9]/g, ''));
+                    return angkaHarga < 500000;
+                });
+                renderKatalog(filterHarga);
+            });
+        });
+    </script>
+</body>
+
+</html>

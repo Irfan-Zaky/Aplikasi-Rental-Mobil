@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Mobil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+</head>
+
+<body class="m-0 p-0 min-vh-100" style="color: #0b1d33; background-color: #eef7fc;">
+    <nav class="navbar bg-white py-3 border-bottom">
+        <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
+            <a id="btn-kembali" href="katalog.html" aria-label="Kembali ke Katalog" class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1" style="width: 40px; height: 40px; color: #0b1d33;">‹</a>
+            <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Detail Mobil</h2>
+        </div>
+    </nav>
+
+    <main>
+        <section class="card border-0 shadow-sm p-3 px-3 rounded-4">
+            <div id="carSlider" class="carousel slide mb-3" data-bs-ride="carousel">
+                <div class="carousel-inner rounded-4 overflow-hidden bg-light" style="height: 260px;">
+                    <div class="carousel-item active h-100">
+                        <!-- Beri ID gambar utama -->
+                        <img id="img-mobil" src="../img/foto-mobil-besar.jpg" class="d-block w-100 h-100 object-fit-contain" alt="Mobil">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <!-- Beri ID pada Nama Mobil -->
+                    <h2 id="nama-mobil" class="card-title fs-4 fw-bold text-dark mb-0">Toyota Avanza</h2>
+                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-semibold">
+                      tersedia
+                    </span>
+                </div>
+
+                <!-- Beri ID pada Kategori/Sub, dan Harga -->
+                <p id="kategori-mobil" class="text-muted small mb-3">MPV Keluarga · Otomatis · 7 Kursi</p>
+                <p id="harga-mobil" class="text-dark fs-5 fw-bold">Rp 450.000 / hari</p>
+            </div>
+        </section>
+
+        <section class="m-0 p-0 min-vh-100 pb-5">
+            <h2 class="px-3 mb-3 mt-3 fw-bold h3">Spesifikasi</h2>
+            <p class="px-3 mt-1 h6 my-2">
+                <span class="fw-bold h6">Kapasitas Penumpang : <span id="spec-kursi" class="text-muted h6">7 Kursi</span></span><br>
+                <span class="fw-bold h6">Transmisi : <span id="spec-transmisi" class="text-muted h6">Otomatis</span></span><br>
+                <span class="fw-bold h6">Bahan Bakar : <span id="spec-bbm" class="text-muted h6">Bensin</span></span><br>
+                <span class="fw-bold h6">Kapasitas Mesin : <span id="spec-mesin" class="text-muted h6">1.3L</span></span><br>
+                <span class="fw-bold h6">Fitur Kenyamanan : <span id="spec-kenyamanan" class="text-muted h6">AC Double Blower, Head Unit Touchscreen</span></span><br>
+                <span class="fw-bold h6">Fitur Keamanan : <span id="spec-keamanan" class="text-muted h6">ABS, Dual SRS Airbag</span></span>
+                <br><br>
+                <span id="deskripsi-mobil" class="h6">Mobil handal dan nyaman untuk keluarga.</span>
+            </p>
+        </section>
+
+        <!-- Menggunakan input hidden agar ID mobil dijamin pasti terbawa ke halaman pilih tanggal -->
+        <form id="form-pilih-mobil" action="pilih-tanggal.html" method="get">
+            <input type="hidden" name="id" id="input-id-mobil" value="avanza">
+            <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
+                <div class="container p-0">
+                    <button type="submit" class="btn text-white w-100 py-3 rounded-1 fw-bold d-flex align-items-center justify-content-center gap-2" style="background-color: #0b1d33;"> Pilih Mobil
+                        <img src="../img/detail mobil/panah-kanan.svg" alt="lanjut" width="18" height="18" />
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script JavaScript untuk Mengubah Konten Secara Dinamis -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Data Mockup Database Sementara
+            const databaseMobil = {
+                "avanza": {
+                    nama: "Toyota Avanza",
+                    kategori: "MPV Keluarga · Otomatis · 7 Kursi",
+                    harga: "Rp 450.000 / hari",
+                    gambar: "../img/Toyota-Avanza.jpeg",
+                    kursi: "7 Kursi",
+                    transmisi: "Otomatis",
+                    bbm: "Bensin",
+                    mesin: "1.3L",
+                    kenyamanan: "AC Double Blower, Head Unit Touchscreen, USB Charger",
+                    keamanan: "ABS (Anti-lock Braking System), Dual SRS Airbag",
+                    deskripsi: "Toyota Avanza hadir sebagai pilihan utama kendaraan keluarga yang handal, nyaman, dan efisien untuk menemani setiap perjalanan Anda."
+                },
+                "brv": {
+                    nama: "Honda BR-V",
+                    kategori: "SUV Keluarga · Otomatis · 7 Kursi",
+                    harga: "Rp 620.000 / hari",
+                    gambar: "../img/Honda-BR-V.jpeg",
+                    kursi: "7 Kursi",
+                    transmisi: "Otomatis",
+                    bbm: "Bensin",
+                    mesin: "1.5L",
+                    kenyamanan: "AC Digital, Smart Entry, Touchscreen Audio Display",
+                    keamanan: "Honda Sensing, VSA, Hill Start Assist",
+                    deskripsi: "Honda BR-V memadukan ketangguhan SUV dengan kenyamanan kabin mobil keluarga yang luas dan modern."
+                },
+                "innova": {
+                    nama: "Toyota Innova",
+                    kategori: "MPV Keluarga · Otomatis · 7 Kursi",
+                    harga: "Rp 750.000 / hari",
+                    gambar: "../img/Toyota-Innova.jpeg",
+                    kursi: "7 Kursi",
+                    transmisi: "Otomatis",
+                    bbm: "Bensin / Diesel",
+                    mesin: "2.0L",
+                    kenyamanan: "Cabin Ambient Light, Premium Entertainment System, AC Double Blower",
+                    keamanan: "Vehicle Stability Control, Hill Start Assist, ISOFIX",
+                    deskripsi: "Toyota Innova menawarkan kemewahan, ruang kabin ekstra lapang, dan performa mesin tangguh untuk perjalanan jauh."
+                },
+                "brio": {
+                    nama: "Honda Brio",
+                    kategori: "City Car · Otomatis · 5 Kursi",
+                    harga: "Rp 350.000 / hari",
+                    gambar: "../img/Honda-Brio.jpeg",
+                    kursi: "5 Kursi",
+                    transmisi: "Otomatis",
+                    bbm: "Bensin",
+                    mesin: "1.2L",
+                    kenyamanan: "Electric Power Steering, Audio Steering Switch",
+                    keamanan: "Dual Front SRS Airbags, ABS + EBD",
+                    deskripsi: "Honda Brio adalah city car lincah yang sangat cocok untuk bermanuver di jalanan perkotaan yang padat."
+                },
+                "rush": {
+                    nama: "Toyota Rush",
+                    kategori: "SUV Keluarga · Otomatis · 7 Kursi",
+                    harga: "Rp 550.000 / hari",
+                    gambar: "../img/Toyota-Rush.jpeg",
+                    kursi: "7 Kursi",
+                    transmisi: "Otomatis",
+                    bbm: "Bensin",
+                    mesin: "1.5L",
+                    kenyamanan: "Engine Start/Stop Button, Auto A/C with Digital Display",
+                    keamanan: "6 Airbags, VSC, Emergency Brake Signal",
+                    deskripsi: "Toyota Rush merupakan SUV gagah dengan ground clearance tinggi yang siap menemani petualangan keluarga."
+                },
+                "ayla": {
+                    nama: "Daihatsu Ayla",
+                    kategori: "City Car · Otomatis · 5 Kursi",
+                    harga: "Rp 350.000 / hari",
+                    gambar: "../img/Daihatsu-Ayla.jpeg",
+                    kursi: "5 Kursi",
+                    transmisi: "Otomatis",
+                    bbm: "Bensin",
+                    mesin: "1.2L",
+                    kenyamanan: "Digital AC, Spacious Cabin for Hatchback",
+                    keamanan: "ABS, EBD, Dual Airbag",
+                    deskripsi: "Daihatsu Ayla hadir sebagai pilihan mobil perkotaan yang irit bahan bakar dan sangat mudah dikendarai."
+                }
+            };
+
+            // 2. Ambil parameter ?id=... dari URL browser
+            const params = new URLSearchParams(window.location.search);
+            const idMobil = params.get('id');
+
+            // 3. Cek apakah ID tersebut ada di data, jika ada ubah tampilan HTML-nya
+            if (idMobil && databaseMobil[idMobil]) {
+                const data = databaseMobil[idMobil];
+
+                document.getElementById('nama-mobil').textContent = data.nama;
+                document.getElementById('kategori-mobil').textContent = data.kategori;
+                document.getElementById('harga-mobil').textContent = data.harga;
+                document.getElementById('img-mobil').src = data.gambar;
+                document.getElementById('spec-kursi').textContent = data.kursi;
+                document.getElementById('spec-transmisi').textContent = data.transmisi;
+                document.getElementById('spec-bbm').textContent = data.bbm;
+                document.getElementById('spec-mesin').textContent = data.mesin;
+                document.getElementById('spec-kenyamanan').textContent = data.kenyamanan;
+                document.getElementById('spec-keamanan').textContent = data.keamanan;
+                document.getElementById('deskripsi-mobil').textContent = data.deskripsi;
+
+                // Masukkan ID ke input hidden dan perbarui tombol kembali ke katalog agar membawa ID
+                document.getElementById('input-id-mobil').value = idMobil;
+                document.getElementById('btn-kembali').href = `katalog.html`;
+            }
+        });
+    </script>
+</body>
+
+</html>

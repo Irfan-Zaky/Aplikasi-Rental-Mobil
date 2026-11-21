@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+</head>
+
+<body class="m-0 p-0 min-vh-100" style="color: #0b1d33; background-color: #eef7fc;">
+    <nav class="navbar px-3 w-100" style="background-color: white">
+        <div class="container-fluid px-2">
+            <div class="w-100 px-3 py-1 d-flex align-items-center">
+                <h1 class="fw-bold m-0 fs-3" style="color: #0b1d33">Profil Saya</h1>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="text-center py-4">
+            <div class="mb-3">
+                <img src="../img/user-besar.svg" alt="Ikon profil" class="rounded-circle border p-3" width="90" height="90" />
+            </div>
+            <h2 id="nama-profil" class="fw-bold fs-4 text-dark mb-2">
+                Nama Customer
+            </h2>
+            <div>
+                <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2 fw-medium">
+              Akun Terverifikasi
+            </span>
+            </div>
+        </section>
+
+        <section>
+            <div class="container my-4 px-3">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item py-3 px-4 border-bottom">
+                            <span class="d-block text-muted small mb-1">Nama</span>
+                            <span id="nama-akun" class="fw-bold text-dark">Nama Customer</span>
+                        </li>
+
+                        <li class="list-group-item py-3 px-4 border-bottom">
+                            <span class="d-block text-muted small mb-1">Email</span>
+                            <span id="email-akun" class="fw-bold text-dark">contoh@email.com</span>
+                        </li>
+
+                        <li class="list-group-item py-3 px-4 border-bottom">
+                            <span class="d-block text-muted small mb-1">Nomor HP</span>
+                            <span id="nomor-hp" class="fw-bold text-dark">08xxxxxxxxxx</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="container my-4 pb-5 d-grid gap-3">
+        <a href="edit-profil.html" class="btn btn-outline-dark py-3 rounded-1 fw-bold" style="border-color: #0b1d33;">
+          Edit Profil
+        </a>
+
+        <!-- 🟢 TAMBAHAN: Mengubah href menjadi "#" dan menambahkan id="btnLogout" agar JS bisa mengatur logout -->
+        <a href="#" id="btnLogout" class="btn btn-outline-danger py-3 rounded-1 fw-bold">Logout </a>
+    </div>
+
+    <nav class="navbar fixed-bottom bg-white border-top py-2 px-3 shadow-sm">
+        <div class="container-fluid d-flex justify-content-around align-items-center">
+            <a href="beranda.html" aria-label="Menuju beranda" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
+                <img src="../img/profil/rumah-biru.svg" alt="Beranda" style="width: 22px; height: 22px; opacity: 0.6" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem">Beranda</span>
+            </a>
+            <a href="katalog.html" aria-label="Menuju katalog" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
+                <img src="../img/profil/logo-mobil-biru.svg" alt="Katalog" style="width: 22px; height: 22px; opacity: 0.6" />
+                <span class="small mt-1 text-muted" style="font-size: 0.7rem">Katalog</span
+            >
+          </a>
+          <a href="riwayat.html" aria-label="Menuju riwayat" class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
+            <img src="../img/profil/jam.svg" alt="Riwayat" style="width: 22px; height: 22px; opacity: 0.6"/>
+            <span class="small mt-1 text-muted" style="font-size: 0.7rem"
+              >Riwayat</span
+            >
+          </a>
+          <a
+            href="profil.html"
+            aria-label="Menuju profil"
+            class="d-flex flex-column align-items-center text-decoration-none py-1 px-3 rounded-pill"
+            style="background-color: rgba(255, 107, 53, 0.12)"
+          >
+            <img
+              src="../img/profil/user-oren.svg"
+              alt="Profil"
+              style="
+                width: 22px;
+                height: 22px;
+                filter: invert(41%) sepia(85%) saturate(1436%)
+                  hue-rotate(338deg) brightness(101%) contrast(97%);
+              "
+            />
+            <span class="small mt-1 text-muted" style="font-size: 0.7rem"
+              >Profil</span
+            >
+          </a>
+        </div>
+      </nav>
+
+    <!-- 🟢 TAMBAHAN: Script JavaScript untuk mengatur Data Dinamis dan Fungsi Logout -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // =======================================================
+            // 1. MENGAMBIL DAN MENAMPILKAN DATA PROFIL
+            // =======================================================
+            
+            // ❌ HAPUS NANTI: Bagian ini (Dummy) mengambil data dari localStorage yang disimpan saat daftar
+            const namaTersimpan = localStorage.getItem('akun_nama') || "Nama Customer";
+            const emailTersimpan = localStorage.getItem('akun_email') || "contoh@email.com";
+            const hpTersimpan = localStorage.getItem('akun_hp') || "08xxxxxxxxxx";
+
+            document.getElementById('nama-profil').textContent = namaTersimpan;
+            document.getElementById('nama-akun').textContent = namaTersimpan;
+            document.getElementById('email-akun').textContent = emailTersimpan;
+            document.getElementById('nomor-hp').textContent = hpTersimpan;
+            // ❌ BATAS HAPUS NANTI
+
+            /* ✅ BUKA NANTI: Saat API Backend Irfan sudah siap
+            
+            // Saat user berhasil login, Backend akan mengenali user tersebut dari "session" atau "token".
+            // Frontend memanggil API Profil untuk mendapatkan data aslinya dari Database Rendi.
+            
+            fetch('URL_API_PROFIL_DARI_IRFAN', {
+                method: 'GET'
+                // headers: { 'Authorization': 'Bearer ' + tokenUser } // (Opsional, tergantung Irfan)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    // Timpa data HTML dengan data asli dari database
+                    document.getElementById('nama-profil').textContent = data.user.nama;
+                    document.getElementById('nama-akun').textContent = data.user.nama;
+                    document.getElementById('email-akun').textContent = data.user.email;
+                    document.getElementById('nomor-hp').textContent = data.user.no_hp;
+                } else {
+                    // Jika sesi habis / belum login, lempar kembali ke halaman login
+                    window.location.href = 'login.html';
+                }
+            })
+            .catch(error => console.error('Error memuat profil:', error));
+            
+            ✅ BATAS BUKA NANTI */
+
+
+            // =======================================================
+            // 2. MENGATUR FUNGSI LOGOUT
+            // =======================================================
+            
+            document.getElementById('btnLogout').addEventListener('click', function(e) {
+                e.preventDefault(); // Mencegah pindah halaman sebelum proses selesai
+                
+                // Konfirmasi ke user sebelum logout
+                if(confirm('Apakah Anda yakin ingin keluar dari akun ini?')) {
+                    
+                    // ❌ HAPUS NANTI: Simulasi Logout dengan menghapus memori pendaftaran di browser
+                    localStorage.removeItem('akun_email');
+                    localStorage.removeItem('akun_password');
+                    localStorage.removeItem('akun_nama');
+                    localStorage.removeItem('akun_hp');
+                    
+                    // Pindah ke landing page
+                    window.location.href = 'landing-page.html';
+                    // ❌ BATAS HAPUS NANTI
+                    
+                    
+                    /* ✅ BUKA NANTI: Saat Backend Logout Siap
+                    
+                    // Kadang Backend butuh dikasih tahu kalau user logout agar sesi dimatikan di server.
+                    
+                    fetch('URL_API_LOGOUT_DARI_IRFAN', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hapus sesi di frontend lalu lempar ke landing page
+                        localStorage.clear(); 
+                        window.location.href = 'landing-page.html';
+                    })
+                    .catch(error => {
+                        console.error('Logout error:', error);
+                        window.location.href = 'landing-page.html'; // Tetap paksa pindah
+                    });
+                    
+                    ✅ BATAS BUKA NANTI */
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ringkasan Pemesanan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="m-0 p-0 min-vh-100" style="color: #0b1d33; background-color: #eef7fc;">
+    <nav class="navbar bg-white py-3 mb-3 border-bottom">
+        <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
+            <a id="btn-kembali" href="pilihan-layanan.html" class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1" style="width: 40px; height: 40px;">‹</a>
+            <h2 class="fs-3 fw-bold m-0">Ringkasan Pemesanan</h2>
+        </div>
+    </nav>
+
+    <main>
+        <section>
+            <div class="card rounded-4 border p-2 shadow-sm mx-auto bg-white" style="max-width: 450px;">
+                <div class="d-flex align-items-center gap-3">
+                    <img id="ringkasan-img" src="../img/foto-mobil-kecil.png" alt="Mobil" class="rounded-3 img-fluid object-fit-cover" style="width: 120px; height: 80px;">
+                    <div>
+                        <h6 id="ringkasan-mobil" class="fw-bold mb-1 text-dark">Nama Mobil</h6>
+                        <span class="fw-bold fs-6 text-dark" id="ringkasan-harga">Rp 0</span>
+                        <span class="text-muted small">/ hari</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="card rounded-4 border p-4 shadow-sm mx-auto mt-3 bg-white" style="max-width: 450px;">
+            <section>
+                <h6 class="fw-bold mb-3 text-dark">Detail perjalanan</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Tanggal</span>
+                    <strong id="ringkasan-tanggal" class="fw-semibold text-dark">-</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Durasi</span>
+                    <strong id="ringkasan-durasi" class="fw-semibold text-dark">-</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Layanan</span>
+                    <strong id="ringkasan-layanan" class="fw-semibold text-dark">-</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2" id="baris-penerimaan">
+                    <span class="text-muted">Penerimaan</span>
+                    <strong id="ringkasan-penerimaan" class="fw-semibold text-dark">-</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Lokasi</span>
+                    <strong id="ringkasan-lokasi" class="fw-semibold text-dark text-end" style="max-width: 60%;">-</strong>
+                </div>
+            </section>
+
+            <hr class="my-4 text-muted opacity-25">
+
+            <section>
+                <h6 class="fw-bold mb-3 text-dark">Data penyewa (Dummy)</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Nama</span>
+                    <strong class="fw-semibold text-dark">Octavia Dezwan</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Nomor HP</span>
+                    <strong class="fw-semibold text-dark">081234567890</strong>
+                </div>
+            </section>
+        </div>
+
+        <section class="card rounded-4 border p-4 shadow-sm mx-auto mt-3 bg-white" style="max-width: 450px;">
+            <div class="d-flex justify-content-between mb-2">
+                <span id="label-sewa-dasar" class="text-muted">Sewa mobil</span>
+                <strong id="biaya-sewa-dasar" class="fw-semibold text-dark">Rp 0</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2" id="baris-biaya-tambahan">
+                <span id="label-biaya-tambahan" class="text-muted">Biaya Tambahan</span>
+                <strong id="biaya-tambahan" class="fw-semibold text-dark">Rp 0</strong>
+            </div>
+
+            <hr class="my-3 text-muted opacity-25">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <strong class="fw-bold text-dark">Total Biaya</strong>
+                <strong id="total-biaya-akhir" class="fw-bold text-dark fs-5">Rp 0</strong>
+            </div>
+        </section>
+
+        <div class="container my-4 pb-5 d-grid gap-3 mx-auto" style="max-width: 450px;">
+            <a id="btn-edit-layanan" href="pilihan-layanan.html" class="btn btn-outline-dark py-3 rounded-1 fw-bold" style="border-color: #0b1d33;">
+                Kembali / Edit Layanan
+            </a>
+        </div>
+
+        <form action="pilihan-pembayaran.html" method="get">
+            <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
+                <div class="container p-0 mx-auto" style="max-width: 450px;">
+                    <button type="submit" class="btn text-white w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2" style="background-color: #0b1d33;"> Konfirmasi Pemesanan
+                        <img src="../img/ringkasan-transaksi/lanjutkan.svg" alt="lanjut" width="18" height="18" />
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const databaseMobil = {
+                "avanza": {
+                    nama: "Toyota Avanza",
+                    gambar: "../img/Toyota-Avanza.jpeg",
+                    harga: 450000
+                },
+                "brv": {
+                    nama: "Honda BR-V",
+                    gambar: "../img/Honda-BR-V.jpeg",
+                    harga: 620000
+                },
+                "innova": {
+                    nama: "Toyota Innova",
+                    gambar: "../img/Toyota-Innova.jpeg",
+                    harga: 750000
+                },
+                "brio": {
+                    nama: "Honda Brio",
+                    gambar: "../img/Honda-Brio.jpeg",
+                    harga: 350000
+                },
+                "rush": {
+                    nama: "Toyota Rush",
+                    gambar: "../img/Toyota-Rush.jpeg",
+                    harga: 550000
+                },
+                "ayla": {
+                    nama: "Daihatsu Ayla",
+                    gambar: "../img/Daihatsu-Ayla.jpeg",
+                    harga: 350000
+                }
+            };
+
+            // Ambil Data dari LocalStorage
+            const idMobil = localStorage.getItem('sewa_mobil_id') || 'avanza';
+            const tglMulai = localStorage.getItem('sewa_mulai');
+            const tglSelesai = localStorage.getItem('sewa_selesai');
+            const durasi = localStorage.getItem('sewa_durasi') || "1 Hari";
+            const biayaSewaStr = localStorage.getItem('sewa_biaya') || "Rp 0";
+            const layanan = localStorage.getItem('sewa_tipe_layanan') || "Lepas Kunci";
+            const penerimaan = localStorage.getItem('sewa_penerimaan') || "Ambil di garasi";
+            const lokasi = localStorage.getItem('sewa_lokasi') || "-";
+            const biayaTambahan = parseInt(localStorage.getItem('sewa_biaya_tambahan')) || 0;
+
+            // --- TAMBAHAN BARU: Ambil Data Penyewa dari LocalStorage ---
+            const namaPenyewa = localStorage.getItem('sewa_nama_penyewa') || 'Nama Customer';
+            const noHpPenyewa = localStorage.getItem('sewa_nohp_penyewa') || '08xxxxxxxxxx';
+
+            // --- TAMBAHAN BARU: Tampilkan Data Penyewa ke HTML ---
+            // Pastikan kamu punya id "ringkasan-nama" dan "ringkasan-nohp" pada elemen strong di HTML
+            // Ubah judul section menjadi "Data penyewa" saja tanpa "(Dummy)"
+            document.querySelector('.card section:nth-child(3) h6').textContent = "Data penyewa";
+
+            // Kita pakai document.querySelectorAll untuk menimpa teks pada strong di dalam section Data penyewa
+            const dataPenyewaElements = document.querySelectorAll('.card section:nth-child(3) strong');
+            if (dataPenyewaElements.length >= 2) {
+                dataPenyewaElements[0].textContent = namaPenyewa;
+                dataPenyewaElements[1].textContent = noHpPenyewa;
+            }
+
+            const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0
+            }).format(angka);
+
+            // Tampilkan Data Mobil
+            if (databaseMobil[idMobil]) {
+                document.getElementById('ringkasan-mobil').textContent = databaseMobil[idMobil].nama;
+                document.getElementById('ringkasan-img').src = databaseMobil[idMobil].gambar;
+                document.getElementById('ringkasan-harga').textContent = formatRupiah(databaseMobil[idMobil].harga);
+            }
+
+            // Tampilkan Detail Perjalanan
+            if (tglMulai && tglSelesai) {
+                const t1 = new Date(tglMulai).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short'
+                });
+                const t2 = new Date(tglSelesai).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                document.getElementById('ringkasan-tanggal').textContent = `${t1} - ${t2}`;
+            }
+            document.getElementById('ringkasan-durasi').textContent = durasi;
+            document.getElementById('ringkasan-layanan').textContent = layanan;
+            document.getElementById('ringkasan-lokasi').textContent = lokasi;
+
+            // Atur Visibilitas Kolom Penerimaan
+            if (layanan === "Dengan Sopir") {
+                document.getElementById('baris-penerimaan').style.display = 'none';
+                document.getElementById('label-biaya-tambahan').textContent = "Biaya Sopir";
+                document.getElementById('btn-edit-layanan').href = "detail-layanan-sopir.html";
+                document.getElementById('btn-kembali').href = "detail-layanan-sopir.html";
+            } else {
+                document.getElementById('ringkasan-penerimaan').textContent = penerimaan;
+                document.getElementById('label-biaya-tambahan').textContent = penerimaan === 'Diantar ke lokasi' ? "Biaya Antar" : "Biaya Tambahan";
+                document.getElementById('btn-edit-layanan').href = "detail-layanan-lepas-kunci.html";
+                document.getElementById('btn-kembali').href = "detail-layanan-lepas-kunci.html";
+            }
+
+            // Hitung Biaya
+            document.getElementById('label-sewa-dasar').textContent = `Sewa mobil (${durasi})`;
+            document.getElementById('biaya-sewa-dasar').textContent = biayaSewaStr;
+            document.getElementById('biaya-tambahan').textContent = formatRupiah(biayaTambahan);
+
+            // Bersihkan string Rp dari sewa dasar untuk dihitung
+            const angkaSewaDasar = parseInt(biayaSewaStr.replace(/[^0-9]/g, '')) || 0;
+            const totalBiayaAkhir = angkaSewaDasar + biayaTambahan;
+
+            // Format ke rupiah string
+            const totalBiayaAkhirFormatted = formatRupiah(totalBiayaAkhir);
+
+            document.getElementById('total-biaya-akhir').textContent = totalBiayaAkhirFormatted;
+
+            // --- TAMBAHAN PENTING AGAR HALAMAN PEMBAYARAN TIDAK 0 ---
+            // --- MENYIMPAN DATA PESANAN UNTUK ADMIN DAN RIWAYAT CUSTOMER ---
+            const formKonfirmasi = document.querySelector('form[action="pilihan-pembayaran.html"]');
+            if (formKonfirmasi) {
+                formKonfirmasi.addEventListener('submit', function() {
+                    localStorage.setItem('sewa_total_biaya_akhir', totalBiayaAkhirFormatted);
+
+                    // 1. Ambil data kotak riwayat pesanan yang sudah ada, atau buat baru kalau kosong
+                    let riwayatPesanan = JSON.parse(localStorage.getItem('dbRiwayatPesanan')) || [];
+
+                    // 2. Buat ID unik (untuk link) dan Kode TRX
+                    const idPesanan = Date.now().toString();
+                    const kodeTrx = "TRX-" + Math.floor(Math.random() * 10000); // Contoh: TRX-5284
+
+                    // 3. Susun data pesanan baru
+                    const pesananBaru = {
+                        id: idPesanan,
+                        kode: kodeTrx,
+                        nama_customer: namaPenyewa,
+                        nama_mobil: databaseMobil[idMobil] ? databaseMobil[idMobil].nama : "Mobil",
+                        tgl_sewa: `${new Date(tglMulai).toLocaleDateString('id-ID', {day: '2-digit', month: 'short'})} - ${new Date(tglSelesai).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'})}`,
+                        total_biaya: totalBiayaAkhirFormatted,
+                        status: "Menunggu" // Status awal saat baru dipesan
+                    };
+
+                    // 4. Masukkan pesanan baru ke dalam kotak riwayat dan simpan ke memori
+                    riwayatPesanan.push(pesananBaru);
+                    localStorage.setItem('dbRiwayatPesanan', JSON.stringify(riwayatPesanan));
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

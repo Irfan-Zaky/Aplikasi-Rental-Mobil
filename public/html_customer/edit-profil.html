@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+</head>
+
+<body>
+    <nav class="navbar px-4" style="background-color: white">
+        <div class="rounded-4 p-2 d-flex align-items-center justify-content-center gap-4" style="background-color: white">
+            <a href="profil.html" aria-label="Kembali ke profil" class="text-decoration-none fw-bold fs-3 align-items-center" style="color: #0b1d33; line-height: 1">‹</a>
+            <h2 class="fw-bold m-0 fs-3" style="line-height: 1">
+                <span style="color: #0b1d33">Edit Profil</span>
+            </h2>
+        </div>
+    </nav>
+
+    <!-- 🟢 TAMBAHAN: Menambahkan id="editProfilForm" -->
+    <form id="editProfilForm" action="#" method="post" enctype="multipart/form-data">
+        <div class="mb-4 px-3">
+            <label for="foto-profil" class="form-label fw-bold" style="color: #0b1d33;">Foto KTP</label>
+            <label for="foto-profil" class="w-100 bg-white rounded-4 p-4 text-center d-block cursor-pointer" style="border: 2px dashed #a0aec0; cursor: pointer;">
+                <img src="../img/edit profil/upload.svg" alt="Upload Icon" class="mb-2" width="24" height="24" />
+                <p class="text-secondary small mb-0 fw-medium">Unggah / ambil foto</p>
+                <input type="file" class="d-none" id="foto-profil" name="foto-profil" accept="image/*" required />
+            </label>
+        </div>
+
+        <div class="mb-4 px-3">
+            <label for="nama" class="h8 fw-bold">Nama Lengkap</label>
+            <input type="text" class="form-control mt-1" style="border-color: #0b1d33" id="nama" name="nama" placeholder="Nama sesuai KTP" required />
+        </div>
+
+        <div class="mb-4 px-3">
+            <label for="email" class="h8 fw-bold">Email</label>
+            <input type="email" class="form-control mt-1" style="border-color: #0b1d33" id="email" name="email" placeholder="contoh@email.com" required />
+        </div>
+
+        <div class="mb-4 px-3">
+            <label for="nomor-hp" class="h8 fw-bold">Nomor HP</label>
+            <!-- 🟢 TAMBAHAN: Memperbaiki id menjadi "nomor-hp" agar seragam -->
+            <input type="tel" class="form-control mt-1" style="border-color: #0b1d33" id="nomor-hp" name="nomor-hp" placeholder="08xxxxxxxxxx" required/>
+        </div>
+        <!-- 🟢 PERBAIKAN: Hapus kata 'required' di ujung form ini -->
+        <div class="mb-4 px-3">
+            <label for="password" class="h8 fw-bold">Password Baru</label>
+            <input type="password" class="form-control mt-1" style="border-color: #0b1d33" id="password" name="password" placeholder="Minimal 8 karakter" />
+        </div>
+        <!-- 🟢 PERBAIKAN: Hapus kata 'required' di ujung form ini -->
+        <div class="mb-4 px-3">
+            <label for="konfirmasi-password" class="h8 fw-bold">Konfirmasi Password</label>
+            <input type="password" class="form-control mt-1" style="border-color: #0b1d33" id="konfirmasi-password" name="konfirmasi-password" placeholder="Ulangi password" />
+        </div>
+
+        <div class="d-grid gap-2 px-3">
+
+            <!-- 🟢 TAMBAHAN: Tempat munculnya pesan error/sukses -->
+            <div id="messageBox" class="text-center mb-2 d-none fw-medium fs-6"></div>
+
+            <!-- 🟢 TAMBAHAN: Menambahkan id="btnSimpan" -->
+            <button id="btnSimpan" class="btn text-white fw-bold py-2" type="submit" style="background-color: #0b1d33; border-color: #0b1d33">
+               Simpan
+            </button>
+        </div>
+    </form>
+
+
+    <!-- 🟢 TAMBAHAN: Script JavaScript untuk Alur Edit Profil -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 1. SAAT HALAMAN DIBUKA: OTOMATIS ISI KOLOM DENGAN DATA LAMA
+            // Biar user tidak perlu ngetik ulang dari awal
+            document.getElementById('nama').value = localStorage.getItem('akun_nama') || '';
+            document.getElementById('email').value = localStorage.getItem('akun_email') || '';
+            document.getElementById('nomor-hp').value = localStorage.getItem('akun_hp') || '';
+            // Password sengaja dikosongkan untuk keamanan
+
+            /* ✅ BUKA NANTI (BAGIAN 1): Mengambil data lama dari Backend
+            fetch('URL_API_PROFIL_DARI_IRFAN', { method: 'GET' })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('nama').value = data.nama;
+                document.getElementById('email').value = data.email;
+                document.getElementById('nomor-hp').value = data.no_hp;
+            });
+            ✅ BATAS BUKA NANTI */
+
+
+            // 2. SAAT TOMBOL SIMPAN DITEKAN
+            document.getElementById('editProfilForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const namaBaru = document.getElementById('nama').value;
+                const emailBaru = document.getElementById('email').value;
+                const noHpBaru = document.getElementById('nomor-hp').value;
+                const passwordBaru = document.getElementById('password').value;
+                const konfirmasiBaru = document.getElementById('konfirmasi-password').value;
+
+                const messageBox = document.getElementById('messageBox');
+                const btnSimpan = document.getElementById('btnSimpan');
+
+                // 🟢 PERBAIKAN: Cek password HANYA JIKA user mengisi kolom password
+                if (passwordBaru !== "") {
+                    if (passwordBaru !== konfirmasiBaru) {
+                        messageBox.textContent = 'Password Baru dan Konfirmasi tidak cocok!';
+                        messageBox.className = 'text-danger text-center mb-2 fw-medium fs-6';
+                        return;
+                    }
+                }
+
+                // Ubah tombol jadi mode loading
+                const originalText = btnSimpan.innerHTML;
+                btnSimpan.innerHTML = 'Menyimpan...';
+                btnSimpan.disabled = true;
+                messageBox.classList.add('d-none');
+
+
+                // ❌ HAPUS NANTI: Simulasi menyimpan data baru ke browser (Dummy)
+                setTimeout(() => {
+                    // Menimpa (Update) data lama dengan data baru di memori
+                    localStorage.setItem('akun_nama', namaBaru);
+                    localStorage.setItem('akun_email', emailBaru);
+                    localStorage.setItem('akun_hp', noHpBaru);
+
+                    // 🟢 PERBAIKAN: Simpan password baru HANYA jika user mengetik sesuatu
+                    if (passwordBaru !== "") {
+                        localStorage.setItem('akun_password', passwordBaru);
+                    }
+
+                    messageBox.textContent = 'Profil berhasil diperbarui!';
+                    messageBox.className = 'text-success text-center mb-2 fw-medium fs-6';
+
+                    // Pindah kembali ke halaman profil setelah 1.5 detik
+                    setTimeout(() => {
+                        window.location.href = 'profil.html';
+                    }, 1500);
+
+                }, 1000);
+                // ❌ BATAS HAPUS NANTI
+
+
+                /* ✅ BUKA NANTI (BAGIAN 2): Menyimpan data baru ke Backend / Database
+                
+                // Minta API Update Profil ke Irfan
+                fetch('URL_API_UPDATE_PROFIL_DARI_IRFAN', {
+                    method: 'POST', // atau 'PUT' / 'PATCH' tergantung Irfan
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nama: namaBaru,
+                        email: emailBaru,
+                        no_hp: noHpBaru,
+                        password: passwordBaru
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        messageBox.textContent = 'Profil berhasil diperbarui!';
+                        messageBox.className = 'text-success text-center mb-2 fw-medium fs-6';
+                        setTimeout(() => { window.location.href = 'profil.html'; }, 1500);
+                    } else {
+                        messageBox.textContent = data.message; 
+                        messageBox.className = 'text-danger text-center mb-2 fw-medium fs-6';
+                        btnSimpan.innerHTML = originalText;
+                        btnSimpan.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    messageBox.textContent = 'Server error!';
+                    messageBox.className = 'text-danger text-center mb-2 fw-medium fs-6';
+                    btnSimpan.innerHTML = originalText;
+                    btnSimpan.disabled = false;
+                });
+                ✅ BATAS BUKA NANTI */
+
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Pesanan / Transaksi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+
+<body class="m-0 bg-light d-flex vh-100 overflow-hidden" style="color: #0b1d33">
+    <nav class="d-flex flex-column justify-content-between p-4 text-white flex-shrink-0" style="background-color: #0b1d33; width: 280px;">
+        <div>
+            <div class="d-flex align-items-center gap-3 mb-5">
+                <div class="rounded-circle d-flex justify-content-center align-items-center p-2" style="background: aliceblue; width: 50px; height: 50px;">
+                    <img src="../img_admin/data-mobil/gambar.svg" alt="Foto Admin" width="28" height="28" />
+                </div>
+                <div>
+                    <h6 class="m-0 text-white-50 small" style="color: white">Halo,</h6>
+                    <h5 class="m-0 fw-bold fs-6" style="color: white">Nama Admin</h5>
+                </div>
+            </div>
+
+            <ul class="nav flex-column gap-2">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link text-white d-flex align-items-center gap-3 py-2 px-3 rounded-pill" title="Beranda">
+                        <img src="../img_admin/data-mobil/home.svg" alt="" width="20" height="20" />
+                        <span style="color: #ff7a3d">Beranda</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="data-mobil.html" class="nav-link text-white d-flex align-items-center gap-3 py-2 px-3 rounded-pill" title="Data Mobil">
+                        <img src="../img_admin/dashboard/icon-data-mobil.svg" alt="" width="20" height="20" />
+                        <span style="color: #ff7a3d ">Data Mobil</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="transaksi.html" class="nav-link text-black-50 d-flex align-items-center gap-2 py-2 px-2 rounded-pill" style="background-color: #ff7a3d;" title="Transaksi">
+                        <img src="../img_admin/data-mobil/icon-pesanan.svg" alt="" width="20" height="20" />
+                        <span class="fw-medium" style="color: white">Pesanan</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="riwayat-transaksi.html" class="nav-link text-white d-flex align-items-center gap-3 py-2 px-3 rounded-pill" title="Riwayat">
+                        <img src="../img_admin/data-mobil/icon-riwayat.svg" alt="" width="20" height="20" />
+                        <span style="color: #ff7a3d">Riwayat</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div>
+            <button type="button" class="btn text-white-50 d-flex align-items-center gap-3 p-0 border-0 bg-transparent">
+          <img src="../img_admin/data-mobil/log-out.svg" alt="" width="20" height="20" />
+          <span style="color: white">Log Out</span>
+        </button>
+        </div>
+    </nav>
+
+    <div class="flex-grow-1 overflow-y-auto p-4" style="background-color: aliceblue;">
+        <div class="container-fluid">
+
+            <header class="d-flex justify-content-between align-items-center mb-4" style="color:#0d1b2a">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div style="width: 16px; height: 3px; background-color: #ff7a3d;"></div>
+                        <span class="text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 1px; color:cornflowerblue">TINDAKAN TRANSAKSI</span>
+                    </div>
+                    <h2 class="fw-bold m-0 text-dark">Detail Pesanan / Transaksi</h2>
+                    <p class="text-muted m-0 small">Tinjau identitas, jadwal sewa, pembayaran, dan dokumen verifikasi sebelum memproses pesanan</p>
+                </div>
+
+                <div class="card border-0 shadow-sm px-3 py-2 rounded-pill" style="background-color: #0d1b2a;">
+                    <div class="d-flex align-items-center gap-2 text-white small fw-medium">
+                        <div class="rounded-circle bg-danger" style="width: 8px; height: 8px;"></div>
+                        <span style="color: white">OPERASIONAL ARMADA</span>
+                    </div>
+                </div>
+            </header>
+
+
+            <main>
+                <section>
+                    <div class="container py-4">
+                        <div class="row g-4 align-items-start">
+
+                            <div class="col-12 col-lg-6">
+                                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                                    <div class="card-data-customer">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="fw-bold text-dark m-0">Data Customer & Pesanan</h5>
+                                            <span class="gap-1">
+                                                <strong class="text-white rounded-circle d-inline-flex justify-content-center align-items-center" style="width: 28px; height: 28px; background-color: #ff7a3d; font-size: 11px;">NP</strong> Pelanggan terverifikasi
+                                            </span>
+                                        </div>
+
+                                        <ul class="list-unstyled mb-4">
+                                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                                <span class="text-muted small">Nama customer</span>
+                                                <strong class="text-dark small">Nadia Putri</strong>
+                                            </li>
+                                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                                <span class="text-muted small">Nomor HP</span>
+                                                <strong class="text-dark small">0812 8840 2196</strong>
+                                            </li>
+                                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                                <span class="text-muted small">Mobil</span>
+                                                <strong class="text-dark small">Toyota Avanza 1.5 G</strong>
+                                            </li>
+                                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                                <span class="text-muted small">Tanggal sewa</span>
+                                                <strong class="text-dark small">12-14 Oktober 2026</strong>
+                                            </li>
+                                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                                <span class="text-muted small">Durasi</span>
+                                                <strong class="text-dark small">4 hari</strong>
+                                            </li>
+                                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                                <span class="text-muted small">Layanan</span>
+                                                <strong class="text-dark small">Lepas Kunci</strong>
+                                            </li>
+                                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                                <span class="text-muted small">Penerimaan</span>
+                                                <strong class="text-dark small">Diantar · 08.00 WIB</strong>
+                                            </li>
+                                            <li class="d-flex justify-content-between align-items-center py-2">
+                                                <span class="text-muted small">Status pesanan</span>
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 rounded-pill small fw-medium">Menunggu Verifikasi</span>
+                                            </li>
+                                        </ul>
+
+                                        <div class="bg-light p-3 rounded-4 d-flex justify-content-between align-items-center mt-auto border">
+                                            <span class="text-muted small fw-medium">Kode Booking</span>
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 rounded-pill fw-bold">BK-104829</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-lg-6">
+                                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                                    <h5 class="fw-bold text-dark mb-3">Pembayaran</h5>
+
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                            <span class="text-muted small">Metode</span>
+                                            <strong class="text-dark small">Tunai</strong>
+                                        </li>
+                                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                            <span class="text-muted small">Kode pembayaran</span>
+                                            <strong class="text-dark small">TNI-2841-9820</strong>
+                                        </li>
+                                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                            <span class="text-muted small">Harga/hari</span>
+                                            <strong class="text-dark small">Rp 350.000</strong>
+                                        </li>
+                                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                            <span class="text-muted small">Durasi</span>
+                                            <strong class="text-dark small">3 hari</strong>
+                                        </li>
+                                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                            <span class="text-muted small">Subtotal</span>
+                                            <strong class="text-dark small">Rp 1.575.000</strong>
+                                        </li>
+                                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                            <span class="text-muted small">Biaya antar</span>
+                                            <strong class="text-dark small">Rp 75.000</strong>
+                                        </li>
+                                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                            <span class="text-muted small">Total pembayaran</span>
+                                            <strong class="text-dark small">Rp 1.650.000</strong>
+                                        </li>
+                                        <li class="d-flex justify-content-between align-items-center pt-3">
+                                            <span class="text-muted small">Status pembayaran</span>
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 rounded-pill small fw-medium">Menunggu</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 mb-3">
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h2 class="fw-bold text-dark mb-1">Dokumen Verifikasi</h2>
+                                <p class=" text-muted mb-0"> Pastikan nama dan wajah sesuai sebelum mengonfirmasi pembayaran.</p>
+                            </div>
+                            <div>
+                                <span class="text-success d-inline-flex align-items-center gap-1 fw-bold">
+                                <img src="../img_admin/detail-transaksi/shield-check.svg" alt="" > 2 dokumen diterima
+                              </span>
+                            </div>
+                        </div>
+                        <div class="document-images-container d-flex align-items-center mb-3 gap-3">
+                            <div class="doc-box">
+                                <img src="../img_admin/detail-transaksi/Identity document.png " alt="Foto KTP " />
+                            </div>
+                            <div class="doc-box ">
+                                <img src="../img_admin/detail-transaksi/Selfie document.png " alt="Foto Selfie KTP " />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <button type="button" class="btn text-white px-4 py-2 rounded-3 fw-medium d-inline-flex align-items-center gap-2 shadow-sm" style="background-color: #ff7a3d;">
+                        <img src="../img_admin/detail-transaksi/badge-check.svg" alt="" width="20" height="20" />
+                        <span>Konfirmasi Pembayaran</span>
+                    </button>
+                    <button type="button" class="btn text-dark px-4 py-2 rounded-3 fw-medium d-inline-flex align-items-center gap-2 shadow-sm bg-white" style="border-color: #cbd5e1;">
+                        <img src="../img_admin/detail-transaksi/check-circle.svg" alt="" width="20" height="20" />
+                        <span>Selesaikan Transaksi</span>
+                    </button>
+                    <button type="button" class="btn text-danger px-4 py-2 rounded-3 fw-medium shadow-sm" style="color: #dc2626; background-color: #fef2f2; border: 1px solid #fca5a5;">
+                        <span>Batalkan Pesanan</span>
+                    </button>
+                    <a href="transaksi.html" class="btn btn-outline-light px-4 py-2 rounded-3 fw-medium shadow-sm bg-white text-decoration-none" style="border-color: #ff7a00; color:#ff7a00">
+                        Kembali
+                    </a>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+</body>
+
+</html>
