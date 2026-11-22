@@ -16,8 +16,6 @@ Route::get('/', function () {
     return view('welcome');
 })->name('beranda');
 
-Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
-
 Route::prefix('customer')->name('customer.')->group(function () {
     Route::view('/landing-page', 'customer.landing-page')->name('landing');
     Route::view('/beranda', 'customer.beranda')->name('beranda');

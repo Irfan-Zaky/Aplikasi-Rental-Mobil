@@ -1,3 +1,13 @@
+## Dokumen Acuan Proyek
+
+- Sebelum membuat atau mengubah fitur apa pun (route, controller, view, service, job, test), **baca `docs/usecase_gorental.md` sampai selesai**. Dokumen itu adalah acuan perilaku: alur, aturan bisnis, status, dan batasan setiap use case (F001–F009). Jangan menambah atau mengubah perilaku yang tidak tertulis di sana. Jika ada hal yang tidak tercakup atau tampak bertentangan, tanyakan ke pengguna sebelum melanjutkan.
+- Setiap kali pekerjaan menyentuh data (migration, model, relasi, factory, seeder, query, validasi field, atau nilai enum), **baca `docs/database_gorental.md` terlebih dahulu**. Dokumen itu adalah acuan tunggal untuk nama tabel, nama kolom, tipe, constraint, dan nilai enum. Jangan membuat tabel atau kolom di luar dokumen itu, dan jangan mengubah migration yang sudah dijalankan; buat migration baru.
+- Fitur hampir selalu menyentuh data, jadi untuk fitur baru baca **kedua** dokumen. Jika isi keduanya berbeda, `database_gorental.md` menjadi acuan untuk nama dan nilai data, sedangkan `usecase_gorental.md` menjadi acuan untuk perilaku.
+- Bila pengguna meminta perubahan yang bertentangan dengan kedua dokumen, ingatkan konfliknya dan tanyakan apakah dokumen ikut diperbarui.
+
+
+
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
