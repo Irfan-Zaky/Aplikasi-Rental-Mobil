@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\MobilController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\VerifikasiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,6 +25,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/verifikasi', [VerifikasiController::class, 'create'])->name('verifikasi.create');
+    Route::post('/verifikasi', [VerifikasiController::class, 'store'])->name('verifikasi.store');
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
