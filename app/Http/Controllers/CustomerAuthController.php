@@ -57,7 +57,7 @@ class CustomerAuthController extends Controller
             'email'    => $data['email'],
             'no_hp'    => $data['no_hp'],
             'password' => Hash::make($data['password']),
-            'role'     => 'customer',
+            'role'     => 'user',
         ]);
 
         event(new Registered($user));
