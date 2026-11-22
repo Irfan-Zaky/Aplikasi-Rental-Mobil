@@ -5,6 +5,7 @@ use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\MobilController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VerifikasiController;
+use App\Http\Controllers\CustomerAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,6 +17,17 @@ Route::get('/', function () {
 })->name('beranda');
 
 Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
+Route::prefix('customer')->name('customer.')->group(function () {
+    Route::view('/landing-page', 'customer.landing-page')->name('landing');
+    Route::view('/beranda', 'customer.beranda')->name('beranda');
+
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', [CustomerAuthController::class, 'showLogin'])->name('login');
+        Route::post('/login', [CustomerAuthController::class, 'login']);
+        Route::get('/daftar-akun', [CustomerAuthController::class, 'showRegister'])->name('register');
+        Route::post('/daftar-akun', [CustomerAuthController::class, 'register']);
+    });
+});
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
