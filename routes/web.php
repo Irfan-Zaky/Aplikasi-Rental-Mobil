@@ -1,15 +1,22 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\MobilController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\KatalogController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/admin/dashboard');
+Route::get('/', function () {
+    if (auth()->check() && auth()->user()->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    return view('welcome');
+})->name('beranda');
+
 Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 });
 
