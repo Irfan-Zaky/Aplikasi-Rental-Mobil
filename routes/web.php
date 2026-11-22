@@ -1,11 +1,11 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\MobilController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VerifikasiController;
-use App\Http\Controllers\CustomerAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,6 +17,7 @@ Route::get('/', function () {
 })->name('beranda');
 
 Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
+
 Route::prefix('customer')->name('customer.')->group(function () {
     Route::view('/landing-page', 'customer.landing-page')->name('landing');
     Route::view('/beranda', 'customer.beranda')->name('beranda');
@@ -26,6 +27,12 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::post('/login', [CustomerAuthController::class, 'login']);
         Route::get('/daftar-akun', [CustomerAuthController::class, 'showRegister'])->name('register');
         Route::post('/daftar-akun', [CustomerAuthController::class, 'register']);
+    });
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/data-diri', [VerifikasiController::class, 'create'])->name('data-diri');
+        Route::post('/pilihan-layanan', [VerifikasiController::class, 'store'])->name('data-diri.store');
+        Route::view('/pilihan-layanan', 'customer.pilihan-layanan')->name('pilihan-layanan');
     });
 });
 

@@ -11,20 +11,23 @@ class VerifikasiController extends Controller
 {
     public function create(Request $request): View
     {
-        return view('verifikasi', ['user' => $request->user()]);
+        return view('customer.data-diri', ['user' => $request->user()]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'ktp'    => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'selfie' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'nama_lengkap' => ['required', 'string', 'max:255'],
+            'nomor_hp'     => ['required', 'string', 'max:20'],
+            'nik'          => ['required', 'digits:16'],
+            'foto_ktp'     => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'swafoto'      => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
 
         $user = $request->user();
 
         if ($user->verification_status === 'terverifikasi') {
-            return back()->with('status', 'Data dirimu sudah terverifikasi.');
+            return redirect()->route('customer.pilihan-layanan');
         }
 
         foreach ([$user->ktp_path, $user->selfie_path] as $lama) {
@@ -34,13 +37,15 @@ class VerifikasiController extends Controller
         }
 
         $user->update([
-            'ktp_path'            => $request->file('ktp')->store('verifikasi/ktp', 'local'),
-            'selfie_path'         => $request->file('selfie')->store('verifikasi/selfie', 'local'),
+            'nik'                 => $request->nik,
+            'no_hp'               => $request->nomor_hp,
+            'ktp_path'            => $request->file('foto_ktp')->store('verifikasi/ktp', 'local'),
+            'selfie_path'         => $request->file('swafoto')->store('verifikasi/selfie', 'local'),
             'verification_status' => 'menunggu',
             'rejection_note'      => null,
         ]);
 
-        return redirect()->route('verifikasi.create')
-            ->with('status', 'Dokumen terkirim, menunggu verifikasi admin.');
+        return redirect()->route('customer.pilihan-layanan')
+            ->with('status', 'Data diri terkirim, menunggu verifikasi admin.');
     }
 }
