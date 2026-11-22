@@ -30,7 +30,7 @@ class KatalogController extends Controller
             ->paginate(9)
             ->withQueryString();
 
-        return view('katalog', [
+        return view('customer.katalog', [
             'mobils'      => $mobils,
             'daftarMerk'  => Mobil::select('merk')->distinct()->orderBy('merk')->pluck('merk'),
             'daftarJenis' => Mobil::select('jenis')->distinct()->orderBy('jenis')->pluck('jenis'),
