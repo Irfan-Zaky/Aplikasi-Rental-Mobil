@@ -5,7 +5,7 @@ use App\Http\Controllers\MobilController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/admin/dashboard');
+Route::redirect('/', '/customer/dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
