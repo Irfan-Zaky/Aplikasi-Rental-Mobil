@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\MobilController;
 use App\Http\Controllers\ProfileController;
@@ -17,7 +18,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('beranda');
 
-Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
+Route::get('/katalog', fn () => redirect()->route('customer.katalog'))->name('katalog');
 
 Route::prefix('customer')->name('customer.')->group(function () {
     Route::view('/landing-page', 'customer.landing-page')->name('landing');
@@ -30,7 +31,13 @@ Route::prefix('customer')->name('customer.')->group(function () {
     });
 
     Route::middleware(['auth', 'customer'])->group(function () {
-        Route::view('/beranda', 'customer.beranda')->name('beranda');
+        Route::get('/beranda', [CustomerController::class, 'beranda'])->name('beranda');
+        Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
+        Route::get('/riwayat', [CustomerController::class, 'riwayat'])->name('riwayat');
+        Route::get('/profil', [CustomerController::class, 'profil'])->name('profil');
+        Route::get('/edit-profil', [CustomerController::class, 'editProfil'])->name('edit-profil');
+        Route::post('/edit-profil', [CustomerController::class, 'updateProfil'])->name('edit-profil.update');
+
         Route::get('/data-diri', [VerifikasiController::class, 'create'])->name('data-diri');
         Route::post('/pilihan-layanan', [VerifikasiController::class, 'store'])->name('data-diri.store');
         Route::view('/pilihan-layanan', 'customer.pilihan-layanan')->name('pilihan-layanan');

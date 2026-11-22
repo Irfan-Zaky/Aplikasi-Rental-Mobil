@@ -19,13 +19,18 @@
         <section class="px-3 p-3 mt-2">
             <div class="bg-white rounded-4 p-2 shadow-sm d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-3">
-                    <img src="{{ asset('img/dasboard.c/gambar-orang-gede.svg') }}" alt="Foto profil" />
+                    <div class="rounded-circle overflow-hidden flex-shrink-0 d-flex align-items-center justify-content-center"
+                        style="width: 56px; height: 56px; background-color: aliceblue;">
+                        <img src="{{ $fotoProfil ? asset('storage/'.$fotoProfil) : asset('img/dasboard.c/gambar-orang-gede.svg') }}"
+                            alt="Foto profil"
+                            class="w-100 h-100 {{ $fotoProfil ? 'object-fit-cover' : 'object-fit-contain p-2' }}" />
+                    </div>
                     <div>
                         <p class="m-0 text-muted fs-6">Halo,</p>
                         <h2 id="nama-customer" class="fw-bold m-0 fs-5">{{ $namaCustomer ?? 'Nama Customer' }}</h2>
                     </div>
                 </div>
-                <a href="{{ url('/customer/profil') }}" aria-label="Menuju profil"
+                <a href="{{ route('customer.profil') }}" aria-label="Menuju profil"
                     class="text-decoration-none text-dark fs-4 px-2 fw-bold">&gt;</a>
             </div>
         </section>
@@ -74,7 +79,7 @@
         <section class="px-3 my-5">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="fw-bold m-0 fs-5 text-dark">Pesanan Terakhir</h2>
-                <a href="{{ url('/customer/riwayat') }}" class="text-decoration-none small fw-semibold"
+                <a href="{{ route('customer.riwayat') }}" class="text-decoration-none small fw-semibold"
                     style="color: #0b1d33">Lihat semua</a>
             </div>
 
@@ -127,26 +132,26 @@
     <div style="height: 100px; background-color: aliceblue"></div>
     <nav class="navbar fixed-bottom bg-white border-top py-2 px-3 shadow-sm">
         <div class="container-fluid d-flex justify-content-around align-items-center">
-            <a href="{{ url('/customer/beranda') }}" aria-label="Menuju beranda"
+            <a href="{{ route('customer.beranda') }}" aria-label="Menuju beranda"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3 rounded-pill"
                 style="background-color: rgba(255, 107, 53, 0.12)">
                 <img src="{{ asset('img/dasboard.c/rumah-oren.svg') }}" alt="Beranda"
                     style="width: 22px; height: 22px; filter: invert(41%) sepia(85%) saturate(1436%) hue-rotate(338deg) brightness(101%) contrast(97%);" />
                 <span class="small mt-1 text-muted" style="font-size: 0.7rem">Beranda</span>
             </a>
-            <a href="{{ url('/customer/katalog') }}" aria-label="Menuju katalog"
+            <a href="{{ route('customer.katalog') }}" aria-label="Menuju katalog"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
                 <img src="{{ asset('img/dasboard.c/logo-mobil-biru.svg') }}" alt="Katalog"
                     style="width: 22px; height: 22px; opacity: 0.6" />
                 <span class="small mt-1 text-muted" style="font-size: 0.7rem">Katalog</span>
             </a>
-            <a href="{{ url('/customer/riwayat') }}" aria-label="Menuju riwayat"
+            <a href="{{ route('customer.riwayat') }}" aria-label="Menuju riwayat"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
                 <img src="{{ asset('img/dasboard.c/jam.svg') }}" alt="Riwayat"
                     style="width: 22px; height: 22px; opacity: 0.6" />
                 <span class="small mt-1 text-muted" style="font-size: 0.7rem">Riwayat</span>
             </a>
-            <a href="{{ url('/customer/profil') }}" aria-label="Menuju profil"
+            <a href="{{ route('customer.profil') }}" aria-label="Menuju profil"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
                 <img src="{{ asset('img/dasboard.c/gambar-orang-kecil.svg') }}" alt="Profil"
                     style="width: 22px; height: 22px; opacity: 0.6" />

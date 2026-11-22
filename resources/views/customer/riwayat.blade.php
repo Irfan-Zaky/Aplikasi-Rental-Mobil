@@ -85,26 +85,26 @@
 
     <nav class="navbar fixed-bottom bg-white border-top py-2 px-3 shadow-sm">
         <div class="container-fluid d-flex justify-content-around align-items-center">
-            <a href="{{ url('/customer/beranda') }}" aria-label="Menuju beranda"
+            <a href="{{ route('customer.beranda') }}" aria-label="Menuju beranda"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
                 <img src="{{ asset('img/riwayaat pesaanan/rumah-biru.svg') }}" alt="Beranda"
                     style="width: 22px; height: 22px; opacity: 0.6;" />
                 <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Beranda</span>
             </a>
-            <a href="{{ url('/customer/katalog') }}" aria-label="Menuju katalog"
+            <a href="{{ route('customer.katalog') }}" aria-label="Menuju katalog"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
                 <img src="{{ asset('img/riwayaat pesaanan/logo-mobil-biru.svg') }}" alt="Katalog"
                     style="width: 22px; height: 22px; opacity: 0.6;" />
                 <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Katalog</span>
             </a>
-            <a href="{{ url('/customer/riwayat') }}" aria-label="Menuju riwayat"
+            <a href="{{ route('customer.riwayat') }}" aria-label="Menuju riwayat"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3 rounded-pill"
                 style="background-color: rgba(255, 107, 53, 0.12);">
                 <img src="{{ asset('img/riwayaat pesaanan/jam-oren.svg') }}" alt="Riwayat"
                     style="width: 22px; height: 22px; filter: invert(41%) sepia(85%) saturate(1436%) hue-rotate(338deg) brightness(101%) contrast(97%);" />
                 <span class="small mt-1 text-muted" style="font-size: 0.7rem;">Riwayat</span>
             </a>
-            <a href="{{ url('/customer/profil') }}" aria-label="Menuju profil"
+            <a href="{{ route('customer.profil') }}" aria-label="Menuju profil"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
                 <img src="{{ asset('img/riwayaat pesaanan/user.svg') }}" alt="Profil"
                     style="width: 22px; height: 22px; opacity: 0.6;" />

@@ -20,17 +20,12 @@
     <main>
         <section class="text-center py-4">
             <div class="mb-3">
-                <img src="{{ asset('img/user-besar.svg') }}" alt="Ikon profil" class="rounded-circle border p-3"
-                    width="90" height="90" />
+                <img src="{{ $fotoProfil ? asset('storage/'.$fotoProfil) : asset('img/user-besar.svg') }}"
+                    alt="Foto profil" class="rounded-circle border p-3" width="90" height="90" />
             </div>
             <h2 id="nama-profil" class="fw-bold fs-4 text-dark mb-2">
                 {{ $namaCustomer }}
             </h2>
-            <div>
-                <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2 fw-medium">
-                    Akun Terverifikasi
-                </span>
-            </div>
         </section>
 
         <section>
@@ -58,7 +53,7 @@
     </main>
 
     <div class="container my-4 pb-5 d-grid gap-3">
-        <a href="{{ url('/customer/edit-profil') }}" class="btn btn-outline-dark py-3 rounded-1 fw-bold"
+        <a href="{{ route('customer.edit-profil') }}" class="btn btn-outline-dark py-3 rounded-1 fw-bold"
             style="border-color: #0b1d33;">
             Edit Profil
         </a>
@@ -71,25 +66,25 @@
 
     <nav class="navbar fixed-bottom bg-white border-top py-2 px-3 shadow-sm">
         <div class="container-fluid d-flex justify-content-around align-items-center">
-            <a href="{{ url('/customer/beranda') }}" aria-label="Menuju beranda"
+            <a href="{{ route('customer.beranda') }}" aria-label="Menuju beranda"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
                 <img src="{{ asset('img/profil/rumah-biru.svg') }}" alt="Beranda"
                     style="width: 22px; height: 22px; opacity: 0.6" />
                 <span class="small mt-1 text-muted" style="font-size: 0.7rem">Beranda</span>
             </a>
-            <a href="{{ url('/customer/katalog') }}" aria-label="Menuju katalog"
+            <a href="{{ route('customer.katalog') }}" aria-label="Menuju katalog"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
                 <img src="{{ asset('img/profil/logo-mobil-biru.svg') }}" alt="Katalog"
                     style="width: 22px; height: 22px; opacity: 0.6" />
                 <span class="small mt-1 text-muted" style="font-size: 0.7rem">Katalog</span>
             </a>
-            <a href="{{ url('/customer/riwayat') }}" aria-label="Menuju riwayat"
+            <a href="{{ route('customer.riwayat') }}" aria-label="Menuju riwayat"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3">
                 <img src="{{ asset('img/profil/jam.svg') }}" alt="Riwayat"
                     style="width: 22px; height: 22px; opacity: 0.6" />
                 <span class="small mt-1 text-muted" style="font-size: 0.7rem">Riwayat</span>
             </a>
-            <a href="{{ url('/customer/profil') }}" aria-label="Menuju profil"
+            <a href="{{ route('customer.profil') }}" aria-label="Menuju profil"
                 class="d-flex flex-column align-items-center text-decoration-none py-1 px-3 rounded-pill"
                 style="background-color: rgba(255, 107, 53, 0.12)">
                 <img src="{{ asset('img/profil/user-oren.svg') }}" alt="Profil"
