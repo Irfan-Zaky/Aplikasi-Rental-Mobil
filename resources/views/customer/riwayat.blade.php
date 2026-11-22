@@ -20,13 +20,13 @@
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-12 col-md-10 col-lg-11">
-                        <div class="d-flex align-items-center container my-2 pb-3 px-3 gap-2">
-                            <button type="button"
-                                class="btn btn-dark rounded-pill px-4 py-2 fw-medium">Semua</button>
-                            <button type="button"
-                                class="btn btn-dark rounded-pill px-4 py-2 fw-medium">Aktif</button>
-                            <button type="button"
-                                class="btn btn-dark rounded-pill px-4 py-2 fw-medium">Selesai</button>
+                        <div class="d-flex align-items-center container my-2 pb-3 px-3 gap-2 flex-wrap">
+                            <a href="{{ route('customer.riwayat', array_filter(['tab' => 'semua', 'keyword' => request('keyword')])) }}"
+                                class="btn {{ ($tab ?? 'semua') === 'semua' ? 'btn-dark' : 'btn-light border' }} rounded-pill px-4 py-2 fw-medium text-decoration-none">Semua</a>
+                            <a href="{{ route('customer.riwayat', array_filter(['tab' => 'aktif', 'keyword' => request('keyword')])) }}"
+                                class="btn {{ ($tab ?? 'semua') === 'aktif' ? 'btn-dark' : 'btn-light border' }} rounded-pill px-4 py-2 fw-medium text-decoration-none">Aktif</a>
+                            <a href="{{ route('customer.riwayat', array_filter(['tab' => 'selesai', 'keyword' => request('keyword')])) }}"
+                                class="btn {{ ($tab ?? 'semua') === 'selesai' ? 'btn-dark' : 'btn-light border' }} rounded-pill px-4 py-2 fw-medium text-decoration-none">Selesai</a>
                         </div>
 
                         <div id="daftar-riwayat-customer">
@@ -43,16 +43,19 @@
                                 @endphp
 
                                 <article class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
-                                    <a href="{{ url('/customer/detail-pesanan') }}?id={{ data_get($pesanan, 'id') }}"
+                                    <a href="{{ route('customer.detail-pesanan', ['id' => data_get($pesanan, 'id')]) }}"
                                         class="text-decoration-none text-dark">
                                         <div class="d-flex align-items-center justify-content-between mb-3">
                                             <div class="d-flex align-items-center gap-3">
-                                                <img src="{{ asset('img/foto-mobil-kecil.png') }}"
+                                                <img src="{{ data_get($pesanan, 'foto_mobil', asset('img/foto-mobil-kecil.png')) }}"
                                                     alt="{{ data_get($pesanan, 'nama_mobil', 'Mobil') }}"
                                                     class="rounded-3 object-fit-cover" width="90" height="65" />
                                                 <div>
-                                                    <h3 class="fw-bold fs-6 mb-1 text-dark">
-                                                        {{ data_get($pesanan, 'nama_mobil', '-') }}</h3>
+                                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                                        <h3 class="fw-bold fs-6 mb-0 text-dark">
+                                                            {{ data_get($pesanan, 'nama_mobil', '-') }}</h3>
+                                                        <span class="badge bg-light text-muted border small">{{ data_get($pesanan, 'kode', '-') }}</span>
+                                                    </div>
                                                     <p class="text-muted small mb-1">
                                                         {{ data_get($pesanan, 'tgl_sewa', '-') }}</p>
                                                     <p class="fw-bold text-dark mb-0">

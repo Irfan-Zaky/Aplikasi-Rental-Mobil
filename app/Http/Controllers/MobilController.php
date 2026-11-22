@@ -125,15 +125,43 @@ class MobilController extends Controller
             ]);
 
             $fotoBaru = $validated['fotos'] ?? [];
+            $adaPerubahanFoto = array_key_exists('foto_lama', $validated)
+                || array_key_exists('foto_utama_lama', $validated)
+                || array_key_exists('fotos', $validated);
 
-            if ($fotoBaru !== []) {
-                $mobil->fotos()->update(['is_utama' => false]);
+            if ($adaPerubahanFoto) {
+                $fotoLamaDiminta = array_key_exists('foto_lama', $validated);
+                $fotoLamaIds = collect($validated['foto_lama'] ?? [])
+                    ->filter(fn (mixed $id): bool => filled($id))
+                    ->map(fn (mixed $id): int => (int) $id)
+                    ->all();
+
+                if ($fotoLamaDiminta) {
+                    $mobil->fotos()->whereNotIn('id', $fotoLamaIds)->delete();
+                }
+
+                $fotoLama = $fotoLamaDiminta
+                    ? $mobil->fotos()->whereIn('id', $fotoLamaIds)->get()
+                    : $mobil->fotos()->get();
+
+                $fotoUtamaLamaId = isset($validated['foto_utama_lama']) ? (int) $validated['foto_utama_lama'] : null;
+                $utamaLamaDipilih = $fotoUtamaLamaId !== null && $fotoLama->contains('id', $fotoUtamaLamaId);
+
+                $fotoLama->each(function (FotoMobil $foto) use ($fotoUtamaLamaId, $utamaLamaDipilih): void {
+                    $foto->update(['is_utama' => $utamaLamaDipilih && $foto->id === $fotoUtamaLamaId]);
+                });
 
                 $this->simpanFoto(
                     $mobil,
                     $fotoBaru,
-                    $this->indeksFotoUtama($validated['foto_utama'] ?? null, count($fotoBaru)),
+                    $utamaLamaDipilih || $fotoBaru === []
+                        ? -1
+                        : $this->indeksFotoUtama($validated['foto_utama'] ?? null, count($fotoBaru)),
                 );
+
+                if (! $utamaLamaDipilih && $fotoBaru === [] && $fotoLama->isNotEmpty()) {
+                    $fotoLama->first()->update(['is_utama' => true]);
+                }
             }
 
             return redirect()->route('admin.data-mobil.index')

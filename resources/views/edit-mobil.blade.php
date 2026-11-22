@@ -49,6 +49,7 @@
                             @csrf
                             @method('PUT')
                             <input type="hidden" name="foto_utama" id="foto-utama" value="" />
+                            <input type="hidden" name="foto_utama_lama" id="foto-utama-lama" value="{{ $fotoUtama['id'] ?? '' }}" />
                             <div id="foto-lama-container"></div>
 
                             <header class="mb-4">

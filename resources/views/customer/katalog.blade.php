@@ -11,6 +11,15 @@
 @section('content')
     @php
         $mobils = $mobils ?? collect();
+        $keyword = $keyword ?? request('keyword', '');
+        $selectedMerk = $selectedMerk ?? request('merk', '');
+        $selectedJenis = $selectedJenis ?? request('jenis', '');
+        $hargaMin = $hargaMin ?? request('harga_min');
+        $hargaMax = $hargaMax ?? request('harga_max');
+        $isFilterAktif = $isFilterAktif ?? (
+            filled($keyword) || filled($selectedMerk) || filled($selectedJenis) || filled($hargaMin) || filled($hargaMax)
+        );
+        $jumlahMobil = $mobils->count();
     @endphp
 
     <nav class="navbar px-3 w-100" style="background-color: white">
@@ -26,7 +35,7 @@
             <div class="container">
                 <div class="row justify-content-between">
                     <div class="col-12 col-md-8 col-lg-6">
-                        <div class="p-3 rounded-4 border-0" style="background-color: white; max-width: 480px;">
+                        <div class="p-3 rounded-4 border-0 mb-3" style="background-color: white; max-width: 480px;">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center gap-2">
                                     <i class="bi bi-calendar-event text-primary fs-5"></i>
@@ -34,7 +43,7 @@
                                 </div>
 
                                 <button id="btn-ubah-tanggal" type="button"
-                                    class="btn btn-link p-0 text-primary fw-bold text-decoration-none small fs-6">Ubah</button>
+                                    class="btn btn-link p-0 text-primary fw-bold text-decoration-none small">Ubah</button>
                                 <input type="text" id="jangkar-kalender" class="d-none">
                             </div>
                             <div class="d-flex align-items-center gap-2">
@@ -50,24 +59,210 @@
                                         {{ $tanggalSelesai ?? 'Pilih tanggal' }}</p>
                                 </div>
                             </div>
+                           
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center my-3 gap-2 overflow-x-auto text-nowrap pb-2">
-                    <button id="btn-semua" type="button"
-                        class="btn btn-dark rounded-pill px-4 py-2 fw-medium">Semua</button>
-                    <button id="btn-jenis" type="button"
-                        class="btn btn-outline-dark rounded-pill px-4 py-2 fw-medium bg-white">Jenis</button>
-                    <button id="btn-merk" type="button"
-                        class="btn btn-outline-dark rounded-pill px-4 py-2 fw-medium bg-white">Merk</button>
-                    <button id="btn-harga" type="button"
-                        class="btn btn-outline-dark rounded-pill px-4 py-2 fw-medium bg-white">Harga</button>
+                {{-- Satu form untuk pencarian dan seluruh filter, supaya pilihan tidak saling menimpa. --}}
+                <form id="form-filter-katalog" action="{{ route('customer.katalog') }}" method="GET"
+                    class="mb-3" style="max-width: 480px;">
+
+                    <div class="d-flex align-items-center gap-2 overflow-x-auto text-nowrap pb-2">
+                        <a href="{{ route('customer.katalog') }}" id="btn-semua"
+                            class="btn {{ !$isFilterAktif ? 'btn-dark' : 'btn-outline-dark bg-white' }} rounded-pill px-4 py-2 fw-medium text-decoration-none">
+                            Semua
+                        </a>
+                        <button id="btn-merk" type="button" data-aktif="{{ filled($selectedMerk) ? 'true' : 'false' }}"
+                            data-bs-toggle="modal" data-bs-target="#modal-filter-merk"
+                            class="btn {{ filled($selectedMerk) ? 'btn-dark' : 'btn-outline-dark bg-white' }} rounded-pill px-4 py-2 fw-medium d-inline-flex align-items-center gap-1"
+                            aria-controls="modal-filter-merk">
+                            <span>Merk</span>
+                            @if(filled($selectedMerk))
+                                <span class="badge bg-light text-dark ms-1">{{ $selectedMerk }}</span>
+                            @endif
+                        </button>
+                        <button id="btn-jenis" type="button" data-aktif="{{ filled($selectedJenis) ? 'true' : 'false' }}"
+                            data-bs-toggle="modal" data-bs-target="#modal-filter-jenis"
+                            class="btn {{ filled($selectedJenis) ? 'btn-dark' : 'btn-outline-dark bg-white' }} rounded-pill px-4 py-2 fw-medium d-inline-flex align-items-center gap-1"
+                            aria-controls="modal-filter-jenis">
+                            <span>Jenis</span>
+                            @if(filled($selectedJenis))
+                                <span class="badge bg-light text-dark ms-1">{{ $selectedJenis }}</span>
+                            @endif
+                        </button>
+                        <button id="btn-harga" type="button"
+                            data-aktif="{{ (filled($hargaMin) || filled($hargaMax)) ? 'true' : 'false' }}"
+                            data-bs-toggle="modal" data-bs-target="#modal-filter-harga"
+                            class="btn {{ (filled($hargaMin) || filled($hargaMax)) ? 'btn-dark' : 'btn-outline-dark bg-white' }} rounded-pill px-4 py-2 fw-medium d-inline-flex align-items-center gap-1"
+                            aria-controls="modal-filter-harga">
+                            <span>Harga</span>
+                            @if(filled($hargaMin) || filled($hargaMax))
+                                <span class="badge bg-light text-dark ms-1">Aktif</span>
+                            @endif
+                        </button>
+                    </div>
+                </form>
+
+                {{-- Modal filter Merk: input + datalist, Enter langsung mencari. --}}
+                <div class="modal fade" id="modal-filter-merk" tabindex="-1" aria-labelledby="judul-modal-merk"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0 shadow">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="modal-title fw-bold text-dark" id="judul-modal-merk">Filter Berdasarkan Merk</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                            </div>
+                            <div class="modal-body pt-2">
+                                <label for="input-filter-merk" class="form-label small text-muted mb-1">
+                                    Ketik atau pilih merk, lalu tekan <kbd>Enter</kbd>
+                                </label>
+                                <input type="text" id="input-filter-merk" name="merk" list="daftar-merk"
+                                    form="form-filter-katalog" value="{{ $selectedMerk }}" autocomplete="off"
+                                    class="form-control bg-light border-1 py-2 px-3 rounded-3 shadow-sm"
+                                    placeholder="Contoh: Toyota, Honda, Daihatsu..." />
+                                <datalist id="daftar-merk">
+                                    @foreach ($daftarMerk ?? [] as $m)
+                                        <option value="{{ $m }}"></option>
+                                    @endforeach
+                                </datalist>
+                            </div>
+                            <div class="modal-footer border-0 pt-0">
+                                @if(filled($selectedMerk))
+                                    <a href="{{ request()->fullUrlWithQuery(['merk' => null]) }}"
+                                        class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-medium text-decoration-none me-auto">Hapus</a>
+                                @endif
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-medium"
+                                    data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" form="form-filter-katalog"
+                                    class="btn text-white rounded-pill px-4 py-2 fw-medium"
+                                    style="background-color: #ff7a3d;">Terapkan</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                {{-- Modal filter Jenis: input + datalist, Enter langsung mencari. --}}
+                <div class="modal fade" id="modal-filter-jenis" tabindex="-1" aria-labelledby="judul-modal-jenis"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0 shadow">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="modal-title fw-bold text-dark" id="judul-modal-jenis">Filter Berdasarkan Jenis</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                            </div>
+                            <div class="modal-body pt-2">
+                                <label for="input-filter-jenis" class="form-label small text-muted mb-1">
+                                    Ketik atau pilih jenis, lalu tekan <kbd>Enter</kbd>
+                                </label>
+                                <input type="text" id="input-filter-jenis" name="jenis" list="daftar-jenis"
+                                    form="form-filter-katalog" value="{{ $selectedJenis }}" autocomplete="off"
+                                    class="form-control bg-light border-1 py-2 px-3 rounded-3 shadow-sm"
+                                    placeholder="Contoh: SUV, MPV, Sedan..." />
+                                <datalist id="daftar-jenis">
+                                    @foreach ($daftarJenis ?? ['MPV', 'SUV', 'Hatchback', 'Sedan'] as $itemJenis)
+                                        <option value="{{ $itemJenis }}"></option>
+                                    @endforeach
+                                </datalist>
+                            </div>
+                            <div class="modal-footer border-0 pt-0">
+                                @if(filled($selectedJenis))
+                                    <a href="{{ request()->fullUrlWithQuery(['jenis' => null]) }}"
+                                        class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-medium text-decoration-none me-auto">Hapus</a>
+                                @endif
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-medium"
+                                    data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" form="form-filter-katalog"
+                                    class="btn text-white rounded-pill px-4 py-2 fw-medium"
+                                    style="background-color: #ff7a3d;">Terapkan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Modal filter Harga: batas terendah dan tertinggi, Enter langsung mencari. --}}
+                <div class="modal fade" id="modal-filter-harga" tabindex="-1" aria-labelledby="judul-modal-harga"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0 shadow">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="modal-title fw-bold text-dark" id="judul-modal-harga">Filter Berdasarkan Harga</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                            </div>
+                            <div class="modal-body pt-2">
+                                <p class="small text-muted mb-3">Masukkan batas harga sewa per hari, lalu tekan <kbd>Enter</kbd>.</p>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="input-harga-min" class="form-label small text-muted mb-1">Batas Terendah (Rp)</label>
+                                        <input type="number" id="input-harga-min" name="harga_min"
+                                            form="form-filter-katalog"
+                                            value="{{ filled($hargaMin) ? $hargaMin : '' }}"
+                                            class="form-control bg-light border-1 py-2 px-3 rounded-3 shadow-sm"
+                                            placeholder="Min: 300000" min="0" step="1000" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="input-harga-max" class="form-label small text-muted mb-1">Batas Tertinggi (Rp)</label>
+                                        <input type="number" id="input-harga-max" name="harga_max"
+                                            form="form-filter-katalog"
+                                            value="{{ filled($hargaMax) ? $hargaMax : '' }}"
+                                            class="form-control bg-light border-1 py-2 px-3 rounded-3 shadow-sm"
+                                            placeholder="Max: 800000" min="0" step="1000" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 pt-0">
+                                @if(filled($hargaMin) || filled($hargaMax))
+                                    <a href="{{ request()->fullUrlWithQuery(['harga_min' => null, 'harga_max' => null]) }}"
+                                        class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-medium text-decoration-none me-auto">Hapus</a>
+                                @endif
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-medium"
+                                    data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" form="form-filter-katalog"
+                                    class="btn text-white rounded-pill px-4 py-2 fw-medium"
+                                    style="background-color: #ff7a3d;">Terapkan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tag / Badge Filter yang Sedang Aktif --}}
+                @if($isFilterAktif)
+                    <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                        <span class="small text-muted fw-semibold">Filter aktif:</span>
+                        @if(filled($keyword))
+                            <a href="{{ request()->fullUrlWithQuery(['keyword' => null]) }}"
+                                class="badge rounded-pill bg-light text-dark border px-3 py-2 text-decoration-none shadow-sm">
+                                "{{ $keyword }}" <span class="ms-1 fw-bold">&times;</span>
+                            </a>
+                        @endif
+                        @if(filled($selectedMerk))
+                            <a href="{{ request()->fullUrlWithQuery(['merk' => null]) }}"
+                                class="badge rounded-pill bg-light text-dark border px-3 py-2 text-decoration-none shadow-sm">
+                                Merk: {{ $selectedMerk }} <span class="ms-1 fw-bold">&times;</span>
+                            </a>
+                        @endif
+                        @if(filled($selectedJenis))
+                            <a href="{{ request()->fullUrlWithQuery(['jenis' => null]) }}"
+                                class="badge rounded-pill bg-light text-dark border px-3 py-2 text-decoration-none shadow-sm">
+                                Jenis: {{ $selectedJenis }} <span class="ms-1 fw-bold">&times;</span>
+                            </a>
+                        @endif
+                        @if(filled($hargaMin) || filled($hargaMax))
+                            <a href="{{ request()->fullUrlWithQuery(['harga_min' => null, 'harga_max' => null]) }}"
+                                class="badge rounded-pill bg-light text-dark border px-3 py-2 text-decoration-none shadow-sm">
+                                Harga: Rp {{ number_format((int) ($hargaMin ?: 0), 0, ',', '.') }} -
+                                {{ filled($hargaMax) ? 'Rp ' . number_format((int) $hargaMax, 0, ',', '.') : 'Maks' }}
+                                <span class="ms-1 fw-bold">&times;</span>
+                            </a>
+                        @endif
+                        <a href="{{ route('customer.katalog') }}"
+                            class="small text-danger text-decoration-none fw-medium ms-1">Reset Semua</a>
+                    </div>
+                @endif
 
                 <div class="d-flex justify-content-between align-items-center my-3">
                     <h2 class="fw-bold m-0 fs-5 text-dark">Mobil Tersedia</h2>
-                    <p id="jumlah-mobil" class="text-secondary small mb-1">{{ count($mobils) }} mobil</p>
+                    <p id="jumlah-mobil" class="text-secondary small mb-1">{{ $jumlahMobil }} mobil</p>
                 </div>
 
                 <div id="daftar-mobil">
@@ -99,10 +294,12 @@
                         </article>
                     @empty
                         <article class="card border-0 rounded-4 shadow-sm p-4 mb-3 bg-white text-center text-muted">
-                            <p class="mb-0 small">Belum ada mobil tersedia.</p>
+                            <p class="mb-0 small">Belum ada mobil tersedia dengan filter tersebut.</p>
+                            <small class="text-muted d-block mt-1">Coba gunakan kata kunci lain atau reset filter.</small>
                         </article>
                     @endforelse
                 </div>
+
             </div>
         </section>
     </main>

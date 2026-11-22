@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\FotoMobil;
 use App\Models\Mobil;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -85,6 +86,211 @@ class CustomerMainPagesTest extends TestCase
             ->assertOk()
             ->assertSee('Avanza Satu')
             ->assertSee('Brio Dua');
+    }
+
+    public function test_katalog_mengambil_data_dan_foto_utama_dari_database(): void
+    {
+        $customer = User::factory()->create();
+        $mobil = Mobil::factory()->create([
+            'merk' => 'MerkUnikDatabase',
+            'nama_mobil' => 'ModelUnikDatabase',
+            'jenis' => 'SUV',
+            'status' => 'Tersedia',
+            'harga_sewa' => 725000,
+            'spesifikasi' => 'Spesifikasi Unik Database',
+        ]);
+        FotoMobil::create([
+            'mobil_id' => $mobil->id,
+            'path_foto' => 'mobil-fotos/foto-unik-database.jpg',
+            'is_utama' => true,
+        ]);
+
+        $this->actingAs($customer)->get(route('customer.katalog'))
+            ->assertOk()
+            ->assertSee('MerkUnikDatabase ModelUnikDatabase')
+            ->assertSee('Spesifikasi Unik Database')
+            ->assertSee('725.000')
+            ->assertSee('mobil-fotos/foto-unik-database.jpg')
+            ->assertSee('1 mobil')
+            ->assertDontSee('Toyota Avanza');
+    }
+
+    public function test_detail_mobil_menampilkan_carousel_banyak_foto_dengan_foto_utama_di_urutan_pertama(): void
+    {
+        $customer = User::factory()->create();
+        $mobil = Mobil::factory()->create([
+            'merk' => 'Toyota',
+            'nama_mobil' => 'Avanza Carousel',
+        ]);
+
+        // Foto 1: Bukan utama
+        FotoMobil::create([
+            'mobil_id' => $mobil->id,
+            'path_foto' => 'mobil-fotos/foto-samping.jpg',
+            'is_utama' => false,
+        ]);
+
+        // Foto 2: Utama (favorit)
+        FotoMobil::create([
+            'mobil_id' => $mobil->id,
+            'path_foto' => 'mobil-fotos/foto-favorit-utama.jpg',
+            'is_utama' => true,
+        ]);
+
+        // Foto 3: Bukan utama
+        FotoMobil::create([
+            'mobil_id' => $mobil->id,
+            'path_foto' => 'mobil-fotos/foto-interior.jpg',
+            'is_utama' => false,
+        ]);
+
+        // Di halaman katalog, card tetap menampilkan foto utama / favorit
+        $this->actingAs($customer)->get(route('customer.katalog'))
+            ->assertOk()
+            ->assertSee('mobil-fotos/foto-favorit-utama.jpg')
+            ->assertDontSee('mobil-fotos/foto-samping.jpg');
+
+        // Di halaman detail mobil, carousel memuat semua foto
+        $respDetail = $this->actingAs($customer)->get(route('customer.detail-mobil', $mobil));
+        $respDetail->assertOk();
+        $respDetail->assertSee('carSlider');
+        $respDetail->assertSee('mobil-fotos/foto-favorit-utama.jpg');
+        $respDetail->assertSee('mobil-fotos/foto-samping.jpg');
+        $respDetail->assertSee('mobil-fotos/foto-interior.jpg');
+        $respDetail->assertSee('★ Utama');
+    }
+
+    public function test_katalog_pencarian_kata_kunci(): void
+    {
+        $customer = User::factory()->create();
+        Mobil::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza Veloz']);
+        Mobil::factory()->create(['merk' => 'Honda', 'nama_mobil' => 'Civic Turbo']);
+
+        $response = $this->actingAs($customer)->get(route('customer.katalog', ['keyword' => 'Veloz']));
+        $response->assertOk();
+        $response->assertSee('Avanza Veloz');
+        $response->assertDontSee('Civic Turbo');
+    }
+
+    public function test_katalog_filter_merk_menampilkan_pilihan_dropdown_dan_dapat_difilter(): void
+    {
+        $customer = User::factory()->create();
+        Mobil::factory()->create(['merk' => 'Daihatsu', 'nama_mobil' => 'Rocky']);
+        Mobil::factory()->create(['merk' => 'Mitsubishi', 'nama_mobil' => 'Xpander']);
+
+        // Verifikasi opsi select berisi merk yang ada di database
+        $respKatalog = $this->actingAs($customer)->get(route('customer.katalog'));
+        $respKatalog->assertOk();
+        $respKatalog->assertSee('<option value="Daihatsu"', false);
+        $respKatalog->assertSee('<option value="Mitsubishi"', false);
+        $respKatalog->assertSee('modal-filter-merk');
+        $respKatalog->assertSee('daftar-merk');
+        $respKatalog->assertSee('input-filter-merk');
+        $respKatalog->assertSee('list="daftar-merk"', false);
+
+        // Filter dengan merk Daihatsu
+        $respFilter = $this->actingAs($customer)->get(route('customer.katalog', ['merk' => 'Daihatsu']));
+        $respFilter->assertOk();
+        $respFilter->assertSee('Rocky');
+        $respFilter->assertDontSee('Xpander');
+    }
+
+    public function test_katalog_filter_jenis_menampilkan_pilihan_dan_dapat_difilter(): void
+    {
+        $customer = User::factory()->create();
+        Mobil::factory()->create(['jenis' => 'SUV', 'nama_mobil' => 'Mobil SUV']);
+        Mobil::factory()->create(['jenis' => 'Sedan', 'nama_mobil' => 'Mobil Sedan']);
+
+        $respKatalog = $this->actingAs($customer)->get(route('customer.katalog'));
+        $respKatalog->assertOk();
+        $respKatalog->assertSee('modal-filter-jenis');
+        $respKatalog->assertSee('daftar-jenis');
+        $respKatalog->assertSee('<option value="SUV"', false);
+        $respKatalog->assertSee('<option value="Sedan"', false);
+
+        // Filter jenis SUV
+        $respFilter = $this->actingAs($customer)->get(route('customer.katalog', ['jenis' => 'SUV']));
+        $respFilter->assertOk();
+        $respFilter->assertSee('Mobil SUV');
+        $respFilter->assertDontSee('Mobil Sedan');
+    }
+
+    public function test_katalog_filter_rentang_harga_min_dan_max(): void
+    {
+        $customer = User::factory()->create();
+        Mobil::factory()->create(['nama_mobil' => 'Mobil Murah', 'harga_sewa' => 250000]);
+        Mobil::factory()->create(['nama_mobil' => 'Mobil Sedang', 'harga_sewa' => 500000]);
+        Mobil::factory()->create(['nama_mobil' => 'Mobil Mahal', 'harga_sewa' => 1000000]);
+
+        $response = $this->actingAs($customer)->get(route('customer.katalog', [
+            'harga_min' => 400000,
+            'harga_max' => 600000,
+        ]));
+        $response->assertOk();
+        $response->assertSee('modal-filter-harga');
+        $response->assertSee('Batas Terendah (Rp)');
+        $response->assertSee('Batas Tertinggi (Rp)');
+        $response->assertSee('Mobil Sedang');
+        $response->assertDontSee('Mobil Murah');
+        $response->assertDontSee('Mobil Mahal');
+    }
+
+    public function test_katalog_dapat_menggabungkan_semua_filter_dalam_satu_form(): void
+    {
+        $customer = User::factory()->create();
+        Mobil::factory()->create([
+            'merk' => 'Toyota', 'nama_mobil' => 'Avanza Cocok', 'jenis' => 'SUV', 'harga_sewa' => 500000,
+        ]);
+        Mobil::factory()->create([
+            'merk' => 'Toyota', 'nama_mobil' => 'Agya MPs', 'jenis' => 'MPV', 'harga_sewa' => 500000,
+        ]);
+        Mobil::factory()->create([
+            'merk' => 'Honda', 'nama_mobil' => 'BR-V Cocok', 'jenis' => 'SUV', 'harga_sewa' => 500000,
+        ]);
+        Mobil::factory()->create([
+            'merk' => 'Toyota', 'nama_mobil' => 'Fortuner Mahal', 'jenis' => 'SUV', 'harga_sewa' => 900000,
+        ]);
+
+        $response = $this->actingAs($customer)->get(route('customer.katalog', [
+            'keyword' => 'Cocok',
+            'merk' => 'Toyota',
+            'jenis' => 'SUV',
+            'harga_min' => 400000,
+            'harga_max' => 600000,
+        ]));
+
+        $response->assertOk()
+            ->assertSee('form-filter-katalog')
+            ->assertSee('Avanza Cocok')
+            ->assertDontSee('Agya MPs')
+            ->assertDontSee('BR-V Cocok')
+            ->assertDontSee('Fortuner Mahal');
+    }
+
+    public function test_katalog_menampilkan_semua_mobil_tanpa_paginasi(): void
+    {
+        $customer = User::factory()->create();
+        $mobils = Mobil::factory()->count(12)->create();
+
+        $response = $this->actingAs($customer)->get(route('customer.katalog'));
+
+        $response->assertOk()->assertSee('12 mobil');
+        foreach ($mobils as $mobil) {
+            $response->assertSee($mobil->nama_mobil);
+        }
+    }
+
+    public function test_katalog_tombol_semua_menampilkan_seluruh_mobil(): void
+    {
+        $customer = User::factory()->create();
+        Mobil::factory()->create(['nama_mobil' => 'Mobil A']);
+        Mobil::factory()->create(['nama_mobil' => 'Mobil B']);
+
+        $response = $this->actingAs($customer)->get(route('customer.katalog'));
+        $response->assertOk();
+        $response->assertSee('Mobil A');
+        $response->assertSee('Mobil B');
+        $response->assertSee('btn-semua');
     }
 
     public function test_route_katalog_lama_mengarah_ke_katalog_customer(): void

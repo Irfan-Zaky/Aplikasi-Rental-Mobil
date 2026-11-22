@@ -41,37 +41,42 @@
 
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                <form action="{{ url('admin/riwayat-transaksi') }}" method="GET" class="d-flex align-items-center mb-4 gap-5">
-                    <div class="flex-grow-1 gap-3">
-                        <input type="search" name="keyword" value="{{ request('keyword') }}" class="form-control bg-light border-1 py-2 px-4 rounded-pill shadow-sm" style="background-color: aliceblue;" placeholder="Cari nama, merk, atau plat nomor" />
+                <form action="{{ route('admin.riwayat-transaksi') }}" method="GET" class="d-flex align-items-center mb-4 gap-3 flex-wrap">
+                    <div class="flex-grow-1 position-relative" style="min-width: 250px;">
+                        <input type="search" name="keyword" value="{{ request('keyword') }}" class="form-control bg-light border-1 py-2 ps-4 pe-5 rounded-pill shadow-sm" style="background-color: aliceblue;" placeholder="Cari nama, merk, plat nomor, atau kode" />
                     </div>
 
-                    <div style="width: 140px;">
-                        <select id="merk" name="merk" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm">
-                            <option value="">Merk</option>
-                            <option value="avanza" @selected(request('merk') === 'avanza')>Toyota Avanza</option>
-                            <option value="xenia" @selected(request('merk') === 'xenia')>Daihatsu Xenia</option>
-                            <option value="brio" @selected(request('merk') === 'brio')>Honda Brio</option>
-                            <option value="brv" @selected(request('merk') === 'brv')>Honda BR-V</option>
+                    <div style="width: 150px;">
+                        <select id="merk" name="merk" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm" onchange="this.form.submit()">
+                            <option value="">Semua Merk</option>
+                            @foreach ($daftarMerk ?? [] as $itemMerk)
+                                <option value="{{ $itemMerk }}" @selected(request('merk') === $itemMerk)>{{ $itemMerk }}</option>
+                            @endforeach
                         </select>
                     </div>
 
-                    <div style="width: 130px;">
-                        <select id="jenis" name="jenis" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm">
-                            <option value="">Jenis</option>
-                            <option value="MPV" @selected(request('jenis') === 'MPV')>MPV</option>
-                            <option value="SUV" @selected(request('jenis') === 'SUV')>SUV</option>
+                    <div style="width: 140px;">
+                        <select id="jenis" name="jenis" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm" onchange="this.form.submit()">
+                            <option value="">Semua Jenis</option>
+                            @foreach ($daftarJenis ?? [] as $itemJenis)
+                                <option value="{{ $itemJenis }}" @selected(request('jenis') === $itemJenis)>{{ $itemJenis }}</option>
+                            @endforeach
                         </select>
                     </div>
 
                     <div style="width: 150px;">
-                        <select id="status" name="status" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm">
-                            <option value="">Status</option>
-                            <option value="Dibatalkan" @selected(request('status') === 'Dibatalkan')>Dibatalkan</option>
+                        <select id="status" name="status" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm" onchange="this.form.submit()">
+                            <option value="">Semua Status</option>
                             <option value="Selesai" @selected(request('status') === 'Selesai')>Selesai</option>
-                            <option value="Nonaktif" @selected(request('status') === 'Nonaktif')>Nonaktif</option>
+                            <option value="Dibatalkan" @selected(request('status') === 'Dibatalkan')>Dibatalkan</option>
                         </select>
                     </div>
+
+                    @if(request('keyword') || request('merk') || request('jenis') || request('status'))
+                        <div>
+                            <a href="{{ route('admin.riwayat-transaksi') }}" class="btn btn-outline-secondary rounded-pill py-2 px-3 small">Reset Filter</a>
+                        </div>
+                    @endif
                 </form>
 
                 <div class="table-responsive rounded-top-4 overflow-hidden shadow-sm">

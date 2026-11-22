@@ -12,28 +12,62 @@ class KatalogController extends Controller
     public function index(Request $request): View
     {
         $keyword = $request->string('keyword')->trim()->toString();
+        $merk = $request->string('merk')->trim()->toString();
+        $jenis = $request->string('jenis')->trim()->toString();
+        $hargaMin = $request->filled('harga_min') ? (int) $request->input('harga_min') : null;
+        $hargaMax = $request->filled('harga_max') ? (int) $request->input('harga_max') : null;
 
         $mobils = Mobil::query()
             ->with('fotoUtama')
             ->when($keyword !== '', function (Builder $query) use ($keyword): void {
                 $query->where(function (Builder $query) use ($keyword): void {
                     $query->where('nama_mobil', 'like', "%{$keyword}%")
-                        ->orWhere('merk', 'like', "%{$keyword}%");
+                        ->orWhere('merk', 'like', "%{$keyword}%")
+                        ->orWhere('spesifikasi', 'like', "%{$keyword}%");
                 });
             })
-            ->when($request->filled('merk'), fn (Builder $q) => $q->where('merk', $request->string('merk')->toString()))
-            ->when($request->filled('jenis'), fn (Builder $q) => $q->where('jenis', $request->string('jenis')->toString()))
+            ->when($merk !== '', function (Builder $query) use ($merk): void {
+                $query->where(function (Builder $query) use ($merk): void {
+                    $query->where('merk', $merk)
+                        ->orWhere('merk', 'like', "%{$merk}%");
+                });
+            })
+            ->when($jenis !== '', fn (Builder $q) => $q->where('jenis', $jenis))
             ->when($request->filled('status'), fn (Builder $q) => $q->where('status', $request->string('status')->toString()))
-            ->when($request->filled('harga_min'), fn (Builder $q) => $q->where('harga_sewa', '>=', (int) $request->input('harga_min')))
-            ->when($request->filled('harga_max'), fn (Builder $q) => $q->where('harga_sewa', '<=', (int) $request->input('harga_max')))
+            ->when($hargaMin !== null, fn (Builder $q) => $q->where('harga_sewa', '>=', $hargaMin))
+            ->when($hargaMax !== null, fn (Builder $q) => $q->where('harga_sewa', '<=', $hargaMax))
             ->latest()
-            ->paginate(9)
-            ->withQueryString();
+            ->get();
+
+        $daftarMerk = Mobil::query()
+            ->whereNotNull('merk')
+            ->where('merk', '!=', '')
+            ->distinct()
+            ->orderBy('merk')
+            ->pluck('merk');
+
+        $daftarJenis = collect(['MPV', 'SUV', 'Hatchback', 'Sedan'])
+            ->merge(
+                Mobil::query()
+                    ->whereNotNull('jenis')
+                    ->where('jenis', '!=', '')
+                    ->distinct()
+                    ->pluck('jenis')
+            )
+            ->filter()
+            ->unique()
+            ->values();
 
         return view('customer.katalog', [
-            'mobils'      => $mobils,
-            'daftarMerk'  => Mobil::select('merk')->distinct()->orderBy('merk')->pluck('merk'),
-            'daftarJenis' => Mobil::select('jenis')->distinct()->orderBy('jenis')->pluck('jenis'),
+            'mobils' => $mobils,
+            'daftarMerk' => $daftarMerk,
+            'daftarJenis' => $daftarJenis,
+            'keyword' => $keyword,
+            'selectedMerk' => $merk,
+            'selectedJenis' => $jenis,
+            'hargaMin' => $hargaMin,
+            'hargaMax' => $hargaMax,
+            'isFilterAktif' => $keyword !== '' || $merk !== '' || $jenis !== '' || $hargaMin !== null || $hargaMax !== null,
         ]);
     }
 }

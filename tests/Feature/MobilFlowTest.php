@@ -123,7 +123,120 @@ class MobilFlowTest extends TestCase
         $this->get(route('admin.data-mobil.edit', $mobil))
             ->assertOk()
             ->assertSee($mobil->nama_mobil)
-            ->assertSee(route('admin.data-mobil.update', $mobil), false);
+            ->assertSee(route('admin.data-mobil.update', $mobil), false)
+            ->assertSee('id="foto-utama-lama"', false)
+            ->assertSee('id="foto-lama-container"', false);
+    }
+
+    public function test_edit_mobil_mengganti_foto_utama_di_antara_foto_lama(): void
+    {
+        $this->authenticateAsAdmin();
+
+        $mobil = Mobil::factory()->create();
+        $fotoPertama = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
+        $fotoKedua = FotoMobil::factory()->for($mobil)->create(['is_utama' => false]);
+
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
+            'foto_lama' => [$fotoPertama->id, $fotoKedua->id],
+            'foto_utama_lama' => $fotoKedua->id,
+        ]);
+
+        $response->assertRedirect('/admin/data-mobil');
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoPertama->id, 'is_utama' => false]);
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoKedua->id, 'is_utama' => true]);
+    }
+
+    public function test_edit_mobil_menyimpan_foto_lama_sebagai_utama_saat_foto_baru_diunggah(): void
+    {
+        $this->authenticateAsAdmin();
+        Storage::fake('public');
+
+        $mobil = Mobil::factory()->create();
+        $fotoLama = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
+
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
+            'foto_lama' => [$fotoLama->id],
+            'foto_utama_lama' => $fotoLama->id,
+            'foto_utama' => '1',
+            'fotos' => [
+                UploadedFile::fake()->image('depan.jpg', 20, 20),
+                UploadedFile::fake()->image('belakang.jpg', 20, 20),
+            ],
+        ]);
+
+        $response->assertRedirect('/admin/data-mobil');
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoLama->id, 'is_utama' => true]);
+        $this->assertSame(3, $mobil->fotos()->count());
+        $mobil->fotos()->where('id', '!=', $fotoLama->id)->each(function (FotoMobil $foto): void {
+            $this->assertDatabaseHas('mobil_fotos', ['id' => $foto->id, 'is_utama' => false]);
+        });
+    }
+
+    public function test_edit_mobil_memilih_foto_utama_dari_foto_yang_baru_diunggah(): void
+    {
+        $this->authenticateAsAdmin();
+        Storage::fake('public');
+
+        $mobil = Mobil::factory()->create();
+
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
+            'foto_lama' => [''],
+            'foto_utama' => '1',
+            'fotos' => [
+                UploadedFile::fake()->image('depan.jpg', 20, 20),
+                UploadedFile::fake()->image('belakang.jpg', 20, 20),
+            ],
+        ]);
+
+        $response->assertRedirect('/admin/data-mobil');
+        $fotos = $mobil->fotos()->orderBy('id')->get();
+        $this->assertCount(2, $fotos);
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotos[0]->id, 'is_utama' => false]);
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotos[1]->id, 'is_utama' => true]);
+    }
+
+    public function test_edit_mobil_menghapus_foto_lama_yang_tidak_lagi_ada_di_modal(): void
+    {
+        $this->authenticateAsAdmin();
+
+        $mobil = Mobil::factory()->create();
+        $fotoDihapus = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
+        $fotoDitambah = FotoMobil::factory()->for($mobil)->create(['is_utama' => false]);
+
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
+            'foto_lama' => [$fotoDitambah->id],
+            'foto_utama_lama' => $fotoDitambah->id,
+        ]);
+
+        $response->assertRedirect('/admin/data-mobil');
+        $this->assertDatabaseMissing('mobil_fotos', ['id' => $fotoDihapus->id]);
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoDitambah->id, 'is_utama' => true]);
+    }
+
+    public function test_edit_mobil_tanpa_parameter_foto_mempertahankan_foto_utama(): void
+    {
+        $this->authenticateAsAdmin();
+
+        $mobil = Mobil::factory()->create();
+        $fotoUtama = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
+
+        $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil))
+            ->assertRedirect('/admin/data-mobil');
+
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoUtama->id, 'is_utama' => true]);
+    }
+
+    public function test_edit_mobil_menolak_foto_utama_dari_mobil_lain(): void
+    {
+        $this->authenticateAsAdmin();
+
+        $mobil = Mobil::factory()->create();
+        $fotoMobilLain = FotoMobil::factory()->create(['is_utama' => true]);
+
+        $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
+            'foto_lama' => [$fotoMobilLain->id],
+            'foto_utama_lama' => $fotoMobilLain->id,
+        ])->assertSessionHasErrors(['foto_lama.0', 'foto_utama_lama']);
     }
 
     public function test_hapus_mobil_tanpa_transaksi_aktif_melakukan_soft_delete(): void
@@ -185,6 +298,22 @@ class MobilFlowTest extends TestCase
             ]);
         $this->assertSame(0, Mobil::count());
         Storage::disk('public')->assertEmpty();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function payloadMobil(Mobil $mobil): array
+    {
+        return [
+            'merk' => $mobil->merk,
+            'nama' => $mobil->nama_mobil,
+            'jenis' => $mobil->jenis,
+            'status' => 'Tersedia',
+            'harga' => $mobil->harga_sewa,
+            'plat' => $mobil->nomor_polisi,
+            'spesifikasi' => $mobil->spesifikasi,
+        ];
     }
 
     private function authenticateAsAdmin(): void

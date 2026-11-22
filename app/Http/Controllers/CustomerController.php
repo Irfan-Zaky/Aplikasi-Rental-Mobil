@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RentalStatus;
 use App\Http\Requests\CustomerProfileUpdateRequest;
+use App\Models\Rental;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,13 +19,30 @@ class CustomerController extends Controller
     {
         $user = $request->user();
 
+        $jumlahAktif = $user->rentals()
+            ->whereIn('status', [RentalStatus::PembayaranBerhasil, RentalStatus::Berjalan, RentalStatus::Terlambat])
+            ->count();
+
+        $jumlahMenunggu = $user->rentals()
+            ->whereIn('status', [RentalStatus::MenungguPembayaran, RentalStatus::MenungguVerifikasi])
+            ->count();
+
+        $jumlahSelesai = $user->rentals()
+            ->where('status', RentalStatus::Selesai)
+            ->count();
+
+        $pesananTerakhir = $user->rentals()
+            ->with(['mobil.fotoUtama'])
+            ->latest()
+            ->first();
+
         return view('customer.beranda', [
             'namaCustomer' => $user->name,
             'fotoProfil' => $user->photo_profil,
-            'jumlahAktif' => 0,
-            'jumlahMenunggu' => 0,
-            'jumlahSelesai' => 0,
-            'pesananTerakhir' => null,
+            'jumlahAktif' => $jumlahAktif,
+            'jumlahMenunggu' => $jumlahMenunggu,
+            'jumlahSelesai' => $jumlahSelesai,
+            'pesananTerakhir' => $pesananTerakhir,
         ]);
     }
 
@@ -32,8 +51,98 @@ class CustomerController extends Controller
      */
     public function riwayat(Request $request): View
     {
+        $tab = $request->query('tab', 'semua');
+
+        $query = $request->user()
+            ->rentals()
+            ->with(['mobil.fotoUtama', 'payments'])
+            ->latest();
+
+        // Filter tab: Semua, Aktif, Selesai
+        if ($tab === 'aktif') {
+            $query->whereIn('status', [RentalStatus::PembayaranBerhasil, RentalStatus::Berjalan, RentalStatus::Terlambat]);
+        } elseif ($tab === 'selesai') {
+            $query->where('status', RentalStatus::Selesai);
+        }
+
+        // Pencarian jika ada
+        if ($keyword = $request->query('keyword')) {
+            $query->where(function ($q) use ($keyword): void {
+                $q->where('trx_code', 'like', "%{$keyword}%")
+                    ->orWhere('booking_code', 'like', "%{$keyword}%")
+                    ->orWhereHas('mobil', function ($m) use ($keyword): void {
+                        $m->where('nama_mobil', 'like', "%{$keyword}%")
+                            ->orWhere('merk', 'like', "%{$keyword}%");
+                    });
+            });
+        }
+
+        $rentals = $query->get();
+
+        $riwayat = $rentals->map(function (Rental $rental) {
+            $total = $rental->total_rental + ($rental->late_fee ?? 0);
+            $fotoPath = $rental->mobil?->fotoUtama?->path_foto;
+
+            return (object) [
+                'id' => $rental->id,
+                'kode' => $rental->booking_code ?? $rental->trx_code,
+                'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : 'Mobil',
+                'foto_mobil' => $fotoPath ? asset('storage/'.$fotoPath) : asset('img/foto-mobil-kecil.png'),
+                'tgl_sewa' => $rental->start_date->format('d M').' - '.$rental->end_date->format('d M Y'),
+                'total_biaya' => 'Rp '.number_format($total, 0, ',', '.'),
+                'status' => $rental->status->value,
+            ];
+        });
+
         return view('customer.riwayat', [
-            'riwayat' => collect(),
+            'riwayat' => $riwayat,
+            'tab' => $tab,
+        ]);
+    }
+
+    /**
+     * Display single order detail for customer.
+     */
+    public function detailPesanan(Request $request): View
+    {
+        $id = $request->query('id');
+
+        $rental = $request->user()
+            ->rentals()
+            ->with(['mobil.fotoUtama', 'addOn', 'payments'])
+            ->findOrFail($id);
+
+        $tahap = match ($rental->status) {
+            RentalStatus::MenungguPembayaran,
+            RentalStatus::MenungguVerifikasi => 1,
+            RentalStatus::PembayaranBerhasil,
+            RentalStatus::Berjalan,
+            RentalStatus::Terlambat => 2,
+            RentalStatus::Selesai => 3,
+            RentalStatus::Dibatalkan => 1,
+        };
+
+        $total = $rental->total_rental + ($rental->late_fee ?? 0);
+
+        $pesanan = (object) [
+            'id' => $rental->id,
+            'tahap' => $tahap,
+            'kode' => $rental->booking_code ?? $rental->trx_code,
+            'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : '-',
+            'tgl_sewa' => $rental->start_date->format('d M').' - '.$rental->end_date->format('d M Y'),
+            'layanan' => $rental->self_driver ? 'Lepas Kunci' : 'Dengan Sopir',
+            'penerimaan' => $rental->addOn?->handover_method === 'Diantar'
+                ? 'Diantar ('.($rental->addOn->pickup_point ?? '-').')'
+                : 'Ambil di garasi',
+            'nama_customer' => $rental->customer_name,
+            'nomor_hp' => $rental->customer_phone,
+            'total_biaya' => 'Rp '.number_format($total, 0, ',', '.'),
+            'status' => $rental->status->value,
+        ];
+
+        return view('customer.detail-pesanan', [
+            'pesanan' => $pesanan,
+            'rental' => $rental,
         ]);
     }
 

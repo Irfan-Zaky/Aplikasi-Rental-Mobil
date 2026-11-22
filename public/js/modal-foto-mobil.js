@@ -2,7 +2,8 @@
  * Modal "Unggah foto mobil" - hanya mengelola interaksi antarmuka:
  * pilih, hapus, dan tentukan foto utama. Seluruh penyimpanan dan
  * pemrosesan file ditangani oleh backend PHP melalui form. Input tersembunyi
- * "foto_utama" berisi indeks foto terpilih di antara file yang diunggah.
+ * "foto_utama" berisi indeks foto terpilih di antara file yang diunggah,
+ * sedangkan "foto_utama_lama" berisi ID foto lama yang dipilih sebagai utama.
  */
 (function (global) {
     'use strict';
@@ -34,6 +35,7 @@
         var statusFotoEl = document.getElementById('status-foto');
         var tombolSimpan = document.getElementById('btn-simpan-foto');
         var inputFotoUtama = document.getElementById('foto-utama');
+        var inputFotoUtamaLama = document.getElementById('foto-utama-lama');
         var wadahFotoLama = document.getElementById('foto-lama-container');
 
         var modal = new global.bootstrap.Modal(elemenModal);
@@ -45,12 +47,15 @@
 
         function sinkronkanForm() {
             var utama = fotoUtama();
+            var fotoDiunggah = daftarFoto.filter(function (foto) { return foto.file; });
+            var indeksUtama = utama ? fotoDiunggah.indexOf(utama) : -1;
 
             if (inputFotoUtama) {
-                var fotoDiunggah = daftarFoto.filter(function (foto) { return foto.file; });
-                var indeksUtama = utama ? fotoDiunggah.indexOf(utama) : -1;
+                inputFotoUtama.value = indeksUtama >= 0 ? String(indeksUtama) : '';
+            }
 
-                inputFotoUtama.value = indeksUtama >= 0 ? String(indeksUtama) : '0';
+            if (inputFotoUtamaLama) {
+                inputFotoUtamaLama.value = utama && !utama.file ? String(utama.id) : '';
             }
 
             if (global.DataTransfer && inputFoto) {
@@ -66,9 +71,14 @@
             }
 
             if (wadahFotoLama) {
-                wadahFotoLama.innerHTML = daftarFoto.filter(function (foto) { return !foto.file; }).map(function (foto) {
-                    return '<input type="hidden" name="foto_lama[]" value="' + escapeHtml(foto.id) + '">';
-                }).join('');
+                var fotoLama = daftarFoto.filter(function (foto) { return !foto.file; });
+
+                // Nilai kosong tetap dikirim supaya backend tahu daftar foto lama sengaja dikosongkan.
+                wadahFotoLama.innerHTML = fotoLama.length === 0
+                    ? '<input type="hidden" name="foto_lama[]" value="">'
+                    : fotoLama.map(function (foto) {
+                        return '<input type="hidden" name="foto_lama[]" value="' + escapeHtml(foto.id) + '">';
+                    }).join('');
             }
         }
 

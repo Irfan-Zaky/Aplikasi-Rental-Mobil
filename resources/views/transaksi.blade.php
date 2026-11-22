@@ -5,9 +5,13 @@
 @section('content')
     @php
         $warnaStatus = [
-            'Menunggu' => 'warning',
+            'Menunggu Pembayaran' => 'warning',
+            'Menunggu Verifikasi' => 'info',
+            'Pembayaran Berhasil' => 'primary',
             'Berjalan' => 'secondary',
+            'Terlambat' => 'danger',
             'Selesai' => 'success',
+            'Dibatalkan' => 'danger',
         ];
     @endphp
 
@@ -48,15 +52,24 @@
         </section>
 
         <section>
-            <nav class="navigasi-button d-flex justify-content-between">
-                <div class="button-container d-flex justify-content-start">
-                    <button type="button" class="button-konfirmasi btn btn-outline-secondary">Konfirmasi</button>
-                    <button type="button" class="button-qris active btn btn-outline-secondary">QRIS</button>
-                    <button type="button" class="button-tunai active btn btn-outline-secondary">TUNAI</button>
-                    <button type="button" class="button-penyelesaian btn btn-outline-success">Penyelesaian</button>
+            <nav class="navigasi-button d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="button-container d-flex justify-content-start gap-2 flex-wrap">
+                    <a href="{{ route('admin.transaksi', array_filter(['keyword' => request('keyword')])) }}"
+                       class="btn {{ !request('filter') ? 'btn-dark' : 'btn-outline-secondary' }} rounded-pill px-3 py-1 fw-medium text-decoration-none">Semua</a>
+                    <a href="{{ route('admin.transaksi', array_filter(['filter' => request('filter') === 'qris' ? null : 'qris', 'keyword' => request('keyword')])) }}"
+                       class="btn {{ request('filter') === 'qris' ? 'btn-dark' : 'btn-outline-secondary' }} rounded-pill px-3 py-1 fw-medium text-decoration-none">QRIS</a>
+                    <a href="{{ route('admin.transaksi', array_filter(['filter' => request('filter') === 'tunai' ? null : 'tunai', 'keyword' => request('keyword')])) }}"
+                       class="btn {{ request('filter') === 'tunai' ? 'btn-dark' : 'btn-outline-secondary' }} rounded-pill px-3 py-1 fw-medium text-decoration-none">TUNAI</a>
+                    <a href="{{ route('admin.transaksi', array_filter(['filter' => request('filter') === 'penyelesaian' ? null : 'penyelesaian', 'keyword' => request('keyword')])) }}"
+                       class="btn {{ request('filter') === 'penyelesaian' ? 'btn-success text-white' : 'btn-outline-success' }} rounded-pill px-3 py-1 fw-medium text-decoration-none">Penyelesaian</a>
+                    <a href="{{ route('admin.transaksi', array_filter(['filter' => request('filter') === 'konfirmasi' ? null : 'konfirmasi', 'keyword' => request('keyword')])) }}"
+                       class="btn {{ request('filter') === 'konfirmasi' ? 'btn-warning text-dark' : 'btn-outline-secondary' }} rounded-pill px-3 py-1 fw-medium text-decoration-none">Konfirmasi</a>
                 </div>
 
-                <form action="{{ url('admin/transaksi') }}" method="GET" class="search-transaksi d-flex align-items-center gap-2" style="max-width: 350px;">
+                <form action="{{ route('admin.transaksi') }}" method="GET" class="search-transaksi d-flex align-items-center gap-2" style="max-width: 350px;">
+                    @if(request('filter'))
+                        <input type="hidden" name="filter" value="{{ request('filter') }}">
+                    @endif
                     <input type="search" name="keyword" value="{{ request('keyword') }}" placeholder="Cari berdasarkan kata kunci" class="input form-control rounded-3 px-3 py-2 border-1 flex-grow-1" style="background-color: aliceblue;" />
                     <button type="submit" class="button-search btn position-absolute top-50 translate-middle-y end-0 me-1 rounded-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #ff7a00; border: none;">
                         <img src="{{ asset('img_admin/transaksi/search.svg') }}" alt="Cari" />

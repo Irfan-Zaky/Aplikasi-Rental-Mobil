@@ -43,6 +43,17 @@ class UpdateMobilRequest extends FormRequest
             'fotos' => ['sometimes', 'array', 'max:8'],
             'fotos.*' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:8192'],
             'foto_utama' => ['nullable', 'integer', 'min:0'],
+            'foto_lama' => ['sometimes', 'array', 'max:8'],
+            'foto_lama.*' => [
+                'nullable',
+                'integer',
+                Rule::exists('mobil_fotos', 'id')->where('mobil_id', $mobil?->id),
+            ],
+            'foto_utama_lama' => [
+                'nullable',
+                'integer',
+                Rule::exists('mobil_fotos', 'id')->where('mobil_id', $mobil?->id),
+            ],
         ];
     }
 

@@ -18,7 +18,9 @@ Route::get('/', function () {
     return view('welcome');
 })->name('beranda');
 
-Route::get('/', fn() => redirect()->route('customer.landing'))->name('landing');
+Route::get('/', fn () => redirect()->route('customer.landing'))->name('landing');
+
+Route::get('/katalog', fn () => redirect()->route('customer.katalog'))->name('katalog');
 
 Route::prefix('customer')->name('customer.')->group(function () {
     Route::view('/landing-page', 'customer.landing-page')->name('landing');
@@ -34,6 +36,7 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::get('/beranda', [CustomerController::class, 'beranda'])->name('beranda');
         Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
         Route::get('/riwayat', [CustomerController::class, 'riwayat'])->name('riwayat');
+        Route::get('/detail-pesanan', [CustomerController::class, 'detailPesanan'])->name('detail-pesanan');
         Route::get('/profil', [CustomerController::class, 'profil'])->name('profil');
         Route::get('/edit-profil', [CustomerController::class, 'editProfil'])->name('edit-profil');
         Route::post('/edit-profil', [CustomerController::class, 'updateProfil'])->name('edit-profil.update');
@@ -71,17 +74,15 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/admin', fn() => redirect()->route('admin.dashboard'))->name('admin.index');
+    Route::get('/admin', fn () => redirect()->route('admin.dashboard'))->name('admin.index');
 
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 
-    Route::get('/admin/transaksi', function () {
-        return view('transaksi');
-    })->name('admin.transaksi');
+    Route::get('/admin/transaksi', [AdminController::class, 'transaksi'])->name('admin.transaksi');
+    Route::get('/admin/transaksi/{rental}', [AdminController::class, 'showTransaksi'])->name('admin.transaksi.show');
 
-    Route::get('/admin/riwayat-transaksi', function () {
-        return view('riwayat-transaksi');
-    })->name('admin.riwayat-transaksi');
+    Route::get('/admin/riwayat-transaksi', [AdminController::class, 'riwayatTransaksi'])->name('admin.riwayat-transaksi');
+    Route::get('/admin/riwayat-transaksi/{rental}', [AdminController::class, 'showRiwayatTransaksi'])->name('admin.riwayat-transaksi.show');
 
     Route::prefix('/admin/data-mobil')->name('admin.data-mobil.')->group(function () {
         Route::get('/', [MobilController::class, 'index'])->name('index');
@@ -94,4 +95,4 @@ Route::middleware(['auth', 'admin'])->group(function () {
     });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

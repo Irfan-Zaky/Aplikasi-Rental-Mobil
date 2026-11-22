@@ -5,7 +5,8 @@
 @section('content')
     @php
         $mobil = $mobil ?? null;
-        $fotoMobil = $mobil?->fotoUtama?->path_foto;
+        $fotos = $mobil?->fotos ? $mobil->fotos->sortByDesc('is_utama')->values() : collect();
+        $fotoUtama = $mobil?->fotoUtama?->path_foto;
     @endphp
 
     <nav class="navbar bg-white py-3 border-bottom">
@@ -19,15 +20,66 @@
 
     <main>
         <section class="card border-0 shadow-sm p-3 px-3 rounded-4">
-            <div id="carSlider" class="carousel slide mb-3" data-bs-ride="carousel">
-                <div class="carousel-inner rounded-4 overflow-hidden bg-light" style="height: 260px;">
-                    <div class="carousel-item active h-100">
-                        <img id="img-mobil"
-                            src="{{ $fotoMobil ? asset('storage/'.$fotoMobil) : asset('img/foto-mobil-besar.jpg') }}"
-                            class="d-block w-100 h-100 object-fit-contain" alt="Mobil">
+            <div id="carSlider" class="carousel slide mb-2 rounded-4 overflow-hidden shadow-sm position-relative" data-bs-ride="carousel" data-bs-touch="true">
+                @if ($fotos->count() > 1)
+                    <div class="carousel-indicators mb-2">
+                        @foreach ($fotos as $index => $foto)
+                            <button type="button" data-bs-target="#carSlider" data-bs-slide-to="{{ $index }}"
+                                class="{{ $loop->first ? 'active' : '' }}"
+                                @if ($loop->first) aria-current="true" @endif
+                                aria-label="Foto {{ $loop->iteration }}"></button>
+                        @endforeach
                     </div>
+                @endif
+
+                <div class="carousel-inner rounded-4 overflow-hidden bg-light" style="height: 260px;">
+                    @forelse ($fotos as $foto)
+                        <div class="carousel-item {{ $loop->first ? 'active' : '' }} h-100 position-relative">
+                            <img @if ($loop->first) id="img-mobil" @endif
+                                src="{{ asset('storage/'.$foto->path_foto) }}"
+                                class="d-block w-100 h-100 object-fit-contain"
+                                alt="{{ $mobil ? $mobil->nama_mobil : 'Mobil' }} - Foto {{ $loop->iteration }}">
+                            @if ($foto->is_utama)
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-3 py-1 small">
+                                        ★ Utama
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+                    @empty
+                        <div class="carousel-item active h-100">
+                            <img id="img-mobil"
+                                src="{{ $fotoUtama ? asset('storage/'.$fotoUtama) : asset('img/foto-mobil-besar.jpg') }}"
+                                class="d-block w-100 h-100 object-fit-contain" alt="Mobil">
+                        </div>
+                    @endforelse
                 </div>
+
+                @if ($fotos->count() > 1)
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carSlider" data-bs-slide="prev" aria-label="Sebelumnya">
+                        <span class="carousel-control-prev-icon rounded-circle p-2" aria-hidden="true" style="background-color: rgba(11, 29, 51, 0.45); width: 34px; height: 34px; background-size: 50%;"></span>
+                        <span class="visually-hidden">Sebelumnya</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carSlider" data-bs-slide="next" aria-label="Berikutnya">
+                        <span class="carousel-control-next-icon rounded-circle p-2" aria-hidden="true" style="background-color: rgba(11, 29, 51, 0.45); width: 34px; height: 34px; background-size: 50%;"></span>
+                        <span class="visually-hidden">Berikutnya</span>
+                    </button>
+                @endif
             </div>
+
+            @if ($fotos->count() > 1)
+                <div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-3">
+                    @foreach ($fotos as $index => $foto)
+                        <button type="button" data-bs-target="#carSlider" data-bs-slide-to="{{ $index }}"
+                            class="btn p-0 border rounded-3 overflow-hidden flex-shrink-0"
+                            style="width: 58px; height: 42px; opacity: 0.85;"
+                            title="Foto {{ $loop->iteration }}">
+                            <img src="{{ asset('storage/'.$foto->path_foto) }}" class="w-100 h-100 object-fit-cover" alt="Thumbnail {{ $loop->iteration }}">
+                        </button>
+                    @endforeach
+                </div>
+            @endif
 
             <div class="card-body p-0">
                 <div class="d-flex align-items-center justify-content-between mb-1">

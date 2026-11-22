@@ -27,6 +27,8 @@ class PemesananController extends Controller
      */
     public function detailMobil(Mobil $mobil): View
     {
+        $mobil->load(['fotos', 'fotoUtama']);
+
         return view('customer.detail-mobil', ['mobil' => $mobil]);
     }
 
