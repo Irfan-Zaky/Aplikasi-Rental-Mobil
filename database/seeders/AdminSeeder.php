@@ -20,6 +20,7 @@ class AdminSeeder extends Seeder
             ['email' => 'octaimub@gmail.com'],
             [
                 'name' => 'octavia',
+                'username' => 'octavia',
                 'password' => Hash::make('ketuakita'),
                 'email_verified_at' => now(),
                 'role' => 'admin',

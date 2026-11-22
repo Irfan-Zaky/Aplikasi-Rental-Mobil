@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'no_hp', 'nik', 'ktp_path', 'selfie_path', 'verification_status', 'rejection_note'])]
+#[Fillable(['name', 'email', 'password', 'role', 'no_hp', 'username', 'photo_profil'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -23,6 +23,14 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /**
+     * Determine whether the user has customer access.
+     */
+    public function isCustomer(): bool
+    {
+        return $this->role === 'user';
     }
 
     /**

@@ -24,22 +24,32 @@ class RegisteredUserController extends Controller
     }
 
     /**
+     * Display the customer registration view.
+     */
+    public function createCustomer(): View
+    {
+        return view('customer.daftar-akun');
+    }
+
+    /**
      * Handle an incoming registration request.
      *
      * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'no_hp' => ['required', 'string', 'max:15', 'unique:users,no_hp'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'no_hp' => $data['no_hp'],
+            'password' => Hash::make($data['password']),
             'role' => 'user',
         ]);
 
@@ -47,6 +57,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('katalog');
+        return redirect()->route('customer.beranda');
     }
 }

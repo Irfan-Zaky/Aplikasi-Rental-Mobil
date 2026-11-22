@@ -38,9 +38,9 @@
                     @csrf
 
                     <div class="mb-4 px-3">
-                        <label for="login" class="form-label">Email / Nomor HP</label>
+                        <label for="login" class="form-label">Email / Nomor HP / Username</label>
                         <input type="text" class="form-control" style="border-color: #0b1d33" id="login"
-                            name="email" placeholder="contoh@email.com" value="{{ old('email') }}" required />
+                            name="login" placeholder="email, nomor HP, atau username" value="{{ old('login') }}" required />
                     </div>
 
                     <div class="mb-4 px-3">

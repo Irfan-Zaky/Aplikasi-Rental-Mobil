@@ -31,7 +31,7 @@ class AdminAuthFlowTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Login Admin')
-            ->assertSee('name="username"', false)
+            ->assertSee('name="login"', false)
             ->assertSee('name="password"', false)
             ->assertSee(route('login'), false);
     }
@@ -41,7 +41,7 @@ class AdminAuthFlowTest extends TestCase
         $this->seed(AdminSeeder::class);
 
         $response = $this->post('/admin/login', [
-            'username' => 'octaimub@gmail.com',
+            'login' => 'octaimub@gmail.com',
             'password' => 'ketuakita',
         ]);
 
@@ -54,7 +54,7 @@ class AdminAuthFlowTest extends TestCase
         $this->seed(AdminSeeder::class);
 
         $response = $this->post('/admin/login', [
-            'username' => 'octavia',
+            'login' => 'octavia',
             'password' => 'ketuakita',
         ]);
 
@@ -67,12 +67,12 @@ class AdminAuthFlowTest extends TestCase
         $this->seed(AdminSeeder::class);
 
         $response = $this->from('/admin/login')->post('/admin/login', [
-            'username' => 'octaimub@gmail.com',
+            'login' => 'octaimub@gmail.com',
             'password' => 'salahpassword',
         ]);
 
         $response->assertRedirect('/admin/login')
-            ->assertSessionHasErrors('username');
+            ->assertSessionHasErrors('login');
         $this->assertGuest();
     }
 

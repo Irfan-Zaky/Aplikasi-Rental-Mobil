@@ -1,7 +1,8 @@
 <?php
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\MobilController;
 use App\Http\Controllers\ProfileController;
@@ -16,18 +17,20 @@ Route::get('/', function () {
     return view('welcome');
 })->name('beranda');
 
+Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
+
 Route::prefix('customer')->name('customer.')->group(function () {
     Route::view('/landing-page', 'customer.landing-page')->name('landing');
-    Route::view('/beranda', 'customer.beranda')->name('beranda');
 
     Route::middleware('guest')->group(function () {
-        Route::get('/login', [CustomerAuthController::class, 'showLogin'])->name('login');
-        Route::post('/login', [CustomerAuthController::class, 'login']);
-        Route::get('/daftar-akun', [CustomerAuthController::class, 'showRegister'])->name('register');
-        Route::post('/daftar-akun', [CustomerAuthController::class, 'register']);
+        Route::get('/login', [AuthenticatedSessionController::class, 'createCustomer'])->name('login');
+        Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+        Route::get('/daftar-akun', [RegisteredUserController::class, 'createCustomer'])->name('register');
+        Route::post('/daftar-akun', [RegisteredUserController::class, 'store'])->name('register.store');
     });
 
-    Route::middleware('auth')->group(function () {
+    Route::middleware(['auth', 'customer'])->group(function () {
+        Route::view('/beranda', 'customer.beranda')->name('beranda');
         Route::get('/data-diri', [VerifikasiController::class, 'create'])->name('data-diri');
         Route::post('/pilihan-layanan', [VerifikasiController::class, 'store'])->name('data-diri.store');
         Route::view('/pilihan-layanan', 'customer.pilihan-layanan')->name('pilihan-layanan');
@@ -42,8 +45,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/verifikasi', [VerifikasiController::class, 'create'])->name('verifikasi.create');
-    Route::post('/verifikasi', [VerifikasiController::class, 'store'])->name('verifikasi.store');
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {

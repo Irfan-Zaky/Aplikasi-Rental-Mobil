@@ -20,6 +20,14 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
+     * Display the customer login view.
+     */
+    public function createCustomer(): View
+    {
+        return view('customer.login');
+    }
+
+    /**
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request): RedirectResponse
@@ -29,10 +37,10 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         if ($request->user()->isAdmin()) {
-            return redirect()->intended(route('admin.dashboard'));
+            return redirect()->intended(route('dashboard'));
         }
 
-        return redirect()->route('beranda');
+        return redirect()->intended(route('customer.beranda'));
     }
 
     /**
@@ -40,12 +48,14 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $redirectRoute = $request->user()?->isAdmin() ? 'login' : 'customer.login';
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route($redirectRoute);
     }
 }
