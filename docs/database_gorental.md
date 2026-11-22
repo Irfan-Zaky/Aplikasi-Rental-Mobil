@@ -33,7 +33,7 @@ Acuan skema database untuk AI agent. Baca dokumen ini setiap kali pekerjaan meny
 | `PaymentStatus` | `payments.status` | `Menunggu Pembayaran`, `Menunggu Konfirmasi`, `Berhasil`, `Gagal`, `Kadaluarsa` |
 | `PaymentMethod` | `payments.method` | `QRIS`, `Tunai` |
 | `PaymentType` | `payments.type` | `Sewa`, `Denda` |
-| `HandoverMethod` | `rental_add_ons.handover_method` | `Diantar`, `Ambil di garasi` |
+| `Handoverd` | Metho`rental_add_ons.handover_method` | `Diantar`, `Ambil di garasi` |
 
 Ejaan baku `Kadaluarsa` (bukan Kedaluwarsa).
 

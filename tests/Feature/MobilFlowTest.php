@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\RentalStatus;
 use App\Models\FotoMobil;
 use App\Models\Mobil;
+use App\Models\Rental;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -124,7 +126,7 @@ class MobilFlowTest extends TestCase
             ->assertSee(route('admin.data-mobil.update', $mobil), false);
     }
 
-    public function test_hapus_mobil_menghapus_data_dan_file_fotonya(): void
+    public function test_hapus_mobil_tanpa_transaksi_aktif_melakukan_soft_delete(): void
     {
         $this->authenticateAsAdmin();
         Storage::fake('public');
@@ -136,9 +138,30 @@ class MobilFlowTest extends TestCase
         $response = $this->delete(route('admin.data-mobil.destroy', $mobil));
 
         $response->assertRedirect('/admin/data-mobil');
-        $this->assertDatabaseMissing('mobils', ['id' => $mobil->id]);
-        $this->assertDatabaseMissing('mobil_fotos', ['id' => $foto->id]);
-        Storage::disk('public')->assertMissing($foto->path_foto);
+        $this->assertSoftDeleted('mobils', ['id' => $mobil->id]);
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $foto->id]);
+        Storage::disk('public')->assertExists($foto->path_foto);
+        $this->assertDatabaseMissing('mobils', ['id' => $mobil->id, 'deleted_at' => null]);
+    }
+
+    public function test_hapus_mobil_dengan_transaksi_aktif_menjadikannya_nonaktif(): void
+    {
+        $this->authenticateAsAdmin();
+
+        $mobil = Mobil::factory()->create(['status' => 'Tersedia']);
+        Rental::factory()->create([
+            'mobil_id' => $mobil->id,
+            'status' => RentalStatus::MenungguVerifikasi,
+        ]);
+
+        $this->delete(route('admin.data-mobil.destroy', $mobil))
+            ->assertRedirect('/admin/data-mobil');
+
+        $this->assertDatabaseHas('mobils', [
+            'id' => $mobil->id,
+            'status' => 'Nonaktif',
+            'deleted_at' => null,
+        ]);
     }
 
     public function test_payload_kosong_ditolak_dan_tidak_menyimpan_data(): void

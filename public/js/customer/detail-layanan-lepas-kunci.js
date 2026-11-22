@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const radioPenerimaan = document.querySelectorAll('input[name="metode-penerimaan"]');
+    const radioPenerimaan = document.querySelectorAll('input[name="metode_penerimaan"]');
     const wadahLokasi = document.getElementById('wadah-lokasi-pengantaran');
     const inputLokasi = document.getElementById('lokasi-pengantaran');
 
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function perbaruiLokasi() {
-        const terpilih = document.querySelector('input[name="metode-penerimaan"]:checked');
+        const terpilih = document.querySelector('input[name="metode_penerimaan"]:checked');
         const diantar = terpilih && terpilih.value === 'diantar';
 
         wadahLokasi.classList.toggle('d-none', !diantar);

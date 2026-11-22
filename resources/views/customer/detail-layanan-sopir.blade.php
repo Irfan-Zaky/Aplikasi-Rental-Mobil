@@ -18,8 +18,9 @@
                 Dengan Sopir </span>
         </div>
 
-        <form id="formLayanan" action="{{ url('/customer/ringkasan-pemesanan') }}" method="POST">
+        <form id="formLayanan" action="{{ route('customer.detail-layanan.store') }}" method="POST">
             @csrf
+            <input type="hidden" name="layanan" value="dengan-sopir">
 
             <div class="mt-4 px-3">
                 <label for="alamat-penjemputan" class="h5 fw-bold">Alamat / Titik Penjemputan</label>

@@ -5,11 +5,16 @@
 @section('content')
     @php
         $mobil = $mobil ?? null;
+        $queryTanggal = http_build_query([
+            'id' => $mobil?->id ?? '',
+            'tanggal-mulai' => $tanggalMulai ?? '',
+            'tanggal-selesai' => $tanggalSelesai ?? '',
+        ]);
     @endphp
 
     <nav class="navbar bg-white py-3 border-bottom">
         <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
-            <a id="btn-kembali" href="{{ url('/customer/pilih-tanggal') }}?id={{ $mobil?->id ?? '' }}"
+            <a id="btn-kembali" href="{{ route('customer.pilih-tanggal').'?'.$queryTanggal }}"
                 aria-label="Kembali ke Pilih Tanggal"
                 class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1"
                 style="width: 40px; height: 40px; color: #0b1d33;">&lsaquo;</a>
@@ -67,8 +72,10 @@
             <p class="text-secondary small mb-0 fw-medium">Harga transparan dan kendaraan telah melewati inspeksi.</p>
         </div>
 
-        <form action="{{ url('/customer/syarat-dan-ketentuan') }}" method="get">
+        <form action="{{ route('customer.syarat') }}" method="get">
             <input type="hidden" name="id" value="{{ $mobil?->id ?? '' }}">
+            <input type="hidden" name="tanggal-mulai" value="{{ $tanggalMulai ?? '' }}">
+            <input type="hidden" name="tanggal-selesai" value="{{ $tanggalSelesai ?? '' }}">
             <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
                 <div class="container p-0">
                     <button type="submit"
@@ -84,7 +91,7 @@
         <div class="container my-4 pb-5">
             <div class="row g-3">
                 <div class="col-6">
-                    <a id="btn-ganti-tanggal" href="{{ url('/customer/pilih-tanggal') }}?id={{ $mobil?->id ?? '' }}"
+                    <a id="btn-ganti-tanggal" href="{{ route('customer.pilih-tanggal').'?'.$queryTanggal }}"
                         class="btn btn-outline-secondary w-100 py-3 rounded-1 fw-bold"
                         style="border-color: #0b1d33; color: #0b1d33;">
                         Ganti Tanggal

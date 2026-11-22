@@ -6,8 +6,8 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\MobilController;
+use App\Http\Controllers\PemesananController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\VerifikasiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -18,7 +18,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('beranda');
 
-Route::get('/katalog', fn () => redirect()->route('customer.katalog'))->name('katalog');
+Route::get('/', fn() => redirect()->route('customer.landing'))->name('landing');
 
 Route::prefix('customer')->name('customer.')->group(function () {
     Route::view('/landing-page', 'customer.landing-page')->name('landing');
@@ -38,9 +38,25 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::get('/edit-profil', [CustomerController::class, 'editProfil'])->name('edit-profil');
         Route::post('/edit-profil', [CustomerController::class, 'updateProfil'])->name('edit-profil.update');
 
-        Route::get('/data-diri', [VerifikasiController::class, 'create'])->name('data-diri');
-        Route::post('/pilihan-layanan', [VerifikasiController::class, 'store'])->name('data-diri.store');
-        Route::view('/pilihan-layanan', 'customer.pilihan-layanan')->name('pilihan-layanan');
+        Route::get('/detail-mobil/{mobil}', [PemesananController::class, 'detailMobil'])->name('detail-mobil');
+        Route::get('/pilih-tanggal', [PemesananController::class, 'pilihTanggal'])->name('pilih-tanggal');
+        Route::get('/ketersediaan-mobil', [PemesananController::class, 'ketersediaanMobil'])->name('ketersediaan-mobil');
+
+        Route::get('/syarat-dan-ketentuan', [PemesananController::class, 'syarat'])->name('syarat');
+        Route::post('/syarat-dan-ketentuan', [PemesananController::class, 'syaratStore'])->name('syarat.store');
+
+        Route::get('/pilihan-layanan', [PemesananController::class, 'pilihanLayanan'])->name('pilihan-layanan');
+        Route::post('/pilihan-layanan', [PemesananController::class, 'pilihanLayananStore'])->name('pilihan-layanan.store');
+        Route::get('/detail-layanan-sopir', [PemesananController::class, 'detailLayananSopir'])->name('detail-layanan.sopir');
+        Route::get('/detail-layanan-lepas-kunci', [PemesananController::class, 'detailLayananLepasKunci'])->name('detail-layanan.lepas-kunci');
+        Route::post('/detail-layanan', [PemesananController::class, 'detailLayananStore'])->name('detail-layanan.store');
+
+        Route::get('/data-diri', [PemesananController::class, 'dataDiri'])->name('data-diri');
+        Route::post('/data-diri', [PemesananController::class, 'dataDiriStore'])->name('data-diri.store');
+
+        Route::get('/ringkasan-pemesanan', [PemesananController::class, 'ringkasan'])->name('ringkasan-pemesanan');
+        Route::post('/ringkasan-pemesanan', [PemesananController::class, 'ringkasanStore'])->name('ringkasan-pemesanan.store');
+        Route::get('/pilihan-pembayaran', [PemesananController::class, 'pilihanPembayaran'])->name('pilihan-pembayaran');
     });
 });
 
@@ -55,7 +71,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/admin', fn () => redirect()->route('admin.dashboard'))->name('admin.index');
+    Route::get('/admin', fn() => redirect()->route('admin.dashboard'))->name('admin.index');
 
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 
@@ -78,4 +94,4 @@ Route::middleware(['auth', 'admin'])->group(function () {
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

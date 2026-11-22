@@ -13,7 +13,7 @@
 
     <nav class="navbar bg-white py-3 mb-3 border-bottom">
         <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
-            <a id="btn-kembali" href="{{ url('/customer/pilihan-layanan') }}"
+            <a id="btn-kembali" href="{{ route('customer.pilihan-layanan') }}"
                 class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1"
                 style="width: 40px; height: 40px;">&lsaquo;</a>
             <h2 class="fs-3 fw-bold m-0">Ringkasan Pemesanan</h2>
@@ -106,13 +106,13 @@
         </section>
 
         <div class="container my-4 pb-5 d-grid gap-3 mx-auto" style="max-width: 450px;">
-            <a id="btn-edit-layanan" href="{{ url('/customer/pilihan-layanan') }}"
+            <a id="btn-edit-layanan" href="{{ route('customer.pilihan-layanan') }}"
                 class="btn btn-outline-dark py-3 rounded-1 fw-bold" style="border-color: #0b1d33;">
                 Kembali / Edit Layanan
             </a>
         </div>
 
-        <form action="{{ url('/customer/pilihan-pembayaran') }}" method="POST">
+        <form action="{{ route('customer.ringkasan-pemesanan.store') }}" method="POST">
             @csrf
             <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
                 <div class="container p-0 mx-auto" style="max-width: 450px;">

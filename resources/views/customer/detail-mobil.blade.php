@@ -68,7 +68,7 @@
             </p>
         </section>
 
-        <form id="form-pilih-mobil" action="{{ url('/customer/pilih-tanggal') }}" method="get">
+        <form id="form-pilih-mobil" action="{{ route('customer.pilih-tanggal') }}" method="get">
             <input type="hidden" name="id" id="input-id-mobil" value="{{ $mobil?->id ?? '' }}">
             <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
                 <div class="container p-0">

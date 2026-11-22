@@ -80,7 +80,7 @@
                         <article class="card border-0 rounded-4 shadow-sm p-3 mb-3 bg-white item-mobil"
                             data-merk="{{ $mobil->merk ?? '-' }}" data-jenis="{{ $mobil->jenis ?? '-' }}"
                             data-harga="{{ $mobil->harga_sewa ?? 0 }}">
-                            <a href="{{ url('/customer/detail-mobil') }}?id={{ $mobil->id ?? '' }}"
+                            <a href="{{ route('customer.detail-mobil', $mobil->id) }}"
                                 class="text-decoration-none text-dark d-flex align-items-center gap-3">
                                 <img src="{{ $srcFoto }}" alt="{{ $mobil->nama_mobil ?? 'Mobil' }}"
                                     class="rounded-3 object-fit-cover" style="width: 110px; height: 80px;" />

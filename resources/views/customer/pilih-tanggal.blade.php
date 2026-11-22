@@ -10,7 +10,7 @@
 
     <nav class="navbar bg-white py-3 border-bottom">
         <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
-            <a id="btn-kembali" href="{{ url('/customer/detail-mobil') }}?id={{ $mobil?->id ?? '' }}"
+            <a id="btn-kembali" href="{{ route('customer.detail-mobil', $mobil?->id) }}"
                 aria-label="Kembali ke Detail Mobil"
                 class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1"
                 style="width: 40px; height: 40px; color: #0b1d33;">&lsaquo;</a>
@@ -36,6 +36,9 @@
             </div>
         </section>
 
+        <form id="form-lanjut" action="{{ route('customer.ketersediaan-mobil') }}" method="get">
+            <input type="hidden" name="id" value="{{ $mobil?->id ?? '' }}">
+
         <section class="row g-2 px-3" aria-label="Tanggal sewa">
             <div class="col-6">
                 <label for="tanggal-mulai" class="form-label small text-muted fw-semibold">Tanggal Mulai</label>
@@ -60,8 +63,6 @@
             </div>
         </section>
 
-        <form id="form-lanjut" action="{{ url('/customer/ketersediaan-mobil') }}" method="get">
-            <input type="hidden" name="id" value="{{ $mobil?->id ?? '' }}">
             <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
                 <div class="container p-0">
                     <button type="submit"

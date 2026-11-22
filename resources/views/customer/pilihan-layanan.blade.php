@@ -5,7 +5,7 @@
 @section('content')
     <nav class="navbar bg-white py-3 border-bottom">
         <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
-            <a href="{{ url('/customer/data-diri') }}" aria-label="Kembali ke Data Diri"
+            <a href="{{ route('customer.syarat') }}" aria-label="Kembali ke Syarat dan Ketentuan"
                 class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1"
                 style="width: 40px; height: 40px; color: #0b1d33;">&lsaquo;</a>
             <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Pilihan Layanan</h2>
@@ -13,8 +13,8 @@
     </nav>
 
     <main class="mb-5 pb-5">
-        <form id="formLayanan" data-url-sopir="{{ url('/customer/detail-layanan-sopir') }}"
-            data-url-lepas-kunci="{{ url('/customer/detail-layanan-lepas-kunci') }}">
+        <form id="formLayanan" action="{{ route('customer.pilihan-layanan.store') }}" method="POST">
+            @csrf
             <h2 class="h5 fw-bold px-3 mt-2 mb-1">Bagaimana Anda ingin bepergian?</h2>
             <p class="text-muted px-3">Pilih layanan rental yang paling sesuai dengan kebutuhan perjalanan.</p>
 

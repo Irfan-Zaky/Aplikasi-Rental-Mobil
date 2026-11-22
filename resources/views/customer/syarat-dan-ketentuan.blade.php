@@ -5,7 +5,11 @@
 @section('content')
     <nav class="navbar bg-white py-3 border-bottom">
         <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
-            <a href="{{ url('/customer/ketersediaan-mobil') }}" aria-label="Kembali ke Ketersediaan Mobil"
+            <a href="{{ route('customer.ketersediaan-mobil').'?'.http_build_query([
+                'id' => data_get($draft, 'mobil_id'),
+                'tanggal-mulai' => Carbon\Carbon::parse(data_get($draft, 'start_date'))->toDateString(),
+                'tanggal-selesai' => Carbon\Carbon::parse(data_get($draft, 'end_date'))->toDateString(),
+            ]) }}" aria-label="Kembali ke Ketersediaan Mobil"
                 class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1"
                 style="width: 40px; height: 40px; color: #0b1d33;">&lsaquo;</a>
             <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Syarat &amp; ketentuan</h2>
@@ -83,10 +87,11 @@
                 <div class="col-md-6 col-lg-5">
                     <div class="card border-0 shadow-sm rounded-4 p-4">
                         <div class="card-body">
-                            <form action="{{ url('/customer/data-diri') }}" method="get">
+                            <form action="{{ route('customer.syarat.store') }}" method="POST">
+                                @csrf
                                 <div class="form-check mb-4">
                                     <input class="form-check-input" type="checkbox" id="setuju-syarat"
-                                        name="setuju-syarat" required />
+                                        name="setuju_syarat" value="1" required />
                                     <label class="form-check-label text-dark small" for="setuju-syarat">
                                         Saya telah membaca dan menyetujui syarat &amp; ketentuan penyewaan.
                                     </label>

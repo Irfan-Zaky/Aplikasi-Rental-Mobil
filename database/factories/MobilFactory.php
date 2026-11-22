@@ -22,7 +22,7 @@ class MobilFactory extends Factory
             'merk' => fake()->randomElement(['Toyota', 'Daihatsu', 'Honda']),
             'nama_mobil' => fake()->randomElement(['Avanza', 'Xenia', 'Brio', 'BR-V']),
             'jenis' => fake()->randomElement(['MPV', 'SUV', 'Hatchback', 'Sedan']),
-            'status' => fake()->randomElement(['Tersedia', 'Disewa', 'Perawatan']),
+            'status' => fake()->randomElement(['Tersedia', 'Disewa', 'Perbaikan', 'Nonaktif']),
             'harga_sewa' => fake()->numberBetween(300000, 900000),
             'nomor_polisi' => 'B '.fake()->unique()->numerify('#### ABC'),
             'spesifikasi' => fake()->sentence(),

@@ -13,8 +13,9 @@
     </nav>
 
     <main>
-        <form id="formLayanan" action="{{ url('/customer/ringkasan-pemesanan') }}" method="POST">
+        <form id="formLayanan" action="{{ route('customer.detail-layanan.store') }}" method="POST">
             @csrf
+            <input type="hidden" name="layanan" value="lepas-kunci">
 
             <div class="px-3 mt-2">
                 <span class="badge rounded-pill border border-primary-subtle text-primary px-3 py-2 bg-primary-subtle">
@@ -39,7 +40,7 @@
 
                         <div class="form-check z-index-2">
                             <input class="form-check-input fs-5 cursor-pointer" type="radio"
-                                name="metode-penerimaan" id="diantar" value="diantar" checked required>
+                                name="metode_penerimaan" id="diantar" value="diantar" checked required>
                         </div>
                     </div>
                 </div>
@@ -60,7 +61,7 @@
 
                         <div class="form-check z-index-2">
                             <input class="form-check-input fs-5 cursor-pointer" type="radio"
-                                name="metode-penerimaan" id="ambil" value="ambil">
+                                name="metode_penerimaan" id="ambil" value="ambil">
                         </div>
                     </div>
                 </div>

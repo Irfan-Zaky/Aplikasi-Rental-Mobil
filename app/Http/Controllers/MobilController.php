@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MobilStatus;
+use App\Enums\RentalStatus;
 use App\Http\Requests\StoreMobilRequest;
 use App\Http\Requests\UpdateMobilRequest;
 use App\Models\FotoMobil;
 use App\Models\Mobil;
+use App\Models\Rental;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -144,15 +147,39 @@ class MobilController extends Controller
     public function destroy(Mobil $mobil): RedirectResponse
     {
         return DB::transaction(function () use ($mobil): RedirectResponse {
-            $mobil->fotos->each(function (FotoMobil $foto): void {
-                Storage::disk('public')->delete($foto->path_foto);
-            });
+            if ($this->punyaRentalPemblokir($mobil)) {
+                $mobil->update(['status' => MobilStatus::Nonaktif->value]);
+
+                return redirect()->route('admin.data-mobil.index')
+                    ->with('success', 'Mobil dinonaktifkan karena masih memiliki transaksi aktif.');
+            }
 
             $mobil->delete();
 
             return redirect()->route('admin.data-mobil.index')
                 ->with('success', 'Mobil berhasil dihapus.');
         });
+    }
+
+    /**
+     * Rental yang masih memblokir tanggal mobil, sesuai aturan 3.1.
+     */
+    private function punyaRentalPemblokir(Mobil $mobil): bool
+    {
+        return Rental::query()
+            ->where('mobil_id', $mobil->id)
+            ->where(function ($query): void {
+                $query->whereIn('status', [
+                    RentalStatus::MenungguVerifikasi->value,
+                    RentalStatus::PembayaranBerhasil->value,
+                    RentalStatus::Berjalan->value,
+                    RentalStatus::Terlambat->value,
+                ])->orWhere(function ($query): void {
+                    $query->where('status', RentalStatus::MenungguPembayaran->value)
+                        ->where('expires_at', '>', now());
+                });
+            })
+            ->exists();
     }
 
     /**
