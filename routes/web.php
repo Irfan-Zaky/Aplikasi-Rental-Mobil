@@ -3,9 +3,12 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MobilController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\KatalogController;
 use Illuminate\Support\Facades\Route;
 
+
 Route::redirect('/', '/customer/dashboard');
+Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
