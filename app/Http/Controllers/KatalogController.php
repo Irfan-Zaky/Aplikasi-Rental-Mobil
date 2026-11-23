@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Mobil;
+use App\Models\Car;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,7 +17,7 @@ class KatalogController extends Controller
         $hargaMin = $request->filled('harga_min') ? (int) $request->input('harga_min') : null;
         $hargaMax = $request->filled('harga_max') ? (int) $request->input('harga_max') : null;
 
-        $mobils = Mobil::query()
+        $cars = Car::query()
             ->with('fotoUtama')
             ->when($keyword !== '', function (Builder $query) use ($keyword): void {
                 $query->where(function (Builder $query) use ($keyword): void {
@@ -39,7 +39,7 @@ class KatalogController extends Controller
             ->latest()
             ->get();
 
-        $daftarMerk = Mobil::query()
+        $daftarMerk = Car::query()
             ->whereNotNull('merk')
             ->where('merk', '!=', '')
             ->distinct()
@@ -48,7 +48,7 @@ class KatalogController extends Controller
 
         $daftarJenis = collect(['MPV', 'SUV', 'Hatchback', 'Sedan'])
             ->merge(
-                Mobil::query()
+                Car::query()
                     ->whereNotNull('jenis')
                     ->where('jenis', '!=', '')
                     ->distinct()
@@ -59,7 +59,7 @@ class KatalogController extends Controller
             ->values();
 
         return view('customer.katalog', [
-            'mobils' => $mobils,
+            'cars' => $cars,
             'daftarMerk' => $daftarMerk,
             'daftarJenis' => $daftarJenis,
             'keyword' => $keyword,

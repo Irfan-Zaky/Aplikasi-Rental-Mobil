@@ -6,10 +6,10 @@
     <nav class="navbar bg-white py-3 border-bottom">
         <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
             <a href="{{ route('customer.ketersediaan-mobil').'?'.http_build_query([
-                'id' => data_get($draft, 'mobil_id'),
+                'id' => data_get($draft, 'car_id'),
                 'tanggal-mulai' => Carbon\Carbon::parse(data_get($draft, 'start_date'))->toDateString(),
                 'tanggal-selesai' => Carbon\Carbon::parse(data_get($draft, 'end_date'))->toDateString(),
-            ]) }}" aria-label="Kembali ke Ketersediaan Mobil"
+            ]) }}" aria-label="Kembali ke Ketersediaan Car"
                 class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1"
                 style="width: 40px; height: 40px; color: #0b1d33;">&lsaquo;</a>
             <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Syarat &amp; ketentuan</h2>

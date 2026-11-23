@@ -1,9 +1,9 @@
 <?php
 
 use App\Enums\RentalStatus;
-use App\Models\Mobil;
+use App\Models\Account;
+use App\Models\Car;
 use App\Models\Rental;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -11,8 +11,8 @@ uses(RefreshDatabase::class);
 it('shows the availability screen and saves the draft when the car is free', function () {
     $this->travelTo('2026-11-23 09:00:00');
 
-    $customer = User::factory()->create();
-    $mobil = Mobil::factory()->create([
+    $customer = Account::factory()->create();
+    $mobil = Car::factory()->create([
         'merk' => 'Toyota',
         'nama_mobil' => 'Avanza',
         'status' => 'Tersedia',
@@ -20,20 +20,20 @@ it('shows the availability screen and saves the draft when the car is free', fun
 
     $this->actingAs($customer)
         ->get(route('customer.ketersediaan-mobil', [
-            'id' => $mobil->id,
+            'id' => $mobil->car_id,
             'tanggal-mulai' => '2026-11-26',
             'tanggal-selesai' => '2026-11-27',
         ]))
         ->assertOk()
-        ->assertSee('Mobil Tersedia')
-        ->assertSessionHas('pemesanan_draft.mobil_id', $mobil->id);
+        ->assertSee('Car Tersedia')
+        ->assertSessionHas('pemesanan_draft.car_id', $mobil->car_id);
 });
 
 it('opens the S-01 modal and leaves the draft empty when the car is already booked', function () {
     $this->travelTo('2026-11-23 09:00:00');
 
-    $customer = User::factory()->create();
-    $mobil = Mobil::factory()->create([
+    $customer = Account::factory()->create();
+    $mobil = Car::factory()->create([
         'merk' => 'Toyota',
         'nama_mobil' => 'Avanza',
         'status' => 'Tersedia',
@@ -47,7 +47,7 @@ it('opens the S-01 modal and leaves the draft empty when the car is already book
     ]);
 
     $query = [
-        'id' => $mobil->id,
+        'id' => $mobil->car_id,
         'tanggal-mulai' => '2026-11-23',
         'tanggal-selesai' => '2026-11-23',
     ];
@@ -56,28 +56,28 @@ it('opens the S-01 modal and leaves the draft empty when the car is already book
         ->get(route('customer.ketersediaan-mobil', $query))
         ->assertRedirect(route('customer.pilih-tanggal', $query))
         ->assertSessionHas('modal_tidak_tersedia.nama_mobil', 'Toyota Avanza')
-        ->assertSessionMissing('pemesanan_draft.mobil_id');
+        ->assertSessionMissing('pemesanan_draft.car_id');
 
     $this->get(route('customer.pilih-tanggal', $query))
         ->assertOk()
-        ->assertSee('Mobil Tidak Tersedia')
+        ->assertSee('Car Tidak Tersedia')
         ->assertSee('Ganti Tanggal')
-        ->assertSee('Ganti Mobil');
+        ->assertSee('Ganti Car');
 });
 
 it('shows validation errors on the date form when the end date precedes the start date', function () {
     $this->travelTo('2026-11-23 09:00:00');
 
-    $customer = User::factory()->create();
-    $mobil = Mobil::factory()->create(['status' => 'Tersedia']);
+    $customer = Account::factory()->create();
+    $mobil = Car::factory()->create(['status' => 'Tersedia']);
 
-    $urlPilihTanggal = route('customer.pilih-tanggal', ['id' => $mobil->id]);
+    $urlPilihTanggal = route('customer.pilih-tanggal', ['id' => $mobil->car_id]);
 
     $this->from($urlPilihTanggal)
         ->actingAs($customer)
         ->followingRedirects()
         ->get(route('customer.ketersediaan-mobil', [
-            'id' => $mobil->id,
+            'id' => $mobil->car_id,
             'tanggal-mulai' => '2026-11-24',
             'tanggal-selesai' => '2026-11-23',
         ]))

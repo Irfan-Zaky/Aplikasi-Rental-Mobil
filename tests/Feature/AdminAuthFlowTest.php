@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
+use App\Models\Account;
 use Database\Seeders\AdminSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -16,13 +16,13 @@ class AdminAuthFlowTest extends TestCase
     {
         $this->seed(AdminSeeder::class);
 
-        $admin = User::where('email', 'octaimub@gmail.com')->firstOrFail();
+        $admin = Account::where('email', 'octaimub@gmail.com')->firstOrFail();
 
         $this->assertSame('octavia', $admin->name);
         $this->assertSame('admin', $admin->role);
         $this->assertTrue($admin->isAdmin());
         $this->assertTrue(Hash::check('ketuakita', $admin->password));
-        $this->assertSame(1, User::count());
+        $this->assertSame(1, Account::count());
     }
 
     public function test_halaman_login_menampilkan_form_username(): void
@@ -46,7 +46,7 @@ class AdminAuthFlowTest extends TestCase
         ]);
 
         $response->assertRedirect('/dashboard');
-        $this->assertAuthenticatedAs(User::where('email', 'octaimub@gmail.com')->firstOrFail());
+        $this->assertAuthenticatedAs(Account::where('email', 'octaimub@gmail.com')->firstOrFail());
     }
 
     public function test_login_menggunakan_username_juga_berhasil(): void
@@ -59,7 +59,7 @@ class AdminAuthFlowTest extends TestCase
         ]);
 
         $response->assertRedirect('/dashboard');
-        $this->assertAuthenticatedAs(User::where('email', 'octaimub@gmail.com')->firstOrFail());
+        $this->assertAuthenticatedAs(Account::where('email', 'octaimub@gmail.com')->firstOrFail());
     }
 
     public function test_kredensial_salah_menampilkan_error_pada_field_username(): void
@@ -85,7 +85,7 @@ class AdminAuthFlowTest extends TestCase
 
     public function test_pengguna_non_admin_tidak_dapat_mengakses_halaman_admin(): void
     {
-        $user = User::factory()->create(['role' => 'user']);
+        $user = Account::factory()->create(['role' => 'user']);
 
         $response = $this->actingAs($user)->get('/admin/dashboard');
 
@@ -94,7 +94,7 @@ class AdminAuthFlowTest extends TestCase
 
     public function test_admin_dapat_mengakses_halaman_admin(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->get('/admin/dashboard');
 
@@ -104,7 +104,7 @@ class AdminAuthFlowTest extends TestCase
 
     public function test_halaman_admin_menampilkan_konfirmasi_logout(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->get('/admin/dashboard');
 
@@ -116,7 +116,7 @@ class AdminAuthFlowTest extends TestCase
 
     public function test_logout_mengarahkan_kembali_ke_halaman_login(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->post('/logout');
 

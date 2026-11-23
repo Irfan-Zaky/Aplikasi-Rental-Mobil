@@ -84,9 +84,9 @@ class CustomerController extends Controller
             $fotoPath = $rental->mobil?->fotoUtama?->path_foto;
 
             return (object) [
-                'id' => $rental->id,
+                'id' => $rental->rental_id,
                 'kode' => $rental->booking_code ?? $rental->trx_code,
-                'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : 'Mobil',
+                'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : 'Car',
                 'foto_mobil' => $fotoPath ? asset('storage/'.$fotoPath) : asset('img/foto-mobil-kecil.png'),
                 'tgl_sewa' => $rental->start_date->format('d M').' - '.$rental->end_date->format('d M Y'),
                 'total_biaya' => 'Rp '.number_format($total, 0, ',', '.'),
@@ -125,7 +125,7 @@ class CustomerController extends Controller
         $total = $rental->total_rental + ($rental->late_fee ?? 0);
 
         $pesanan = (object) [
-            'id' => $rental->id,
+            'id' => $rental->rental_id,
             'tahap' => $tahap,
             'kode' => $rental->booking_code ?? $rental->trx_code,
             'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : '-',

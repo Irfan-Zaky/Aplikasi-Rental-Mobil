@@ -1,11 +1,11 @@
 @extends('layouts.admin', ['active' => 'data-mobil'])
 
-@section('title', 'Tambah Mobil')
+@section('title', 'Tambah Car')
 
 @section('content')
     @include('components.admin-header', [
         'kicker' => 'MANAJEMEN ARMADA',
-        'judul' => 'Tambah Mobil',
+        'judul' => 'Tambah Car',
         'deskripsi' => 'Lengkapi profil kendaraan baru agar siap dipublikasi ke katalog penyewaan',
     ])
 
@@ -26,7 +26,7 @@
             <div class="row g-4 align-items-start">
                 <div class="col-12 col-lg-4">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                        <label class="form-label fw-bold" style="color: #0b1d33;">Foto Mobil</label>
+                        <label class="form-label fw-bold" style="color: #0b1d33;">Foto Car</label>
 
                         <div id="preview-foto-profil" class="mb-3 d-none">
                             <img id="preview-foto-profil-img" src="" alt="Foto mobil" class="img-fluid rounded-4 object-fit-cover w-100 shadow-sm" style="height: 220px;" />
@@ -70,7 +70,7 @@
                                 </div>
 
                                 <div class="col-12 col-md-6">
-                                    <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Mobil</label>
+                                    <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Car</label>
                                     <input type="text" name="nama" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm @error('nama') is-invalid @enderror" value="{{ old('nama') }}" required />
                                     @error('nama')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -139,12 +139,12 @@
         </div>
     </main>
 
-    <div class="modal fade" id="modalFotoMobil" tabindex="-1" aria-labelledby="modalFotoMobilLabel" aria-hidden="true">
+    <div class="modal fade" id="modalCarPhoto" tabindex="-1" aria-labelledby="modalCarPhotoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 860px;">
             <div class="modal-content border-0 rounded-4 shadow">
                 <div class="modal-header border-0 align-items-start px-4 pt-4 pb-3">
                     <div>
-                        <h4 class="modal-title fw-bold" id="modalFotoMobilLabel" style="color: #0b1d33;">Unggah foto mobil</h4>
+                        <h4 class="modal-title fw-bold" id="modalCarPhotoLabel" style="color: #0b1d33;">Unggah foto mobil</h4>
                         <p class="text-muted small mb-0 mt-1">Tambahkan beberapa foto dan pilih satu sebagai foto utama.</p>
                     </div>
                     <button type="button" class="btn d-flex align-items-center justify-content-center rounded-3 border-0 flex-shrink-0" data-bs-dismiss="modal" aria-label="Tutup" style="width: 36px; height: 36px; background-color: #f4f7fa; color: #64748b; font-size: 20px; line-height: 1;">&times;</button>

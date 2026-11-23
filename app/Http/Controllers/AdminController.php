@@ -6,7 +6,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use App\Enums\RentalStatus;
-use App\Models\Mobil;
+use App\Models\Car;
 use App\Models\Payment;
 use App\Models\Rental;
 use Illuminate\Http\Request;
@@ -23,9 +23,9 @@ class AdminController extends Controller
     {
         return view('dashboard', [
             'title' => 'home',
-            'totalMobil' => Mobil::count(),
-            'mobilTersedia' => Mobil::where('status', 'Tersedia')->count(),
-            'mobilDisewa' => Mobil::where('status', 'Disewa')->count(),
+            'totalCar' => Car::count(),
+            'mobilTersedia' => Car::where('status', 'Tersedia')->count(),
+            'mobilDisewa' => Car::where('status', 'Disewa')->count(),
             'totalPesanan' => Rental::count(),
             'pesananMenunggu' => Rental::where('status', RentalStatus::MenungguVerifikasi)->count(),
         ]);
@@ -77,7 +77,7 @@ class AdminController extends Controller
 
         $transaksis = $rentals->map(function (Rental $rental) {
             return (object) [
-                'id' => $rental->id,
+                'id' => $rental->rental_id,
                 'kode' => $rental->booking_code ?? $rental->trx_code,
                 'nama_customer' => $rental->customer_name,
                 'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : '-',
@@ -116,7 +116,7 @@ class AdminController extends Controller
             ->join('');
 
         $transaksiObj = (object) [
-            'id' => $rental->id,
+            'id' => $rental->rental_id,
             'inisial' => strtoupper($initials ?: 'CU'),
             'nama_customer' => $rental->customer_name,
             'no_hp' => $rental->customer_phone,
@@ -180,7 +180,7 @@ class AdminController extends Controller
             });
         }
 
-        // 2. Filter Jenis Mobil
+        // 2. Filter Jenis Car
         if ($jenis = $request->query('jenis')) {
             $query->whereHas('mobil', function ($m) use ($jenis): void {
                 $m->where('jenis', $jenis);
@@ -214,7 +214,7 @@ class AdminController extends Controller
             $totalKeseluruhan = $rental->total_rental + ($rental->late_fee ?? 0);
 
             return (object) [
-                'id' => $rental->id,
+                'id' => $rental->rental_id,
                 'kode' => $rental->booking_code ?? $rental->trx_code,
                 'nama_customer' => $rental->customer_name,
                 'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : '-',
@@ -225,16 +225,16 @@ class AdminController extends Controller
             ];
         });
 
-        // Ambil daftar merk secara dinamis dari tabel mobils untuk foreach select
-        $daftarMerk = Mobil::query()
+        // Ambil daftar merk secara dinamis dari tabel car untuk foreach select
+        $daftarMerk = Car::query()
             ->whereNotNull('merk')
             ->where('merk', '!=', '')
             ->distinct()
             ->orderBy('merk')
             ->pluck('merk');
 
-        // Ambil daftar jenis secara dinamis dari tabel mobils
-        $daftarJenis = Mobil::query()
+        // Ambil daftar jenis secara dinamis dari tabel car
+        $daftarJenis = Car::query()
             ->whereNotNull('jenis')
             ->where('jenis', '!=', '')
             ->distinct()
@@ -278,7 +278,7 @@ class AdminController extends Controller
         $totalKeseluruhan = $rental->total_rental + ($rental->late_fee ?? 0);
 
         $transaksiObj = (object) [
-            'id' => $rental->id,
+            'id' => $rental->rental_id,
             'kode' => $rental->booking_code ?? $rental->trx_code,
             'nama_customer' => $rental->customer_name,
             'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : '-',

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,7 +12,7 @@ class LogoutFlowTest extends TestCase
 
     public function test_customer_logout_mengakhiri_sesi_dan_kembali_ke_login_customer(): void
     {
-        $customer = User::factory()->create();
+        $customer = Account::factory()->create();
 
         $response = $this->actingAs($customer)->post(route('logout'));
 
@@ -22,7 +22,7 @@ class LogoutFlowTest extends TestCase
 
     public function test_admin_logout_mengakhiri_sesi_dan_kembali_ke_login_admin(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->post(route('logout'));
 
@@ -32,7 +32,7 @@ class LogoutFlowTest extends TestCase
 
     public function test_halaman_profil_customer_memiliki_tombol_logout(): void
     {
-        $customer = User::factory()->create();
+        $customer = Account::factory()->create();
 
         $this->actingAs($customer)->get(route('customer.profil'))
             ->assertOk()
@@ -42,7 +42,7 @@ class LogoutFlowTest extends TestCase
 
     public function test_sidebar_admin_memiliki_tombol_logout(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertOk()

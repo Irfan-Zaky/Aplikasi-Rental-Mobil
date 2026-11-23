@@ -3,9 +3,9 @@
 namespace Database\Factories;
 
 use App\Enums\RentalStatus;
-use App\Models\Mobil;
+use App\Models\Account;
+use App\Models\Car;
 use App\Models\Rental;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,8 +20,8 @@ class RentalFactory extends Factory
     {
         return [
             'trx_code' => 'TRX-'.fake()->unique()->numerify('########'),
-            'user_id' => User::factory(),
-            'mobil_id' => Mobil::factory(),
+            'account_id' => Account::factory(),
+            'car_id' => Car::factory(),
             'start_date' => now()->addDay()->startOfDay(),
             'end_date' => now()->addDays(2)->endOfDay(),
             'duration' => 2,

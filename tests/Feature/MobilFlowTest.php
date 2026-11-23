@@ -3,16 +3,16 @@
 namespace Tests\Feature;
 
 use App\Enums\RentalStatus;
-use App\Models\FotoMobil;
-use App\Models\Mobil;
+use App\Models\Account;
+use App\Models\Car;
+use App\Models\CarPhoto;
 use App\Models\Rental;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class MobilFlowTest extends TestCase
+class CarFlowTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -23,7 +23,7 @@ class MobilFlowTest extends TestCase
         $response = $this->get('/admin/data-mobil');
 
         $response->assertOk()
-            ->assertSee('Tambah Mobil')
+            ->assertSee('Tambah Car')
             ->assertSee(route('admin.data-mobil.create'), false);
     }
 
@@ -31,14 +31,14 @@ class MobilFlowTest extends TestCase
     {
         $this->authenticateAsAdmin();
 
-        Mobil::factory()->create([
+        Car::factory()->create([
             'merk' => 'Toyota',
             'nama_mobil' => 'Avanza',
             'jenis' => 'MPV',
             'status' => 'Tersedia',
             'nomor_polisi' => 'B 1111 AAA',
         ]);
-        Mobil::factory()->create([
+        Car::factory()->create([
             'merk' => 'Daihatsu',
             'nama_mobil' => 'Xenia',
             'jenis' => 'MPV',
@@ -85,12 +85,12 @@ class MobilFlowTest extends TestCase
             ],
         ]);
 
-        $mobil = Mobil::firstOrFail();
+        $mobil = Car::firstOrFail();
         $fotoUtama = $mobil->fotos()->where('is_utama', true)->firstOrFail();
 
         $response->assertRedirect('/admin/data-mobil');
-        $this->assertDatabaseHas('mobils', [
-            'id' => $mobil->id,
+        $this->assertDatabaseHas('car', [
+            'car_id' => $mobil->car_id,
             'merk' => 'Toyota',
             'nama_mobil' => 'Avanza',
             'jenis' => 'MPV',
@@ -98,7 +98,7 @@ class MobilFlowTest extends TestCase
             'harga_sewa' => 525000,
             'nomor_polisi' => 'B 1234 ABC',
         ]);
-        $fotoPertama = $mobil->fotos()->orderBy('id')->firstOrFail();
+        $fotoPertama = $mobil->fotos()->orderBy('photo_id')->firstOrFail();
 
         $this->assertSame(2, $mobil->fotos()->count());
         $this->assertNotSame($fotoPertama->path_foto, $fotoUtama->path_foto);
@@ -109,9 +109,9 @@ class MobilFlowTest extends TestCase
     {
         $this->authenticateAsAdmin();
 
-        $mobil = Mobil::factory()->create();
-        FotoMobil::factory()->create([
-            'mobil_id' => $mobil->id,
+        $mobil = Car::factory()->create();
+        CarPhoto::factory()->create([
+            'car_id' => $mobil->car_id,
             'is_utama' => true,
         ]);
 
@@ -132,35 +132,35 @@ class MobilFlowTest extends TestCase
     {
         $this->authenticateAsAdmin();
 
-        $mobil = Mobil::factory()->create();
-        $fotoPertama = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
-        $fotoKedua = FotoMobil::factory()->for($mobil)->create(['is_utama' => false]);
+        $mobil = Car::factory()->create();
+        $fotoPertama = CarPhoto::factory()->for($mobil)->create(['is_utama' => true]);
+        $fotoKedua = CarPhoto::factory()->for($mobil)->create(['is_utama' => false]);
 
-        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
-            'foto_lama' => [$fotoPertama->id, $fotoKedua->id],
-            'foto_utama_lama' => $fotoKedua->id,
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadCar($mobil) + [
+            'foto_lama' => [$fotoPertama->photo_id, $fotoKedua->photo_id],
+            'foto_utama_lama' => $fotoKedua->photo_id,
         ]);
 
         $response->assertRedirect('/admin/data-mobil');
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoPertama->id, 'is_utama' => false]);
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoKedua->id, 'is_utama' => true]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $fotoPertama->photo_id, 'is_utama' => false]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $fotoKedua->photo_id, 'is_utama' => true]);
     }
 
     public function test_edit_mobil_tanpa_foto_utama_lama_tetap_mempertahankan_foto_utama(): void
     {
         $this->authenticateAsAdmin();
 
-        $mobil = Mobil::factory()->create();
-        $fotoPertama = FotoMobil::factory()->for($mobil)->create(['is_utama' => false]);
-        $fotoFavorit = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
+        $mobil = Car::factory()->create();
+        $fotoPertama = CarPhoto::factory()->for($mobil)->create(['is_utama' => false]);
+        $fotoFavorit = CarPhoto::factory()->for($mobil)->create(['is_utama' => true]);
 
-        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
-            'foto_lama' => [$fotoPertama->id, $fotoFavorit->id],
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadCar($mobil) + [
+            'foto_lama' => [$fotoPertama->photo_id, $fotoFavorit->photo_id],
         ]);
 
         $response->assertRedirect('/admin/data-mobil');
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoPertama->id, 'is_utama' => false]);
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoFavorit->id, 'is_utama' => true]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $fotoPertama->photo_id, 'is_utama' => false]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $fotoFavorit->photo_id, 'is_utama' => true]);
     }
 
     public function test_edit_mobil_menyimpan_foto_lama_sebagai_utama_saat_foto_baru_diunggah(): void
@@ -168,12 +168,12 @@ class MobilFlowTest extends TestCase
         $this->authenticateAsAdmin();
         Storage::fake('public');
 
-        $mobil = Mobil::factory()->create();
-        $fotoLama = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
+        $mobil = Car::factory()->create();
+        $fotoLama = CarPhoto::factory()->for($mobil)->create(['is_utama' => true]);
 
-        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
-            'foto_lama' => [$fotoLama->id],
-            'foto_utama_lama' => $fotoLama->id,
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadCar($mobil) + [
+            'foto_lama' => [$fotoLama->photo_id],
+            'foto_utama_lama' => $fotoLama->photo_id,
             'foto_utama' => '1',
             'fotos' => [
                 UploadedFile::fake()->image('depan.jpg', 20, 20),
@@ -182,10 +182,10 @@ class MobilFlowTest extends TestCase
         ]);
 
         $response->assertRedirect('/admin/data-mobil');
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoLama->id, 'is_utama' => true]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $fotoLama->photo_id, 'is_utama' => true]);
         $this->assertSame(3, $mobil->fotos()->count());
-        $mobil->fotos()->where('id', '!=', $fotoLama->id)->each(function (FotoMobil $foto): void {
-            $this->assertDatabaseHas('mobil_fotos', ['id' => $foto->id, 'is_utama' => false]);
+        $mobil->fotos()->where('photo_id', '!=', $fotoLama->photo_id)->each(function (CarPhoto $foto): void {
+            $this->assertDatabaseHas('car_photo', ['photo_id' => $foto->photo_id, 'is_utama' => false]);
         });
     }
 
@@ -194,9 +194,9 @@ class MobilFlowTest extends TestCase
         $this->authenticateAsAdmin();
         Storage::fake('public');
 
-        $mobil = Mobil::factory()->create();
+        $mobil = Car::factory()->create();
 
-        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadCar($mobil) + [
             'foto_lama' => [''],
             'foto_utama' => '1',
             'fotos' => [
@@ -206,53 +206,53 @@ class MobilFlowTest extends TestCase
         ]);
 
         $response->assertRedirect('/admin/data-mobil');
-        $fotos = $mobil->fotos()->orderBy('id')->get();
+        $fotos = $mobil->fotos()->orderBy('photo_id')->get();
         $this->assertCount(2, $fotos);
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotos[0]->id, 'is_utama' => false]);
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotos[1]->id, 'is_utama' => true]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $fotos[0]->photo_id, 'is_utama' => false]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $fotos[1]->photo_id, 'is_utama' => true]);
     }
 
     public function test_edit_mobil_menghapus_foto_lama_yang_tidak_lagi_ada_di_modal(): void
     {
         $this->authenticateAsAdmin();
 
-        $mobil = Mobil::factory()->create();
-        $fotoDihapus = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
-        $fotoDitambah = FotoMobil::factory()->for($mobil)->create(['is_utama' => false]);
+        $mobil = Car::factory()->create();
+        $fotoDihapus = CarPhoto::factory()->for($mobil)->create(['is_utama' => true]);
+        $fotoDitambah = CarPhoto::factory()->for($mobil)->create(['is_utama' => false]);
 
-        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
-            'foto_lama' => [$fotoDitambah->id],
-            'foto_utama_lama' => $fotoDitambah->id,
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadCar($mobil) + [
+            'foto_lama' => [$fotoDitambah->photo_id],
+            'foto_utama_lama' => $fotoDitambah->photo_id,
         ]);
 
         $response->assertRedirect('/admin/data-mobil');
-        $this->assertDatabaseMissing('mobil_fotos', ['id' => $fotoDihapus->id]);
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoDitambah->id, 'is_utama' => true]);
+        $this->assertDatabaseMissing('car_photo', ['photo_id' => $fotoDihapus->photo_id]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $fotoDitambah->photo_id, 'is_utama' => true]);
     }
 
     public function test_edit_mobil_tanpa_parameter_foto_mempertahankan_foto_utama(): void
     {
         $this->authenticateAsAdmin();
 
-        $mobil = Mobil::factory()->create();
-        $fotoUtama = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
+        $mobil = Car::factory()->create();
+        $fotoUtama = CarPhoto::factory()->for($mobil)->create(['is_utama' => true]);
 
-        $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil))
+        $this->put(route('admin.data-mobil.update', $mobil), $this->payloadCar($mobil))
             ->assertRedirect('/admin/data-mobil');
 
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoUtama->id, 'is_utama' => true]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $fotoUtama->photo_id, 'is_utama' => true]);
     }
 
     public function test_edit_mobil_menolak_foto_utama_dari_mobil_lain(): void
     {
         $this->authenticateAsAdmin();
 
-        $mobil = Mobil::factory()->create();
-        $fotoMobilLain = FotoMobil::factory()->create(['is_utama' => true]);
+        $mobil = Car::factory()->create();
+        $fotoCarLain = CarPhoto::factory()->create(['is_utama' => true]);
 
-        $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
-            'foto_lama' => [$fotoMobilLain->id],
-            'foto_utama_lama' => $fotoMobilLain->id,
+        $this->put(route('admin.data-mobil.update', $mobil), $this->payloadCar($mobil) + [
+            'foto_lama' => [$fotoCarLain->photo_id],
+            'foto_utama_lama' => $fotoCarLain->photo_id,
         ])->assertSessionHasErrors(['foto_lama.0', 'foto_utama_lama']);
     }
 
@@ -261,34 +261,34 @@ class MobilFlowTest extends TestCase
         $this->authenticateAsAdmin();
         Storage::fake('public');
 
-        $mobil = Mobil::factory()->create();
-        $foto = FotoMobil::factory()->create(['mobil_id' => $mobil->id]);
+        $mobil = Car::factory()->create();
+        $foto = CarPhoto::factory()->create(['car_id' => $mobil->car_id]);
         Storage::disk('public')->put($foto->path_foto, 'isi foto');
 
         $response = $this->delete(route('admin.data-mobil.destroy', $mobil));
 
         $response->assertRedirect('/admin/data-mobil');
-        $this->assertSoftDeleted('mobils', ['id' => $mobil->id]);
-        $this->assertDatabaseHas('mobil_fotos', ['id' => $foto->id]);
+        $this->assertSoftDeleted('car', ['car_id' => $mobil->car_id]);
+        $this->assertDatabaseHas('car_photo', ['photo_id' => $foto->photo_id]);
         Storage::disk('public')->assertExists($foto->path_foto);
-        $this->assertDatabaseMissing('mobils', ['id' => $mobil->id, 'deleted_at' => null]);
+        $this->assertDatabaseMissing('car', ['car_id' => $mobil->car_id, 'deleted_at' => null]);
     }
 
     public function test_hapus_mobil_dengan_transaksi_aktif_menjadikannya_nonaktif(): void
     {
         $this->authenticateAsAdmin();
 
-        $mobil = Mobil::factory()->create(['status' => 'Tersedia']);
+        $mobil = Car::factory()->create(['status' => 'Tersedia']);
         Rental::factory()->create([
-            'mobil_id' => $mobil->id,
+            'car_id' => $mobil->car_id,
             'status' => RentalStatus::MenungguVerifikasi,
         ]);
 
         $this->delete(route('admin.data-mobil.destroy', $mobil))
             ->assertRedirect('/admin/data-mobil');
 
-        $this->assertDatabaseHas('mobils', [
-            'id' => $mobil->id,
+        $this->assertDatabaseHas('car', [
+            'car_id' => $mobil->car_id,
             'status' => 'Nonaktif',
             'deleted_at' => null,
         ]);
@@ -313,14 +313,14 @@ class MobilFlowTest extends TestCase
                 'spesifikasi',
                 'fotos',
             ]);
-        $this->assertSame(0, Mobil::count());
+        $this->assertSame(0, Car::count());
         Storage::disk('public')->assertEmpty();
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function payloadMobil(Mobil $mobil): array
+    private function payloadCar(Car $mobil): array
     {
         return [
             'merk' => $mobil->merk,
@@ -335,6 +335,6 @@ class MobilFlowTest extends TestCase
 
     private function authenticateAsAdmin(): void
     {
-        $this->actingAs(User::factory()->admin()->create());
+        $this->actingAs(Account::factory()->admin()->create());
     }
 }

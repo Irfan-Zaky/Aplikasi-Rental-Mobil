@@ -13,7 +13,7 @@
                 <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="{{ url('/customer/landing-page') }}">
                     <div class="rounded-4 p-2 d-flex align-items-center justify-content-center"
                         style="width: 56px; height: 56px; background-color: #ff6b35">
-                        <img src="{{ asset('img/landing page/car-front-2.svg') }}" alt="Logo Mobil" width="30"
+                        <img src="{{ asset('img/landing page/car-front-2.svg') }}" alt="Logo Car" width="30"
                             height="24" class="d-inline-block align-text-top" />
                     </div>
                     <h2 class="fw-bold m-0 fs-4">
@@ -178,14 +178,14 @@
                                         height: 64px;
                                         background-color: #1a2d47 !important;
                                     ">
-                                    <img src="{{ asset('img/landing page/car-front-1.svg') }}" alt="Logo Mobil"
+                                    <img src="{{ asset('img/landing page/car-front-1.svg') }}" alt="Logo Car"
                                         style="width: 28px; height: 28px" />
                                 </div>
                                 <span class="fw-bold opacity-50 fs-5">04</span>
                             </div>
                             <div class="my-3 rounded-pill"
                                 style="width: 40px; height: 4px; background-color: #1a2d47"></div>
-                            <h3 class="fw-bold fs-2 mb-2">Mobil siap jalan</h3>
+                            <h3 class="fw-bold fs-2 mb-2">Car siap jalan</h3>
                             <p class="fs-6 mb-2">
                                 Ambil kendaraan atau kami antar langsung ke lokasi Anda.
                             </p>
@@ -236,7 +236,7 @@
                     <div class="d-flex align-items-center gap-3 mb-4">
                         <div class="rounded-4 p-2 d-flex align-items-center justify-content-center"
                             style="width: 56px; height: 56px; background-color: #ff6b35">
-                            <img src="{{ asset('img/landing page/car-front-2.svg') }}" alt="Logo Mobil"
+                            <img src="{{ asset('img/landing page/car-front-2.svg') }}" alt="Logo Car"
                                 style="width: 32px; height: 32px" />
                         </div>
                         <h2 class="fw-bold m-0 fs-1">

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -40,7 +40,7 @@ class CustomerAuthFlowTest extends TestCase
     #[DataProvider('customerLoginFields')]
     public function test_customer_dapat_login_menggunakan_email_nomor_hp_atau_username(string $field): void
     {
-        $customer = User::factory()->create([
+        $customer = Account::factory()->create([
             'email' => 'customer@example.com',
             'no_hp' => '081234567890',
             'username' => 'customer01',
@@ -55,9 +55,29 @@ class CustomerAuthFlowTest extends TestCase
         $this->assertAuthenticatedAs($customer);
     }
 
+    public function test_login_customer_menyimpan_session_menggunakan_kolom_user_id(): void
+    {
+        config()->set('session.driver', 'database');
+
+        $customer = Account::factory()->create([
+            'email' => 'db-session@example.com',
+        ]);
+
+        $response = $this->post('/customer/login', [
+            'login' => $customer->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('customer.beranda'));
+        $this->assertAuthenticatedAs($customer);
+        $this->assertDatabaseHas('sessions', [
+            'user_id' => $customer->getKey(),
+        ]);
+    }
+
     public function test_admin_yang_login_lewat_halaman_customer_diarahkan_ke_dashboard_admin(): void
     {
-        $admin = User::factory()->admin()->create([
+        $admin = Account::factory()->admin()->create([
             'email' => 'admin@example.com',
             'no_hp' => '081111111111',
             'username' => 'admin01',
@@ -75,7 +95,7 @@ class CustomerAuthFlowTest extends TestCase
 
     public function test_admin_tidak_dapat_mengakses_halaman_customer(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $response = $this->actingAs($admin)->get('/customer/beranda');
 
@@ -84,7 +104,7 @@ class CustomerAuthFlowTest extends TestCase
 
     public function test_customer_tidak_dapat_mengakses_halaman_admin(): void
     {
-        $customer = User::factory()->create();
+        $customer = Account::factory()->create();
 
         $response = $this->actingAs($customer)->get('/admin/dashboard');
 
@@ -93,7 +113,7 @@ class CustomerAuthFlowTest extends TestCase
 
     public function test_customer_logout_diarahkan_ke_login_customer(): void
     {
-        $customer = User::factory()->create();
+        $customer = Account::factory()->create();
 
         $response = $this->actingAs($customer)->post('/logout');
 
@@ -113,7 +133,7 @@ class CustomerAuthFlowTest extends TestCase
 
         $response->assertRedirect(route('customer.beranda'));
         $this->assertAuthenticated();
-        $this->assertDatabaseHas('users', [
+        $this->assertDatabaseHas('account', [
             'email' => 'baru@example.com',
             'no_hp' => '081234567891',
             'role' => 'user',
@@ -122,7 +142,7 @@ class CustomerAuthFlowTest extends TestCase
 
     public function test_registrasi_menolak_nomor_hp_yang_sudah_dipakai(): void
     {
-        User::factory()->create(['no_hp' => '081234567892']);
+        Account::factory()->create(['no_hp' => '081234567892']);
 
         $response = $this->from('/customer/daftar-akun')->post('/customer/daftar-akun', [
             'name' => 'Customer Duplikat',

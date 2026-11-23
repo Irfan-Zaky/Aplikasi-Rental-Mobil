@@ -34,7 +34,7 @@
                             </div>
                             <div>
                                 <strong class="d-block fs-6 text-dark">Diantar ke lokasi</strong>
-                                <small class="text-muted">Mobil diantar ke alamat Anda.</small>
+                                <small class="text-muted">Car diantar ke alamat Anda.</small>
                             </div>
                         </label>
 

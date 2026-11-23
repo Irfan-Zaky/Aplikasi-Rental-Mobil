@@ -12,18 +12,18 @@ Acuan perilaku fitur untuk AI agent. Baca **seluruh dokumen** sebelum membuat at
 
 ## 1. Aktor
 
-| Aktor | `users.role` | Tugas |
+| Aktor | `account.role` | Tugas |
 |---|---|---|
 | Customer | `user` | Mencari mobil, memesan, membayar, melihat riwayat. |
 | Admin | `admin` | Mengelola mobil, memeriksa dokumen dan pembayaran, menyelesaikan transaksi. Akun dibuat lewat seeder. **Tidak ada pendaftaran admin.** |
 
-Satu model `User`, pembeda hanya `role`.
+Satu model `Account` (tabel `account`), pembeda hanya `role`.
 
 ---
 
 ## 2. Status
 
-### 2.1 Alur status rental (`rentals.status`)
+### 2.1 Alur status rental (`rental.status`)
 
 | Dari | Ke | Pemicu | Pelaku |
 |---|---|---|---|
@@ -36,14 +36,14 @@ Satu model `User`, pembeda hanya `role`.
 | `Menunggu Pembayaran` / `Menunggu Verifikasi` | `Dibatalkan` | Melewati `expires_at` | Scheduler |
 | `Menunggu Pembayaran` / `Menunggu Verifikasi` / `Pembayaran Berhasil` | `Dibatalkan` | Admin menekan Batalkan Pesanan (alasan wajib) | Admin |
 
-- Perubahan status **hanya** lewat satu method terpusat (`Rental::transitionTo()`) yang juga menulis `booking_histories`.
+- Perubahan status **hanya** lewat satu method terpusat (`Rental::transitionTo()`) yang juga menulis `booking_history`.
 - Transisi di luar tabel ini **ditolak**.
 
-### 2.2 Status pembayaran (`payments.status`)
+### 2.2 Status pembayaran (`payment.status`)
 
 `Menunggu Pembayaran` → `Menunggu Konfirmasi` → `Berhasil`. Cabang: `Gagal`, `Kadaluarsa`. Ejaan baku: **Kadaluarsa**.
 
-### 2.3 Status mobil (`mobils.status`)
+### 2.3 Status mobil (`car.status`)
 
 `Tersedia`, `Disewa`, `Perbaikan`, `Nonaktif`.
 
@@ -69,7 +69,7 @@ Dipakai pada ringkasan C-04 dan filter tab C-17. `Dibatalkan` hanya tampil di ta
 
 Mobil **dapat dipesan** untuk periode `[S, E]` bila **keduanya** terpenuhi:
 
-1. `mobils.status` bukan `Perbaikan` / `Nonaktif` dan `deleted_at` kosong.
+1. `car.status` bukan `Perbaikan` / `Nonaktif` dan `deleted_at` kosong.
 2. Tidak ada rental lain berstatus pemblokir dengan `existing.start_date <= E AND existing.end_date >= S`.
 
 Status pemblokir: `Menunggu Pembayaran` (hanya bila `expires_at > now()`), `Menunggu Verifikasi`, `Pembayaran Berhasil`, `Berjalan`, `Terlambat`.
@@ -101,33 +101,33 @@ Wajib dalam satu `DB::transaction`:
 1. `lockForUpdate()` pada baris mobil.
 2. Validasi ulang ketersediaan (3.1) di dalam transaksi.
 3. Buat rental: status `Menunggu Pembayaran`, `expires_at = now + 30 menit`, `trx_code`.
-4. Buat `rental_add_ons`.
-5. Tulis `booking_histories` urutan 1.
+4. Buat `add_on`.
+5. Tulis `booking_history` urutan 1.
 
 ### 3.4 Pembayaran
 
 | | QRIS | Tunai |
 |---|---|---|
-| Masa berlaku | 10 menit (`payments.expires_at`) | 3 jam (`payments.expires_at`) |
-| Detail | baris `qris_payments` | baris `cash_payments` (`payment_code` format `TNI-XXXX-XXXX`) |
+| Masa berlaku | 10 menit (`payment.expires_at`) | 3 jam (`payment.expires_at`) |
+| Detail | baris `qris` | baris `cash` (`payment_code` format `TNI-XXXX-XXXX`) |
 | Sukses | Webhook → payment `Menunggu Konfirmasi`, rental `Menunggu Verifikasi` | Admin memasukkan kode valid → payment `Menunggu Konfirmasi`, rental `Menunggu Verifikasi` |
 | Gagal | Webhook gagal → payment `Gagal`; customer boleh membuat payment baru selama rental belum `Dibatalkan` | — |
 | Kedaluwarsa | payment `Kadaluarsa`, rental `Dibatalkan` | payment `Kadaluarsa`, rental `Dibatalkan`, kode tidak bisa dipakai lagi |
 
 - Satu rental hanya boleh punya **satu payment `Sewa` aktif** (`Menunggu Pembayaran` / `Menunggu Konfirmasi`) pada satu waktu.
 - `amount` = `total_rental`.
-- Webhook: `POST /webhooks/qris`, di luar CSRF, wajib verifikasi signature, **idempoten** berdasarkan `qris_payments.qr_ref`. Penyedia gateway belum ditentukan. Untuk demo boleh memakai simulasi yang memanggil logika yang sama.
+- Webhook: `POST /webhooks/qris`, di luar CSRF, wajib verifikasi signature, **idempoten** berdasarkan `qris.qr_ref`. Penyedia gateway belum ditentukan. Untuk demo boleh memakai simulasi yang memanggil logika yang sama.
 
 ### 3.5 Kode
 
 | Kode | Format | Kolom | Dibuat saat |
 |---|---|---|---|
-| Transaksi | `TRX-` + angka berurut | `rentals.trx_code` | Rental dibuat |
-| Booking | `BK-` + 6 karakter alfanumerik huruf besar | `rentals.booking_code` | Konfirmasi pembayaran sewa |
-| Invoice | `INV-` + tahun + urut | `rentals.invoice_number` | Bersamaan dengan kode booking |
-| Tunai | `TNI-XXXX-XXXX` | `cash_payments.payment_code` | Customer memilih Tunai |
+| Transaksi | `TRX-` + angka berurut | `rental.trx_code` | Rental dibuat |
+| Booking | `BK-` + 6 karakter alfanumerik huruf besar | `rental.booking_code` | Konfirmasi pembayaran sewa |
+| Invoice | `INV-` + tahun + urut | `rental.invoice_number` | Bersamaan dengan kode booking |
+| Tunai | `TNI-XXXX-XXXX` | `cash.payment_code` | Customer memilih Tunai |
 
-Semua kode unik. Invoice dibuat dari data rental (halaman/PDF), bukan tabel sendiri. Kontak di invoice: `rental_add_ons.driver_phone` bila dengan sopir, selain itu `config('rental.contact_phone')`.
+Semua kode unik. Invoice dibuat dari data rental (halaman/PDF), bukan tabel sendiri. Kontak di invoice: `add_on.driver_phone` bila dengan sopir, selain itu `config('rental.contact_phone')`.
 
 ### 3.6 Scheduler
 
@@ -178,7 +178,7 @@ Semua kode unik. Invoice dibuat dari data rental (halaman/PDF), bukan tabel send
 - **Hasil:** customer memilih mobil dan lanjut ke F004.
 
 1. Customer membuka katalog. Sistem menampilkan daftar mobil, foto utama, harga/hari, badge status.
-2. Customer mencari dan memfilter berdasarkan **merek, jenis, dan harga sewa**. Opsi filter merek dan jenis diambil dari nilai `DISTINCT` pada `mobils`.
+2. Customer mencari dan memfilter berdasarkan **merek, jenis, dan harga sewa**. Opsi filter merek dan jenis diambil dari nilai `DISTINCT` pada `car`.
 3. Customer membuka detail: foto, nama, merek, jenis, spesifikasi, harga, status.
 4. Customer menekan Pilih Mobil → F004.
 
@@ -214,7 +214,7 @@ Urutan wajib:
 1. **C-07 Pilih Tanggal:** customer memilih tanggal mulai dan selesai. Tampilkan durasi dan estimasi biaya (aturan 3.2).
 2. **C-08 Cek Ketersediaan:** sistem memeriksa aturan 3.1. Tersedia → Lanjutkan. Tidak tersedia → modal S-01 (Ganti Tanggal / Ganti Mobil).
 3. **C-09 Syarat & Ketentuan:** customer wajib mencentang persetujuan. Tanpa centang, tombol Setuju & Lanjut nonaktif (S-02).
-4. **C-10 Pilih Layanan:** Dengan Sopir atau Lepas Kunci (`rentals.self_driver`).
+4. **C-10 Pilih Layanan:** Dengan Sopir atau Lepas Kunci (`rental.self_driver`).
 5. **C-11 Detail Layanan:**
    - Dengan Sopir → alamat/titik penjemputan wajib (`pickup_point`).
    - Lepas Kunci → pilih `Diantar` atau `Ambil di garasi` (`handover_method`). `Diantar` → alamat pengantaran wajib (`pickup_point`). `Ambil di garasi` → tanpa alamat.
@@ -232,8 +232,8 @@ Urutan wajib:
 - **Hasil:** payment tercatat. QRIS: menunggu hasil gateway. Tunai: menunggu admin.
 
 1. **C-14:** tampilkan detail pesanan dan total. Customer memilih QRIS atau Tunai.
-2. QRIS → buat payment + `qris_payments`, tampilkan QR, nominal, hitung mundur 10 menit, status, instruksi (C-15).
-3. Tunai → buat payment + `cash_payments`, tampilkan kode pembayaran, total, batas 3 jam, instruksi, lokasi garasi (C-16).
+2. QRIS → buat payment + `qris`, tampilkan QR, nominal, hitung mundur 10 menit, status, instruksi (C-15).
+3. Tunai → buat payment + `cash`, tampilkan kode pembayaran, total, batas 3 jam, instruksi, lokasi garasi (C-16).
 4. Aturan status dan kedaluwarsa mengikuti 3.4.
 
 **Modal:** S-04 (QRIS gagal: Tutup / Bayar Kembali), S-05 (QRIS kedaluwarsa), S-06 (kode tunai kedaluwarsa). S-05 dan S-06 → Kembali ke Dashboard.
@@ -262,7 +262,7 @@ Urutan wajib:
 
 - payment → `Berhasil`; isi `paid_at`, `confirmed_by`, `confirmed_at`.
 - rental → `Pembayaran Berhasil`; isi `booking_code`, `invoice_number`, `invoice_issued_at`.
-- Tulis `booking_histories`.
+- Tulis `booking_history`.
 - Customer melihat kode booking dan invoice di C-18 (hanya setelah langkah ini).
 
 **Alternatif:**
@@ -286,8 +286,8 @@ Urutan wajib:
 **Admin:**
 
 1. Menu Riwayat menampilkan seluruh transaksi dengan pencarian dan filter: mobil, merek, jenis, tanggal, metode pembayaran, status.
-2. Ringkasan pendapatan dihitung dari `payments` berstatus `Berhasil`.
-3. Detail (A-10): data transaksi, pembayaran dan status, denda, serta riwayat status dari `booking_histories` (nomor, status, waktu).
+2. Ringkasan pendapatan dihitung dari `payment` berstatus `Berhasil`.
+3. Detail (A-10): data transaksi, pembayaran dan status, denda, serta riwayat status dari `booking_history` (nomor, status, waktu).
 4. Filter tanpa hasil → "Tidak ada riwayat pemesanan untuk mobil ini."
 
 ### F008 — Pengembalian dan Penyelesaian Transaksi
@@ -300,8 +300,8 @@ Urutan wajib:
 2. Admin mencari transaksi berdasarkan kode booking, lalu menekan Selesaikan Transaksi. Sistem mengisi `returned_at = now()`.
 3. Bila `returned_at <= end_date` → rental `Selesai`, mobil `Tersedia` (bila status `Disewa`).
 4. Bila `returned_at > end_date` → tampilkan modal S-09 (lama keterlambatan + input nominal denda). Admin mengisi nominal dan mengonfirmasi:
-   - `rentals.late_fee` = nominal.
-   - Buat payment `type = Denda`, `method = Tunai`, `amount = late_fee`, status `Berhasil`, `confirmed_by` = admin. Tanpa baris `cash_payments`.
+   - `rental.late_fee` = nominal.
+   - Buat payment `type = Denda`, `method = Tunai`, `amount = late_fee`, status `Berhasil`, `confirmed_by` = admin. Tanpa baris `cash`.
    - Rental `Selesai`, mobil `Tersedia` (bila status `Disewa`).
 
 Nominal denda diisi manual oleh admin. Tidak dihitung otomatis.

@@ -1,6 +1,6 @@
 @extends('layouts.admin', ['active' => 'data-mobil'])
 
-@section('title', 'Data Mobil')
+@section('title', 'Data Car')
 
 @section('content')
     @php
@@ -13,7 +13,7 @@
 
     @include('components.admin-header', [
         'kicker' => 'MANAJEMEN ARMADA',
-        'judul' => 'Data Mobil',
+        'judul' => 'Data Car',
         'deskripsi' => 'Atur dan custom data mobil dengan baik',
     ])
 
@@ -28,11 +28,11 @@
         <section class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="fw-bold m-0 text-dark">Daftar kendaraan</h4>
-                <p class="text-muted small m-0">{{ $mobils->count() }} unit terdaftar &middot; Total Armada</p>
+                <p class="text-muted small m-0">{{ $cars->count() }} unit terdaftar &middot; Total Armada</p>
             </div>
             <a href="{{ route('admin.data-mobil.create') }}" class="btn text-white fw-bold px-3 py-2 rounded-3 d-flex align-items-center gap-2 text-decoration-none" style="background-color: #ff7a3d;">
                 <span class="fs-5 lh-1">+</span>
-                <span>Tambah Mobil</span>
+                <span>Tambah Car</span>
             </a>
         </section>
 
@@ -76,17 +76,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($mobils as $mobil)
+                    @forelse ($cars as $mobil)
                         @php
                             $kelasStatus = $warnaStatus[$mobil->status] ?? 'secondary';
                             $pathFoto = $mobil->fotoUtama?->path_foto;
-                            $fotoMobil = $pathFoto
+                            $fotoCar = $pathFoto
                                 ? \Illuminate\Support\Facades\Storage::disk('public')->url($pathFoto)
                                 : asset('img_admin/data-mobil/source/1.jpg');
                         @endphp
                         <tr class="border-bottom">
                             <td class="ps-3">
-                                <img src="{{ $fotoMobil }}" alt="Foto {{ $mobil->nama_mobil }}" class="rounded-3 object-fit-cover shadow-sm" width="70" height="45" />
+                                <img src="{{ $fotoCar }}" alt="Foto {{ $mobil->nama_mobil }}" class="rounded-3 object-fit-cover shadow-sm" width="70" height="45" />
                             </td>
                             <td class="fw-medium">{{ $mobil->merk }}</td>
                             <td class="fw-bold">{{ $mobil->nama_mobil }}</td>

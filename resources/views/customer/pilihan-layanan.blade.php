@@ -29,7 +29,7 @@
                             </div>
                             <div>
                                 <strong class="d-block fs-6 text-dark">Dengan Sopir</strong>
-                                <small class="text-muted">Mobil dikemudikan sopir profesional dari pihak rental.</small>
+                                <small class="text-muted">Car dikemudikan sopir profesional dari pihak rental.</small>
                             </div>
                         </label>
 

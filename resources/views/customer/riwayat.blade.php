@@ -48,7 +48,7 @@
                                         <div class="d-flex align-items-center justify-content-between mb-3">
                                             <div class="d-flex align-items-center gap-3">
                                                 <img src="{{ data_get($pesanan, 'foto_mobil', asset('img/foto-mobil-kecil.png')) }}"
-                                                    alt="{{ data_get($pesanan, 'nama_mobil', 'Mobil') }}"
+                                                    alt="{{ data_get($pesanan, 'nama_mobil', 'Car') }}"
                                                     class="rounded-3 object-fit-cover" width="90" height="65" />
                                                 <div>
                                                     <div class="d-flex align-items-center gap-2 mb-1">

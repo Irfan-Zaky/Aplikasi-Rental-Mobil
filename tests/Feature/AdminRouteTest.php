@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,14 +17,14 @@ class AdminRouteTest extends TestCase
 
     public function test_customer_tidak_dapat_membuka_halaman_admin(): void
     {
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(Account::factory()->create())
             ->get('/admin')
             ->assertForbidden();
     }
 
     public function test_admin_diarahkan_ke_dashboard_admin(): void
     {
-        $this->actingAs(User::factory()->admin()->create())
+        $this->actingAs(Account::factory()->admin()->create())
             ->get('/admin')
             ->assertRedirect(route('admin.dashboard'));
     }

@@ -5,11 +5,11 @@ namespace Tests\Feature;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\RentalStatus;
-use App\Models\Mobil;
+use App\Models\Account;
+use App\Models\AddOn;
+use App\Models\Car;
 use App\Models\Payment;
 use App\Models\Rental;
-use App\Models\RentalAddOn;
-use App\Models\User;
 use Database\Seeders\TransaksiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -19,16 +19,16 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 {
     use RefreshDatabase;
 
-    private User $admin;
+    private Account $admin;
 
-    private User $customer;
+    private Account $customer;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->admin = User::factory()->create(['role' => 'admin']);
-        $this->customer = User::factory()->create(['role' => 'user']);
+        $this->admin = Account::factory()->create(['role' => 'admin']);
+        $this->customer = Account::factory()->create(['role' => 'user']);
     }
 
     public function test_transaksi_seeder_berhasil_dijalankan(): void
@@ -37,24 +37,24 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
         $this->seed(TransaksiSeeder::class);
 
-        $this->assertDatabaseHas('users', ['email' => 'octaimub@gmail.com', 'role' => 'admin']);
-        $this->assertDatabaseHas('users', ['email' => 'fadhilkece@gmail.com', 'role' => 'user']);
-        $this->assertDatabaseHas('rentals', ['status' => RentalStatus::MenungguPembayaran->value]);
-        $this->assertDatabaseHas('rentals', ['status' => RentalStatus::Berjalan->value]);
-        $this->assertDatabaseHas('rentals', ['status' => RentalStatus::Selesai->value]);
-        $this->assertDatabaseHas('rentals', ['status' => RentalStatus::Dibatalkan->value]);
+        $this->assertDatabaseHas('account', ['email' => 'octaimub@gmail.com', 'role' => 'admin']);
+        $this->assertDatabaseHas('account', ['email' => 'fadhilkece@gmail.com', 'role' => 'user']);
+        $this->assertDatabaseHas('rental', ['status' => RentalStatus::MenungguPembayaran->value]);
+        $this->assertDatabaseHas('rental', ['status' => RentalStatus::Berjalan->value]);
+        $this->assertDatabaseHas('rental', ['status' => RentalStatus::Selesai->value]);
+        $this->assertDatabaseHas('rental', ['status' => RentalStatus::Dibatalkan->value]);
         Storage::disk('local')->assertExists('verifikasi/ktp/ktp_demo.jpg');
         Storage::disk('local')->assertExists('verifikasi/selfie/selfie_demo.jpg');
     }
 
     public function test_admin_transaksi_hanya_menampilkan_transaksi_belum_selesai(): void
     {
-        $mobil = Mobil::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza']);
+        $mobil = Car::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza']);
 
         // Transaksi belum selesai
         $rentalAktif = Rental::factory()->create([
-            'mobil_id' => $mobil->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobil->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-AKTIF-01',
             'customer_name' => 'Budi Aktif',
             'status' => RentalStatus::Berjalan,
@@ -62,8 +62,8 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
         // Transaksi sudah selesai & dibatalkan
         $rentalSelesai = Rental::factory()->create([
-            'mobil_id' => $mobil->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobil->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-SELESAI-01',
             'customer_name' => 'Joko Selesai',
             'status' => RentalStatus::Selesai,
@@ -80,32 +80,32 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
     public function test_admin_transaksi_filter_qris_dan_tunai(): void
     {
-        $mobil = Mobil::factory()->create(['merk' => 'Honda', 'nama_mobil' => 'Brio']);
+        $mobil = Car::factory()->create(['merk' => 'Honda', 'nama_mobil' => 'Brio']);
 
         // Rental 1: QRIS
         $rentalQris = Rental::factory()->create([
-            'mobil_id' => $mobil->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobil->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-QRIS-99',
             'customer_name' => 'Pelanggan QRIS',
             'status' => RentalStatus::MenungguVerifikasi,
         ]);
         Payment::factory()->create([
-            'rental_id' => $rentalQris->id,
+            'rental_id' => $rentalQris->rental_id,
             'method' => PaymentMethod::QRIS,
             'status' => PaymentStatus::MenungguKonfirmasi,
         ]);
 
         // Rental 2: Tunai
         $rentalTunai = Rental::factory()->create([
-            'mobil_id' => $mobil->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobil->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-TUNAI-88',
             'customer_name' => 'Pelanggan Tunai',
             'status' => RentalStatus::MenungguPembayaran,
         ]);
         Payment::factory()->create([
-            'rental_id' => $rentalTunai->id,
+            'rental_id' => $rentalTunai->rental_id,
             'method' => PaymentMethod::Tunai,
             'status' => PaymentStatus::MenungguPembayaran,
         ]);
@@ -125,20 +125,20 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
     public function test_admin_transaksi_filter_penyelesaian(): void
     {
-        $mobil = Mobil::factory()->create(['merk' => 'Daihatsu', 'nama_mobil' => 'Xenia']);
+        $mobil = Car::factory()->create(['merk' => 'Daihatsu', 'nama_mobil' => 'Xenia']);
 
         // Unit di customer (Berjalan)
         $rentalBerjalan = Rental::factory()->create([
-            'mobil_id' => $mobil->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobil->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-PENYELESAIAN-01',
             'status' => RentalStatus::Berjalan,
         ]);
 
         // Unit baru booking (Menunggu Verifikasi)
         $rentalMenunggu = Rental::factory()->create([
-            'mobil_id' => $mobil->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobil->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-BELUM-JALAN-02',
             'status' => RentalStatus::MenungguVerifikasi,
         ]);
@@ -151,20 +151,20 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
     public function test_admin_transaksi_pencarian_kata_kunci(): void
     {
-        $mobilA = Mobil::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Fortuner']);
-        $mobilB = Mobil::factory()->create(['merk' => 'Suzuki', 'nama_mobil' => 'Ertiga']);
+        $mobilA = Car::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Fortuner']);
+        $mobilB = Car::factory()->create(['merk' => 'Suzuki', 'nama_mobil' => 'Ertiga']);
 
         Rental::factory()->create([
-            'mobil_id' => $mobilA->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobilA->car_id,
+            'account_id' => $this->customer->account_id,
             'customer_name' => 'Ahmad Khusus',
             'trx_code' => 'TRX-KHUSUS-01',
             'status' => RentalStatus::MenungguPembayaran,
         ]);
 
         Rental::factory()->create([
-            'mobil_id' => $mobilB->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobilB->car_id,
+            'account_id' => $this->customer->account_id,
             'customer_name' => 'Siti Umum',
             'trx_code' => 'TRX-UMUM-02',
             'status' => RentalStatus::MenungguPembayaran,
@@ -178,25 +178,25 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
     public function test_admin_riwayat_transaksi_hanya_menampilkan_transaksi_selesai_dan_dibatalkan(): void
     {
-        $mobil = Mobil::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza']);
+        $mobil = Car::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza']);
 
         $rentalSelesai = Rental::factory()->create([
-            'mobil_id' => $mobil->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobil->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-ARSIP-SELESAI',
             'status' => RentalStatus::Selesai,
         ]);
 
         $rentalBatal = Rental::factory()->create([
-            'mobil_id' => $mobil->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobil->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-ARSIP-BATAL',
             'status' => RentalStatus::Dibatalkan,
         ]);
 
         $rentalBerjalan = Rental::factory()->create([
-            'mobil_id' => $mobil->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobil->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-BELUM-SELESAI',
             'status' => RentalStatus::Berjalan,
         ]);
@@ -210,19 +210,19 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
     public function test_admin_riwayat_transaksi_filter_merk_dinamis_dari_database(): void
     {
-        $mobilToyota = Mobil::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Innova']);
-        $mobilHonda = Mobil::factory()->create(['merk' => 'Honda', 'nama_mobil' => 'HRV']);
+        $mobilToyota = Car::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Innova']);
+        $mobilHonda = Car::factory()->create(['merk' => 'Honda', 'nama_mobil' => 'HRV']);
 
         Rental::factory()->create([
-            'mobil_id' => $mobilToyota->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobilToyota->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-TOYOTA-SELESAI',
             'status' => RentalStatus::Selesai,
         ]);
 
         Rental::factory()->create([
-            'mobil_id' => $mobilHonda->id,
-            'user_id' => $this->customer->id,
+            'car_id' => $mobilHonda->car_id,
+            'account_id' => $this->customer->account_id,
             'trx_code' => 'TRX-HONDA-SELESAI',
             'status' => RentalStatus::Selesai,
         ]);
@@ -243,28 +243,28 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
     public function test_customer_riwayat_menampilkan_seluruh_transaksi_milik_customer_dan_filter_tab(): void
     {
-        $mobil = Mobil::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza']);
+        $mobil = Car::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza']);
 
         // Transaksi customer yang sedang login: 1 aktif, 1 selesai
         $rentalAktif = Rental::factory()->create([
-            'user_id' => $this->customer->id,
-            'mobil_id' => $mobil->id,
+            'account_id' => $this->customer->account_id,
+            'car_id' => $mobil->car_id,
             'trx_code' => 'TRX-CUST-AKTIF',
             'status' => RentalStatus::Berjalan,
         ]);
 
         $rentalSelesai = Rental::factory()->create([
-            'user_id' => $this->customer->id,
-            'mobil_id' => $mobil->id,
+            'account_id' => $this->customer->account_id,
+            'car_id' => $mobil->car_id,
             'trx_code' => 'TRX-CUST-SELESAI',
             'status' => RentalStatus::Selesai,
         ]);
 
         // Transaksi milik customer lain (tidak boleh terlihat)
-        $customerLain = User::factory()->create(['role' => 'user']);
+        $customerLain = Account::factory()->create(['role' => 'user']);
         $rentalLain = Rental::factory()->create([
-            'user_id' => $customerLain->id,
-            'mobil_id' => $mobil->id,
+            'account_id' => $customerLain->account_id,
+            'car_id' => $mobil->car_id,
             'trx_code' => 'TRX-ORANG-LAIN',
             'status' => RentalStatus::Berjalan,
         ]);
@@ -291,21 +291,21 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
     public function test_customer_detail_pesanan_dapat_diakses_oleh_pemilik(): void
     {
-        $mobil = Mobil::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza']);
+        $mobil = Car::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza']);
 
         $rental = Rental::factory()->create([
-            'user_id' => $this->customer->id,
-            'mobil_id' => $mobil->id,
+            'account_id' => $this->customer->account_id,
+            'car_id' => $mobil->car_id,
             'booking_code' => 'BK-TEST99',
             'status' => RentalStatus::Berjalan,
         ]);
-        RentalAddOn::create([
-            'rental_id' => $rental->id,
+        AddOn::create([
+            'rental_id' => $rental->rental_id,
             'handover_method' => 'Ambil di garasi',
             'driver_fee' => 0,
         ]);
 
-        $response = $this->actingAs($this->customer)->get(route('customer.detail-pesanan', ['id' => $rental->id]));
+        $response = $this->actingAs($this->customer)->get(route('customer.detail-pesanan', ['id' => $rental->rental_id]));
         $response->assertOk();
         $response->assertSee('BK-TEST99');
         $response->assertSee('Detail Pesanan');

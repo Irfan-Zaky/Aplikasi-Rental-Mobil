@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CarStatus;
 use App\Enums\HandoverMethod;
-use App\Enums\MobilStatus;
 use App\Enums\RentalStatus;
 use App\Http\Requests\DataDiriRequest;
 use App\Http\Requests\DetailLayananRequest;
-use App\Models\Mobil;
+use App\Models\AddOn;
+use App\Models\Car;
 use App\Models\Rental;
-use App\Models\RentalAddOn;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +25,7 @@ class PemesananController extends Controller
     /**
      * Display the selected car detail (F002).
      */
-    public function detailMobil(Mobil $mobil): View
+    public function detailCar(Car $mobil): View
     {
         $mobil->load(['fotos', 'fotoUtama']);
 
@@ -37,10 +37,10 @@ class PemesananController extends Controller
      */
     public function pilihTanggal(Request $request): View
     {
-        $mobil = Mobil::findOrFail($request->integer('id'));
+        $mobil = Car::findOrFail($request->integer('id'));
 
-        if ($this->draft('mobil_id') !== $mobil->id) {
-            $this->resetDraft(['mobil_id' => $mobil->id]);
+        if ($this->draft('car_id') !== $mobil->car_id) {
+            $this->resetDraft(['car_id' => $mobil->car_id]);
         }
 
         $tanggalMulai = $request->string('tanggal-mulai')->toString();
@@ -68,22 +68,22 @@ class PemesananController extends Controller
     /**
      * Check availability and keep the booking draft (C-08).
      */
-    public function ketersediaanMobil(Request $request): View|RedirectResponse
+    public function ketersediaanCar(Request $request): View|RedirectResponse
     {
         $validated = $request->validate([
-            'id' => ['required', 'integer', 'exists:mobils,id'],
+            'id' => ['required', 'integer', 'exists:car,car_id'],
             'tanggal-mulai' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'tanggal-selesai' => ['required', 'date_format:Y-m-d', 'after_or_equal:tanggal-mulai'],
         ]);
 
-        $mobil = Mobil::findOrFail($validated['id']);
+        $mobil = Car::findOrFail($validated['id']);
         $start = Carbon::parse($validated['tanggal-mulai'])->startOfDay();
         $end = Carbon::parse($validated['tanggal-selesai'])->endOfDay();
         $durasi = $this->hitungDurasi($start, $end);
 
         if (! $this->mobilTersedia($mobil, $start, $end)) {
             return redirect()->route('customer.pilih-tanggal', [
-                'id' => $mobil->id,
+                'id' => $mobil->car_id,
                 'tanggal-mulai' => $validated['tanggal-mulai'],
                 'tanggal-selesai' => $validated['tanggal-selesai'],
             ])->with('modal_tidak_tersedia', [
@@ -94,7 +94,7 @@ class PemesananController extends Controller
         }
 
         $this->simpanDraft([
-            'mobil_id' => $mobil->id,
+            'car_id' => $mobil->car_id,
             'start_date' => $start->toDateTimeString(),
             'end_date' => $end->toDateTimeString(),
             'duration' => $durasi,
@@ -116,7 +116,7 @@ class PemesananController extends Controller
      */
     public function syarat(): View|RedirectResponse
     {
-        if (! $this->draft('mobil_id')) {
+        if (! $this->draft('car_id')) {
             return redirect()->route('customer.katalog');
         }
 
@@ -223,7 +223,7 @@ class PemesananController extends Controller
      */
     public function dataDiri(Request $request): View|RedirectResponse
     {
-        if (! $this->draft('mobil_id')) {
+        if (! $this->draft('car_id')) {
             return redirect()->route('customer.katalog');
         }
 
@@ -239,7 +239,7 @@ class PemesananController extends Controller
      */
     public function dataDiriStore(DataDiriRequest $request): RedirectResponse
     {
-        if (! $this->draft('mobil_id')) {
+        if (! $this->draft('car_id')) {
             return redirect()->route('customer.katalog');
         }
 
@@ -295,18 +295,18 @@ class PemesananController extends Controller
 
         $draft = $this->draft();
         $rental = DB::transaction(function () use ($draft, $request): Rental {
-            $mobil = Mobil::whereKey($draft['mobil_id'])->lockForUpdate()->firstOrFail();
+            $mobil = Car::whereKey($draft['car_id'])->lockForUpdate()->firstOrFail();
             $start = Carbon::parse($draft['start_date']);
             $end = Carbon::parse($draft['end_date']);
 
             if (! $this->mobilTersedia($mobil, $start, $end)) {
-                abort(409, 'Mobil tidak tersedia pada tanggal yang dipilih.');
+                abort(409, 'Car tidak tersedia pada tanggal yang dipilih.');
             }
 
             $rental = Rental::create([
                 'trx_code' => $this->kodeTransaksi(),
-                'user_id' => $request->user()->id,
-                'mobil_id' => $mobil->id,
+                'account_id' => $request->user()->account_id,
+                'car_id' => $mobil->car_id,
                 'start_date' => $start,
                 'end_date' => $end,
                 'duration' => $draft['duration'],
@@ -325,8 +325,8 @@ class PemesananController extends Controller
                 'expires_at' => now()->addMinutes((int) config('rental.pending_ttl_minutes')),
             ]);
 
-            RentalAddOn::create([
-                'rental_id' => $rental->id,
+            AddOn::create([
+                'rental_id' => $rental->rental_id,
                 'handover_method' => $draft['handover_method'],
                 'pickup_point' => $draft['pickup_point'],
                 'driver_fee' => $draft['driver_fee'],
@@ -335,7 +335,7 @@ class PemesananController extends Controller
             $rental->bookingHistories()->create([
                 'sequence_no' => 1,
                 'status' => RentalStatus::MenungguPembayaran,
-                'changed_by' => $request->user()->id,
+                'changed_by' => $request->user()->account_id,
                 'note' => 'Pemesanan dibuat',
                 'changed_at' => now(),
             ]);
@@ -344,7 +344,7 @@ class PemesananController extends Controller
         });
 
         session()->forget(self::DRAFT_KEY);
-        session(['pemesanan_terakhir' => $rental->id]);
+        session(['pemesanan_terakhir' => $rental->rental_id]);
 
         return redirect()->route('customer.pilihan-pembayaran');
     }
@@ -356,7 +356,7 @@ class PemesananController extends Controller
     {
         $rental = Rental::query()
             ->with('mobil.fotoUtama')
-            ->where('user_id', auth()->id())
+            ->where('account_id', auth()->id())
             ->find(session('pemesanan_terakhir'));
 
         if (! $rental) {
@@ -396,14 +396,14 @@ class PemesananController extends Controller
         session([self::DRAFT_KEY => $data]);
     }
 
-    private function mobilTersedia(Mobil $mobil, Carbon $start, Carbon $end): bool
+    private function mobilTersedia(Car $mobil, Carbon $start, Carbon $end): bool
     {
-        if (in_array($mobil->status, [MobilStatus::Perbaikan->value, MobilStatus::Nonaktif->value], true)) {
+        if (in_array($mobil->status, [CarStatus::Perbaikan->value, CarStatus::Nonaktif->value], true)) {
             return false;
         }
 
         return ! Rental::query()
-            ->where('mobil_id', $mobil->id)
+            ->where('car_id', $mobil->car_id)
             ->where('start_date', '<=', $end)
             ->where('end_date', '>=', $start)
             ->where(function ($query): void {
@@ -422,7 +422,7 @@ class PemesananController extends Controller
 
     private function draftLengkap(): bool
     {
-        return $this->draft('mobil_id') !== null
+        return $this->draft('car_id') !== null
             && $this->draft('customer.nama_lengkap') !== null
             && $this->draft('total_rental') !== null
             && $this->draft('terms_accepted_at') !== null;
@@ -433,7 +433,7 @@ class PemesananController extends Controller
      */
     private function ringkasanData(): array
     {
-        $mobil = Mobil::findOrFail($this->draft('mobil_id'));
+        $mobil = Car::findOrFail($this->draft('car_id'));
         $durasi = (int) $this->draft('duration');
         $driverFee = (int) $this->draft('driver_fee');
 

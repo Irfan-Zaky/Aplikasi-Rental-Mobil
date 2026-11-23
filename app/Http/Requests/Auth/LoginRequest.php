@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -46,7 +46,7 @@ class LoginRequest extends FormRequest
 
         $login = $this->string('login')->lower()->toString();
 
-        $user = User::query()
+        $user = Account::query()
             ->where('email', $login)
             ->orWhere('no_hp', $login)
             ->orWhere('username', $login)

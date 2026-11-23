@@ -99,7 +99,7 @@
                     <article class="bg-white rounded-4 shadow-sm p-3 border-0">
                         <div class="d-flex gap-3 align-items-center mb-3">
                             <img src="{{ asset('img/foto-mobil-kecil.png') }}"
-                                alt="{{ data_get($pesananTerakhir, 'nama_mobil', 'Mobil') }}"
+                                alt="{{ data_get($pesananTerakhir, 'nama_mobil', 'Car') }}"
                                 class="rounded-3 object-fit-cover" style="width: 100px; height: 75px" />
                             <div>
                                 <h3 class="fw-bold fs-6 mb-1 text-dark">

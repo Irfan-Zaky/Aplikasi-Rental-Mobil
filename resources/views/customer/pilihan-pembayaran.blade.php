@@ -21,7 +21,7 @@
             <h6 class="fw-bold mb-3 text-dark">Detail Pesanan</h6>
 
             <div class="d-flex justify-content-between mb-2">
-                <span class="text-muted">Mobil</span>
+                <span class="text-muted">Car</span>
                 <strong id="bayar-mobil" class="fw-semibold text-dark">
                     {{ data_get($ringkasan, 'nama_mobil', '-') }}</strong>
             </div>

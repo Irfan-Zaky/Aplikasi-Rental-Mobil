@@ -24,7 +24,7 @@
         <section>
             <div class="card rounded-4 border p-2 shadow-sm mx-auto bg-white" style="max-width: 450px;">
                 <div class="d-flex align-items-center gap-3">
-                    <img id="ringkasan-img" src="{{ $srcFotoRingkasan }}" alt="Mobil"
+                    <img id="ringkasan-img" src="{{ $srcFotoRingkasan }}" alt="Car"
                         class="rounded-3 img-fluid object-fit-cover" style="width: 120px; height: 80px;">
                     <div>
                         <h6 id="ringkasan-mobil" class="fw-bold mb-1 text-dark">

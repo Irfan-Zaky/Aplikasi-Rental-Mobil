@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Account;
 use App\Models\Rental;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -24,7 +24,7 @@ class DokumenVerifikasiTest extends TestCase
     {
         $rental = Rental::factory()->create();
 
-        $this->actingAs(User::factory()->admin()->create())
+        $this->actingAs(Account::factory()->admin()->create())
             ->get(route('admin.transaksi.show', $rental))
             ->assertOk()
             ->assertSee(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'ktp']))
@@ -49,7 +49,7 @@ class DokumenVerifikasiTest extends TestCase
             File::get(public_path('img_admin/detail-transaksi/Selfie document.png'))
         );
 
-        $admin = $this->actingAs(User::factory()->admin()->create());
+        $admin = $this->actingAs(Account::factory()->admin()->create());
 
         foreach (['ktp', 'selfie'] as $jenis) {
             $admin->get(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => $jenis]))
@@ -63,7 +63,7 @@ class DokumenVerifikasiTest extends TestCase
         $rental = Rental::factory()->create();
         Storage::disk('local')->put($rental->customer_ktp_photo, 'isi dokumen');
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(Account::factory()->create())
             ->get(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'ktp']))
             ->assertForbidden();
     }
@@ -80,8 +80,8 @@ class DokumenVerifikasiTest extends TestCase
     {
         $rental = Rental::factory()->create();
 
-        $this->actingAs(User::factory()->admin()->create())
-            ->get("/admin/transaksi/{$rental->id}/dokumen/paspor")
+        $this->actingAs(Account::factory()->admin()->create())
+            ->get("/admin/transaksi/{$rental->rental_id}/dokumen/paspor")
             ->assertNotFound();
     }
 
@@ -91,7 +91,7 @@ class DokumenVerifikasiTest extends TestCase
             'customer_ktp_photo' => 'verifikasi/ktp/tidak-ada.jpg',
         ]);
 
-        $this->actingAs(User::factory()->admin()->create())
+        $this->actingAs(Account::factory()->admin()->create())
             ->get(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'ktp']))
             ->assertNotFound();
     }

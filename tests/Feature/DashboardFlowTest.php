@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Mobil;
-use App\Models\User;
+use App\Models\Account;
+use App\Models\Car;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,24 +15,24 @@ class DashboardFlowTest extends TestCase
     {
         $this->authenticateAsAdmin();
 
-        Mobil::factory()->create(['status' => 'Tersedia']);
-        Mobil::factory()->create(['status' => 'Tersedia']);
-        Mobil::factory()->create(['status' => 'Disewa']);
+        Car::factory()->create(['status' => 'Tersedia']);
+        Car::factory()->create(['status' => 'Tersedia']);
+        Car::factory()->create(['status' => 'Disewa']);
 
         $response = $this->get('/admin/dashboard');
 
         $response->assertOk()
-            ->assertViewHas('totalMobil', 3)
+            ->assertViewHas('totalCar', 3)
             ->assertViewHas('mobilTersedia', 2)
             ->assertViewHas('mobilDisewa', 1)
             ->assertSee('Beranda')
-            ->assertSee('Total Mobil')
+            ->assertSee('Total Car')
             ->assertSee('Tidak ada pesanan yang menunggu konfirmasi')
             ->assertSee(route('admin.data-mobil.index'), false);
     }
 
     private function authenticateAsAdmin(): void
     {
-        $this->actingAs(User::factory()->admin()->create());
+        $this->actingAs(Account::factory()->admin()->create());
     }
 }

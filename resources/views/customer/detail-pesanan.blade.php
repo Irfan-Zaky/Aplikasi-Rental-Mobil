@@ -55,7 +55,7 @@
         <section aria-label="Informasi Pesanan" class="card border-0 shadow-sm rounded-4 p-3 my-3">
             <div class="d-flex flex-column gap-2 mb-3">
                 <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-muted small">Mobil</span>
+                    <span class="text-muted small">Car</span>
                     <strong id="info-mobil" class="text-dark">{{ data_get($pesanan, 'nama_mobil', '-') }}</strong>
                 </div>
 

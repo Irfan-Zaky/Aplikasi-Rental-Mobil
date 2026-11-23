@@ -35,7 +35,7 @@
                                 <strong>{{ $transaksi->nama_customer ?? '-' }}</strong>
                             </li>
                             <li class="d-flex justify-content-between align-items-center py-2">
-                                <span class="text-muted">Mobil</span>
+                                <span class="text-muted">Car</span>
                                 <strong>{{ $transaksi->nama_mobil ?? '-' }}</strong>
                             </li>
                             <li class="d-flex justify-content-between align-items-center py-2">

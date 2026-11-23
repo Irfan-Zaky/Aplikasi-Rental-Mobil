@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +16,7 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
+        Account::updateOrCreate(
             ['email' => 'octaimub@gmail.com'],
             [
                 'name' => 'octavia',

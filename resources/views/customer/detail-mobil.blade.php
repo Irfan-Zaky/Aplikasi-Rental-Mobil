@@ -1,6 +1,6 @@
 @extends('layouts.customer')
 
-@section('title', 'Detail Mobil')
+@section('title', 'Detail Car')
 
 @section('content')
     @php
@@ -14,7 +14,7 @@
             <a id="btn-kembali" href="{{ url('/customer/katalog') }}" aria-label="Kembali ke Katalog"
                 class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1"
                 style="width: 40px; height: 40px; color: #0b1d33;">&lsaquo;</a>
-            <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Detail Mobil</h2>
+            <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Detail Car</h2>
         </div>
     </nav>
 
@@ -38,7 +38,7 @@
                             <img @if ($loop->first) id="img-mobil" @endif
                                 src="{{ asset('storage/'.$foto->path_foto) }}"
                                 class="d-block w-100 h-100 object-fit-contain"
-                                alt="{{ $mobil ? $mobil->nama_mobil : 'Mobil' }} - Foto {{ $loop->iteration }}">
+                                alt="{{ $mobil ? $mobil->nama_mobil : 'Car' }} - Foto {{ $loop->iteration }}">
                             @if ($foto->is_utama)
                                 <div class="position-absolute top-0 end-0 m-2">
                                     <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-3 py-1 small">
@@ -51,7 +51,7 @@
                         <div class="carousel-item active h-100">
                             <img id="img-mobil"
                                 src="{{ $fotoUtama ? asset('storage/'.$fotoUtama) : asset('img/foto-mobil-besar.jpg') }}"
-                                class="d-block w-100 h-100 object-fit-contain" alt="Mobil">
+                                class="d-block w-100 h-100 object-fit-contain" alt="Car">
                         </div>
                     @endforelse
                 </div>
@@ -121,12 +121,12 @@
         </section>
 
         <form id="form-pilih-mobil" action="{{ route('customer.pilih-tanggal') }}" method="get">
-            <input type="hidden" name="id" id="input-id-mobil" value="{{ $mobil?->id ?? '' }}">
+            <input type="hidden" name="id" id="input-id-mobil" value="{{ $mobil?->car_id ?? '' }}">
             <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
                 <div class="container p-0">
                     <button type="submit"
                         class="btn text-white w-100 py-3 rounded-1 fw-bold d-flex align-items-center justify-content-center gap-2"
-                        style="background-color: #0b1d33;"> Pilih Mobil
+                        style="background-color: #0b1d33;"> Pilih Car
                         <img src="{{ asset('img/detail mobil/panah-kanan.svg') }}" alt="lanjut" width="18"
                             height="18" />
                     </button>

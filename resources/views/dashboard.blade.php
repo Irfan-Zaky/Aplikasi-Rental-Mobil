@@ -14,8 +14,8 @@
             <div class="row g-3">
                 <div class="col-md">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-                        <h2 class="fw-bold mb-1" style="font-size: 2rem;">{{ $totalMobil }}</h2>
-                        <p class="text-muted mb-0 small">Total Mobil</p>
+                        <h2 class="fw-bold mb-1" style="font-size: 2rem;">{{ $totalCar }}</h2>
+                        <p class="text-muted mb-0 small">Total Car</p>
                     </div>
                 </div>
                 <div class="col-md">

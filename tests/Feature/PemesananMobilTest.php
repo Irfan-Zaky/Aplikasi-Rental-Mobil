@@ -4,16 +4,16 @@ namespace Tests\Feature;
 
 use App\Enums\HandoverMethod;
 use App\Enums\RentalStatus;
-use App\Models\Mobil;
+use App\Models\Account;
+use App\Models\Car;
 use App\Models\Rental;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class PemesananMobilTest extends TestCase
+class PemesananCarTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -26,11 +26,11 @@ class PemesananMobilTest extends TestCase
 
     public function test_alur_lengkap_f004_menyimpan_data_diri_di_rentals(): void
     {
-        $customer = User::factory()->create([
+        $customer = Account::factory()->create([
             'name' => 'Aku Customer',
             'no_hp' => '081234567890',
         ]);
-        $mobil = Mobil::factory()->create([
+        $mobil = Car::factory()->create([
             'status' => 'Tersedia',
             'harga_sewa' => 500000,
         ]);
@@ -41,15 +41,15 @@ class PemesananMobilTest extends TestCase
 
         $this->get(route('customer.detail-mobil', $mobil))
             ->assertOk()
-            ->assertSee('Pilih Mobil');
+            ->assertSee('Pilih Car');
 
-        $this->get(route('customer.pilih-tanggal', ['id' => $mobil->id]))->assertOk();
+        $this->get(route('customer.pilih-tanggal', ['id' => $mobil->car_id]))->assertOk();
 
         $this->get(route('customer.ketersediaan-mobil', [
-            'id' => $mobil->id,
+            'id' => $mobil->car_id,
             'tanggal-mulai' => $mulai,
             'tanggal-selesai' => $selesai,
-        ]))->assertOk()->assertSee('Mobil Tersedia');
+        ]))->assertOk()->assertSee('Car Tersedia');
 
         $this->get(route('customer.syarat'))->assertOk();
         $this->post(route('customer.syarat.store'), [])->assertSessionHasErrors('setuju_syarat');
@@ -100,19 +100,19 @@ class PemesananMobilTest extends TestCase
         $this->assertSame('1234567890123456', $rental->customer_nik);
         $this->assertSame('081234567890', $rental->customer_phone);
         $this->assertNotNull($rental->terms_accepted_at);
-        $this->assertfalse(Schema::hasColumn('users', 'nik'));
-        $this->assertDatabaseMissing('rentals', [
-            'id' => $rental->id,
+        $this->assertfalse(Schema::hasColumn('account', 'nik'));
+        $this->assertDatabaseMissing('rental', [
+            'rental_id' => $rental->rental_id,
             'customer_nik' => '1234567890123456',
         ]);
-        $this->assertDatabaseHas('rental_add_ons', [
-            'rental_id' => $rental->id,
+        $this->assertDatabaseHas('add_on', [
+            'rental_id' => $rental->rental_id,
             'handover_method' => HandoverMethod::Diantar->value,
             'pickup_point' => 'Jl. Merdeka No. 1',
             'driver_fee' => 0,
         ]);
-        $this->assertDatabaseHas('booking_histories', [
-            'rental_id' => $rental->id,
+        $this->assertDatabaseHas('booking_history', [
+            'rental_id' => $rental->rental_id,
             'sequence_no' => 1,
             'status' => RentalStatus::MenungguPembayaran->value,
         ]);
@@ -126,8 +126,8 @@ class PemesananMobilTest extends TestCase
 
     public function test_data_diri_tidak_valid_tidak_melanjutkan_pemesanan(): void
     {
-        $customer = User::factory()->create();
-        $mobil = Mobil::factory()->create(['status' => 'Tersedia']);
+        $customer = Account::factory()->create();
+        $mobil = Car::factory()->create(['status' => 'Tersedia']);
 
         $this->actingAs($customer);
         $this->simpanDraftHinggaDataDiri($mobil);
@@ -139,25 +139,25 @@ class PemesananMobilTest extends TestCase
             'foto_ktp' => UploadedFile::fake()->image('ktp.jpg'),
         ])->assertSessionHasErrors(['nik', 'swafoto']);
 
-        $this->assertDatabaseCount('rentals', 0);
+        $this->assertDatabaseCount('rental', 0);
     }
 
     public function test_tanggal_terblokir_tidak_dapat_dipesan(): void
     {
-        $customer = User::factory()->create();
-        $mobil = Mobil::factory()->create(['status' => 'Tersedia']);
+        $customer = Account::factory()->create();
+        $mobil = Car::factory()->create(['status' => 'Tersedia']);
         $mulai = now()->addDay()->toDateString();
         $selesai = now()->addDays(2)->toDateString();
 
         Rental::factory()->create([
-            'mobil_id' => $mobil->id,
+            'car_id' => $mobil->car_id,
             'status' => RentalStatus::MenungguVerifikasi,
             'start_date' => now()->addDay(),
             'end_date' => now()->addDays(2),
         ]);
 
         $query = [
-            'id' => $mobil->id,
+            'id' => $mobil->car_id,
             'tanggal-mulai' => $mulai,
             'tanggal-selesai' => $selesai,
         ];
@@ -169,13 +169,13 @@ class PemesananMobilTest extends TestCase
 
     public function test_pembayaran_yang_sudah_kedaluwarsa_tidak_memblokir_tanggal(): void
     {
-        $customer = User::factory()->create();
-        $mobil = Mobil::factory()->create(['status' => 'Tersedia']);
+        $customer = Account::factory()->create();
+        $mobil = Car::factory()->create(['status' => 'Tersedia']);
         $mulai = now()->addDay()->toDateString();
         $selesai = now()->addDays(2)->toDateString();
 
         Rental::factory()->create([
-            'mobil_id' => $mobil->id,
+            'car_id' => $mobil->car_id,
             'status' => RentalStatus::MenungguPembayaran,
             'start_date' => now()->addDay(),
             'end_date' => now()->addDays(2),
@@ -183,18 +183,18 @@ class PemesananMobilTest extends TestCase
         ]);
 
         $this->actingAs($customer)->get(route('customer.ketersediaan-mobil', [
-            'id' => $mobil->id,
+            'id' => $mobil->car_id,
             'tanggal-mulai' => $mulai,
             'tanggal-selesai' => $selesai,
-        ]))->assertOk()->assertSee('Mobil Tersedia');
+        ]))->assertOk()->assertSee('Car Tersedia');
     }
 
     public function test_dengan_sopir_menambahkan_biaya_sopir_ke_total(): void
     {
         config()->set('rental.driver_fee_per_day', 50000);
 
-        $customer = User::factory()->create();
-        $mobil = Mobil::factory()->create([
+        $customer = Account::factory()->create();
+        $mobil = Car::factory()->create([
             'status' => 'Tersedia',
             'harga_sewa' => 500000,
         ]);
@@ -217,8 +217,8 @@ class PemesananMobilTest extends TestCase
 
         $this->assertSame(1000000, $rental->subtotal);
         $this->assertSame(1100000, $rental->total_rental);
-        $this->assertDatabaseHas('rental_add_ons', [
-            'rental_id' => $rental->id,
+        $this->assertDatabaseHas('add_on', [
+            'rental_id' => $rental->rental_id,
             'handover_method' => null,
             'pickup_point' => 'Jl. Sudirman No. 2',
             'driver_fee' => 100000,
@@ -227,11 +227,11 @@ class PemesananMobilTest extends TestCase
 
     public function test_tamu_tidak_dapat_membuka_halaman_pemesanan(): void
     {
-        $mobil = Mobil::factory()->create();
+        $mobil = Car::factory()->create();
 
         $this->get(route('customer.detail-mobil', $mobil))
             ->assertRedirect(route('customer.login'));
-        $this->get(route('customer.pilih-tanggal', ['id' => $mobil->id]))
+        $this->get(route('customer.pilih-tanggal', ['id' => $mobil->car_id]))
             ->assertRedirect(route('customer.login'));
         $this->get(route('customer.data-diri'))->assertRedirect(route('customer.login'));
     }
@@ -239,10 +239,10 @@ class PemesananMobilTest extends TestCase
     /**
      * Menyiapkan draft dari C-08 sampai C-11 untuk pengujian C-12/C-13.
      */
-    private function simpanDraftHinggaDataDiri(Mobil $mobil, string $layanan = 'lepas-kunci'): void
+    private function simpanDraftHinggaDataDiri(Car $mobil, string $layanan = 'lepas-kunci'): void
     {
         $this->get(route('customer.ketersediaan-mobil', [
-            'id' => $mobil->id,
+            'id' => $mobil->car_id,
             'tanggal-mulai' => now()->addDay()->toDateString(),
             'tanggal-selesai' => now()->addDays(2)->toDateString(),
         ]))->assertOk();

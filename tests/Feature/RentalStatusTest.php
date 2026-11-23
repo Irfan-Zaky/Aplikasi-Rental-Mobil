@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Enums\MobilStatus;
+use App\Enums\CarStatus;
 use App\Enums\RentalStatus;
 use App\Models\Rental;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,8 +22,8 @@ class RentalStatusTest extends TestCase
         $rental->transitionTo(RentalStatus::MenungguVerifikasi);
 
         $this->assertSame(RentalStatus::MenungguVerifikasi, $rental->fresh()->status);
-        $this->assertDatabaseHas('booking_histories', [
-            'rental_id' => $rental->id,
+        $this->assertDatabaseHas('booking_history', [
+            'rental_id' => $rental->rental_id,
             'sequence_no' => 1,
             'status' => RentalStatus::MenungguVerifikasi->value,
         ]);
@@ -35,12 +35,12 @@ class RentalStatusTest extends TestCase
 
         $rental->transitionTo(RentalStatus::Berjalan);
 
-        $this->assertSame(MobilStatus::Disewa->value, $rental->mobil->fresh()->status);
+        $this->assertSame(CarStatus::Disewa->value, $rental->mobil->fresh()->status);
 
         $rental->transitionTo(RentalStatus::Selesai);
 
-        $this->assertSame(MobilStatus::Tersedia->value, $rental->mobil->fresh()->status);
-        $this->assertDatabaseCount('booking_histories', 2);
+        $this->assertSame(CarStatus::Tersedia->value, $rental->mobil->fresh()->status);
+        $this->assertDatabaseCount('booking_history', 2);
     }
 
     public function test_transisi_di_luar_aturan_ditolak_tanpa_menulis_riwayat(): void
@@ -55,15 +55,15 @@ class RentalStatusTest extends TestCase
         }
 
         $this->assertSame(RentalStatus::MenungguPembayaran, $rental->fresh()->status);
-        $this->assertDatabaseCount('booking_histories', 0);
+        $this->assertDatabaseCount('booking_history', 0);
     }
 
     public function test_nik_penyewa_tersimpan_terenkripsi(): void
     {
         $rental = Rental::factory()->create(['customer_nik' => '1234567890123456']);
 
-        $this->assertDatabaseMissing('rentals', [
-            'id' => $rental->id,
+        $this->assertDatabaseMissing('rental', [
+            'rental_id' => $rental->rental_id,
             'customer_nik' => '1234567890123456',
         ]);
         $this->assertSame('1234567890123456', $rental->fresh()->customer_nik);

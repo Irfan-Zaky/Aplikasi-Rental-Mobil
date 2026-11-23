@@ -10,7 +10,7 @@
 
 @section('content')
     @php
-        $mobils = $mobils ?? collect();
+        $cars = $cars ?? collect();
         $keyword = $keyword ?? request('keyword', '');
         $selectedMerk = $selectedMerk ?? request('merk', '');
         $selectedJenis = $selectedJenis ?? request('jenis', '');
@@ -19,13 +19,13 @@
         $isFilterAktif = $isFilterAktif ?? (
             filled($keyword) || filled($selectedMerk) || filled($selectedJenis) || filled($hargaMin) || filled($hargaMax)
         );
-        $jumlahMobil = $mobils->count();
+        $jumlahCar = $cars->count();
     @endphp
 
     <nav class="navbar px-3 w-100" style="background-color: white">
         <div class="container-fluid px-2">
             <div class="w-100 px-3 py-1 d-flex align-items-center">
-                <h1 class="fw-bold m-0 fs-3" style="color: #0b1d33">Katalog Mobil</h1>
+                <h1 class="fw-bold m-0 fs-3" style="color: #0b1d33">Katalog Car</h1>
             </div>
         </div>
     </nav>
@@ -261,12 +261,12 @@
                 @endif
 
                 <div class="d-flex justify-content-between align-items-center my-3">
-                    <h2 class="fw-bold m-0 fs-5 text-dark">Mobil Tersedia</h2>
-                    <p id="jumlah-mobil" class="text-secondary small mb-1">{{ $jumlahMobil }} mobil</p>
+                    <h2 class="fw-bold m-0 fs-5 text-dark">Car Tersedia</h2>
+                    <p id="jumlah-mobil" class="text-secondary small mb-1">{{ $jumlahCar }} mobil</p>
                 </div>
 
                 <div id="daftar-mobil">
-                    @forelse ($mobils as $mobil)
+                    @forelse ($cars as $mobil)
                         @php
                             $fotoUtama = data_get($mobil, 'fotoUtama.path_foto');
                             $srcFoto = $fotoUtama ? asset('storage/'.$fotoUtama) : asset('img/foto-mobil-kecil.png');
@@ -275,9 +275,9 @@
                         <article class="card border-0 rounded-4 shadow-sm p-3 mb-3 bg-white item-mobil"
                             data-merk="{{ $mobil->merk ?? '-' }}" data-jenis="{{ $mobil->jenis ?? '-' }}"
                             data-harga="{{ $mobil->harga_sewa ?? 0 }}">
-                            <a href="{{ route('customer.detail-mobil', $mobil->id) }}"
+                            <a href="{{ route('customer.detail-mobil', $mobil->car_id) }}"
                                 class="text-decoration-none text-dark d-flex align-items-center gap-3">
-                                <img src="{{ $srcFoto }}" alt="{{ $mobil->nama_mobil ?? 'Mobil' }}"
+                                <img src="{{ $srcFoto }}" alt="{{ $mobil->nama_mobil ?? 'Car' }}"
                                     class="rounded-3 object-fit-cover" style="width: 110px; height: 80px;" />
                                 <div class="flex-grow-1">
                                     <h3 class="h6 fw-bold mb-1" style="color: #0b1d33;">

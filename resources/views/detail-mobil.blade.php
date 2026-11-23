@@ -1,6 +1,6 @@
 @extends('layouts.admin', ['active' => 'data-mobil'])
 
-@section('title', 'Detail Mobil')
+@section('title', 'Detail Car')
 
 @section('content')
     @php
@@ -13,7 +13,7 @@
 
     @include('components.admin-header', [
         'kicker' => 'MANAJEMEN ARMADA',
-        'judul' => 'Detail Mobil',
+        'judul' => 'Detail Car',
         'deskripsi' => 'Atur dan custom data mobil dengan baik',
     ])
 
@@ -27,10 +27,10 @@
                             <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-medium">Aktif</span>
                         </div>
 
-                        <div id="carouselFotoMobil" class="carousel slide mb-3 rounded-4 overflow-hidden shadow-sm" data-bs-ride="carousel" data-bs-interval="3500" data-bs-touch="true">
+                        <div id="carouselCarPhoto" class="carousel slide mb-3 rounded-4 overflow-hidden shadow-sm" data-bs-ride="carousel" data-bs-interval="3500" data-bs-touch="true">
                             <div class="carousel-indicators">
                                 @foreach ($fotos as $foto)
-                                    <button type="button" data-bs-target="#carouselFotoMobil" data-bs-slide-to="{{ $loop->index }}" class="{{ $loop->first ? 'active' : '' }}" @if ($loop->first) aria-current="true" @endif aria-label="Foto {{ $loop->iteration }}"></button>
+                                    <button type="button" data-bs-target="#carouselCarPhoto" data-bs-slide-to="{{ $loop->index }}" class="{{ $loop->first ? 'active' : '' }}" @if ($loop->first) aria-current="true" @endif aria-label="Foto {{ $loop->iteration }}"></button>
                                 @endforeach
                             </div>
 
@@ -42,11 +42,11 @@
                                 @endforeach
                             </div>
 
-                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselFotoMobil" data-bs-slide="prev">
+                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselCarPhoto" data-bs-slide="prev">
                                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                 <span class="visually-hidden">Sebelumnya</span>
                             </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#carouselFotoMobil" data-bs-slide="next">
+                            <button class="carousel-control-next" type="button" data-bs-target="#carouselCarPhoto" data-bs-slide="next">
                                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                 <span class="visually-hidden">Berikutnya</span>
                             </button>
@@ -61,7 +61,7 @@
                             <header class="mb-4">
                                 <h3 class="fw-bold text-dark">Informasi kendaraan</h3>
                                 <p class="text-muted small mb-1">Terakhir diperbarui {{ optional($mobil->updated_at ?? null)->format('d F Y') ?? '28 September 2026' }} oleh Admin Operasional.</p>
-                                <p class="text-secondary small fw-medium mb-0" id="kode-mobil">Kode_Mobil.{{ $mobil->kode_mobil }}</p>
+                                <p class="text-secondary small fw-medium mb-0" id="kode-mobil">Kode_Car.{{ $mobil->kode_mobil }}</p>
                             </header>
 
                             <div class="row g-3 mb-3">
@@ -71,7 +71,7 @@
                                 </div>
 
                                 <div class="col-12 col-md-6">
-                                    <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Mobil</label>
+                                    <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Car</label>
                                     <input type="text" name="nama" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ $mobil->nama_mobil ?? '' }}" readonly />
                                 </div>
 

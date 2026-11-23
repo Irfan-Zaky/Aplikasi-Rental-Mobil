@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\CarPhoto;
+use App\Models\Account;
+
+class CarPhotoPolicy
+{
+    /**
+     * Determine whether the user can view any models.
+     */
+    public function viewAny(Account $user): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can view the model.
+     */
+    public function view(Account $user, CarPhoto $fotoCar): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can create models.
+     */
+    public function create(Account $user): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can update the model.
+     */
+    public function update(Account $user, CarPhoto $fotoCar): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can delete the model.
+     */
+    public function delete(Account $user, CarPhoto $fotoCar): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(Account $user, CarPhoto $fotoCar): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the model.
+     */
+    public function forceDelete(Account $user, CarPhoto $fotoCar): bool
+    {
+        return false;
+    }
+}

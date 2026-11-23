@@ -7,14 +7,14 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use App\Enums\RentalStatus;
+use App\Models\Account;
+use App\Models\AddOn;
 use App\Models\BookingHistory;
-use App\Models\CashPayment;
-use App\Models\Mobil;
+use App\Models\Car;
+use App\Models\Cash;
 use App\Models\Payment;
-use App\Models\QrisPayment;
+use App\Models\Qris;
 use App\Models\Rental;
-use App\Models\RentalAddOn;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
@@ -32,7 +32,7 @@ class TransaksiSeeder extends Seeder
         $this->pastikanFileDokumenDemo();
 
         // 1. Ambil atau buat Admin
-        $admin = User::firstOrCreate(
+        $admin = Account::firstOrCreate(
             ['email' => 'octaimub@gmail.com'],
             [
                 'name' => 'octavia',
@@ -44,7 +44,7 @@ class TransaksiSeeder extends Seeder
         );
 
         // 2. Ambil atau buat Customer
-        $customerFadhil = User::firstOrCreate(
+        $customerFadhil = Account::firstOrCreate(
             ['email' => 'fadhilkece@gmail.com'],
             [
                 'name' => 'fadhil',
@@ -56,7 +56,7 @@ class TransaksiSeeder extends Seeder
             ]
         );
 
-        $customerBudi = User::firstOrCreate(
+        $customerBudi = Account::firstOrCreate(
             ['email' => 'budi.santoso@example.com'],
             [
                 'name' => 'Budi Santoso',
@@ -68,7 +68,7 @@ class TransaksiSeeder extends Seeder
             ]
         );
 
-        $customerSiti = User::firstOrCreate(
+        $customerSiti = Account::firstOrCreate(
             ['email' => 'siti.aminah@example.com'],
             [
                 'name' => 'Siti Aminah',
@@ -80,7 +80,7 @@ class TransaksiSeeder extends Seeder
             ]
         );
 
-        $customerAhmad = User::firstOrCreate(
+        $customerAhmad = Account::firstOrCreate(
             ['email' => 'ahmad.ridwan@example.com'],
             [
                 'name' => 'Ahmad Ridwan',
@@ -93,7 +93,7 @@ class TransaksiSeeder extends Seeder
         );
 
         // 3. Pastikan ada data mobil dengan beragam merk & jenis
-        $daftarMobilData = [
+        $daftarCarData = [
             [
                 'kode_mobil' => 'MOB-TYT-001',
                 'merk' => 'Toyota',
@@ -186,15 +186,15 @@ class TransaksiSeeder extends Seeder
             ],
         ];
 
-        $mobils = [];
-        foreach ($daftarMobilData as $m) {
-            $mobils[$m['kode_mobil']] = Mobil::firstOrCreate(
+        $cars = [];
+        foreach ($daftarCarData as $m) {
+            $cars[$m['kode_mobil']] = Car::firstOrCreate(
                 ['kode_mobil' => $m['kode_mobil']],
                 $m
             );
         }
 
-        // Hapus rentals contoh sebelumnya jika ada (agar seeder idempoten & bersih)
+        // Hapus data rental contoh sebelumnya jika ada (agar seeder idempoten & bersih)
         // Namun kita jaga data real jika tidak ingin menghapus sembarangan
         Rental::query()->delete();
 
@@ -206,7 +206,7 @@ class TransaksiSeeder extends Seeder
         $this->createRentalWithDetails([
             'trx_code' => 'TRX-202611220001',
             'user' => $customerFadhil,
-            'mobil' => $mobils['MOB-TYT-001'], // Toyota Avanza
+            'mobil' => $cars['MOB-TYT-001'], // Toyota Avanza
             'start_date' => Carbon::now()->addDays(2)->startOfDay(),
             'end_date' => Carbon::now()->addDays(4)->endOfDay(),
             'duration' => 3,
@@ -239,7 +239,7 @@ class TransaksiSeeder extends Seeder
         $this->createRentalWithDetails([
             'trx_code' => 'TRX-202611220002',
             'user' => $customerBudi,
-            'mobil' => $mobils['MOB-DHT-001'], // Daihatsu Xenia
+            'mobil' => $cars['MOB-DHT-001'], // Daihatsu Xenia
             'start_date' => Carbon::now()->addDays(1)->startOfDay(),
             'end_date' => Carbon::now()->addDays(2)->endOfDay(),
             'duration' => 2,
@@ -273,7 +273,7 @@ class TransaksiSeeder extends Seeder
         $this->createRentalWithDetails([
             'trx_code' => 'TRX-202611220003',
             'user' => $customerSiti,
-            'mobil' => $mobils['MOB-HND-001'], // Honda Brio
+            'mobil' => $cars['MOB-HND-001'], // Honda Brio
             'start_date' => Carbon::now()->addDays(1)->startOfDay(),
             'end_date' => Carbon::now()->addDays(3)->endOfDay(),
             'duration' => 3,
@@ -313,7 +313,7 @@ class TransaksiSeeder extends Seeder
         $this->createRentalWithDetails([
             'trx_code' => 'TRX-202611220004',
             'user' => $customerAhmad,
-            'mobil' => $mobils['MOB-SZK-001'], // Suzuki Ertiga
+            'mobil' => $cars['MOB-SZK-001'], // Suzuki Ertiga
             'start_date' => Carbon::now()->addDays(2)->startOfDay(),
             'end_date' => Carbon::now()->addDays(4)->endOfDay(),
             'duration' => 3,
@@ -342,7 +342,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 2,
                     'status' => RentalStatus::MenungguVerifikasi,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Kode tunai divalidasi oleh admin di garasi',
                     'changed_at' => Carbon::now()->subMinutes(10),
                 ],
@@ -356,7 +356,7 @@ class TransaksiSeeder extends Seeder
             'invoice_number' => 'INV-2026-0001',
             'invoice_issued_at' => Carbon::now()->subHours(2),
             'user' => $customerBudi,
-            'mobil' => $mobils['MOB-TYT-001'], // Toyota Avanza
+            'mobil' => $cars['MOB-TYT-001'], // Toyota Avanza
             'start_date' => Carbon::now()->addDay()->startOfDay(),
             'end_date' => Carbon::now()->addDays(3)->endOfDay(),
             'duration' => 3,
@@ -373,7 +373,7 @@ class TransaksiSeeder extends Seeder
             'payment_method' => PaymentMethod::QRIS,
             'payment_status' => PaymentStatus::Berhasil,
             'paid_at' => Carbon::now()->subHours(2),
-            'confirmed_by' => $admin->id,
+            'confirmed_by' => $admin->account_id,
             'confirmed_at' => Carbon::now()->subHours(2),
             'histories' => [
                 [
@@ -393,7 +393,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 3,
                     'status' => RentalStatus::PembayaranBerhasil,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Admin konfirmasi pembayaran',
                     'changed_at' => Carbon::now()->subHours(2),
                 ],
@@ -407,7 +407,7 @@ class TransaksiSeeder extends Seeder
             'invoice_number' => 'INV-2026-0002',
             'invoice_issued_at' => Carbon::now()->subDays(1),
             'user' => $customerFadhil,
-            'mobil' => $mobils['MOB-HND-002'], // Honda HR-V (status Disewa)
+            'mobil' => $cars['MOB-HND-002'], // Honda HR-V (status Disewa)
             'start_date' => Carbon::now()->subDay()->startOfDay(),
             'end_date' => Carbon::now()->addDays(2)->endOfDay(),
             'duration' => 4,
@@ -424,7 +424,7 @@ class TransaksiSeeder extends Seeder
             'payment_method' => PaymentMethod::QRIS,
             'payment_status' => PaymentStatus::Berhasil,
             'paid_at' => Carbon::now()->subDays(1),
-            'confirmed_by' => $admin->id,
+            'confirmed_by' => $admin->account_id,
             'confirmed_at' => Carbon::now()->subDays(1),
             'histories' => [
                 [
@@ -437,7 +437,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 2,
                     'status' => RentalStatus::PembayaranBerhasil,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Pembayaran dikonfirmasi admin',
                     'changed_at' => Carbon::now()->subDays(1),
                 ],
@@ -458,7 +458,7 @@ class TransaksiSeeder extends Seeder
             'invoice_number' => 'INV-2026-0003',
             'invoice_issued_at' => Carbon::now()->subDays(2),
             'user' => $customerAhmad,
-            'mobil' => $mobils['MOB-MIT-001'], // Mitsubishi Xpander (status Disewa)
+            'mobil' => $cars['MOB-MIT-001'], // Mitsubishi Xpander (status Disewa)
             'start_date' => Carbon::now()->subDays(2)->startOfDay(),
             'end_date' => Carbon::now()->addDay()->endOfDay(),
             'duration' => 4,
@@ -476,7 +476,7 @@ class TransaksiSeeder extends Seeder
             'payment_code' => 'TNI-3049-1920',
             'payment_status' => PaymentStatus::Berhasil,
             'paid_at' => Carbon::now()->subDays(2),
-            'confirmed_by' => $admin->id,
+            'confirmed_by' => $admin->account_id,
             'confirmed_at' => Carbon::now()->subDays(2),
             'histories' => [
                 [
@@ -489,7 +489,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 2,
                     'status' => RentalStatus::PembayaranBerhasil,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Pembayaran tunai diterima dan dikonfirmasi',
                     'changed_at' => Carbon::now()->subDays(2),
                 ],
@@ -510,7 +510,7 @@ class TransaksiSeeder extends Seeder
             'invoice_number' => 'INV-2026-0004',
             'invoice_issued_at' => Carbon::now()->subDays(4),
             'user' => $customerSiti,
-            'mobil' => $mobils['MOB-TYT-002'], // Toyota Fortuner (status Disewa)
+            'mobil' => $cars['MOB-TYT-002'], // Toyota Fortuner (status Disewa)
             'start_date' => Carbon::now()->subDays(4)->startOfDay(),
             'end_date' => Carbon::now()->subDay()->endOfDay(),
             'duration' => 4,
@@ -527,7 +527,7 @@ class TransaksiSeeder extends Seeder
             'payment_method' => PaymentMethod::QRIS,
             'payment_status' => PaymentStatus::Berhasil,
             'paid_at' => Carbon::now()->subDays(4),
-            'confirmed_by' => $admin->id,
+            'confirmed_by' => $admin->account_id,
             'confirmed_at' => Carbon::now()->subDays(4),
             'histories' => [
                 [
@@ -540,7 +540,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 2,
                     'status' => RentalStatus::PembayaranBerhasil,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Pembayaran diverifikasi',
                     'changed_at' => Carbon::now()->subDays(4),
                 ],
@@ -571,7 +571,7 @@ class TransaksiSeeder extends Seeder
             'invoice_number' => 'INV-2026-0005',
             'invoice_issued_at' => Carbon::now()->subDays(10),
             'user' => $customerFadhil,
-            'mobil' => $mobils['MOB-TYT-001'], // Toyota Avanza
+            'mobil' => $cars['MOB-TYT-001'], // Toyota Avanza
             'start_date' => Carbon::now()->subDays(10)->startOfDay(),
             'end_date' => Carbon::now()->subDays(7)->endOfDay(),
             'duration' => 4,
@@ -590,7 +590,7 @@ class TransaksiSeeder extends Seeder
             'payment_method' => PaymentMethod::QRIS,
             'payment_status' => PaymentStatus::Berhasil,
             'paid_at' => Carbon::now()->subDays(10),
-            'confirmed_by' => $admin->id,
+            'confirmed_by' => $admin->account_id,
             'confirmed_at' => Carbon::now()->subDays(10),
             'histories' => [
                 [
@@ -603,7 +603,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 2,
                     'status' => RentalStatus::PembayaranBerhasil,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Pembayaran dikonfirmasi admin',
                     'changed_at' => Carbon::now()->subDays(10),
                 ],
@@ -611,14 +611,14 @@ class TransaksiSeeder extends Seeder
                     'sequence_no' => 3,
                     'status' => RentalStatus::Berjalan,
                     'changed_by' => null,
-                    'note' => 'Mobil diambil di garasi',
+                    'note' => 'Car diambil di garasi',
                     'changed_at' => Carbon::now()->subDays(10)->startOfDay(),
                 ],
                 [
                     'sequence_no' => 4,
                     'status' => RentalStatus::Selesai,
-                    'changed_by' => $admin->id,
-                    'note' => 'Mobil dikembalikan tepat waktu, transaksi selesai',
+                    'changed_by' => $admin->account_id,
+                    'note' => 'Car dikembalikan tepat waktu, transaksi selesai',
                     'changed_at' => Carbon::now()->subDays(7)->subHours(3),
                 ],
             ],
@@ -631,7 +631,7 @@ class TransaksiSeeder extends Seeder
             'invoice_number' => 'INV-2026-0006',
             'invoice_issued_at' => Carbon::now()->subDays(8),
             'user' => $customerBudi,
-            'mobil' => $mobils['MOB-HND-001'], // Honda Brio
+            'mobil' => $cars['MOB-HND-001'], // Honda Brio
             'start_date' => Carbon::now()->subDays(8)->startOfDay(),
             'end_date' => Carbon::now()->subDays(6)->endOfDay(),
             'duration' => 3,
@@ -651,7 +651,7 @@ class TransaksiSeeder extends Seeder
             'payment_code' => 'TNI-6028-0900',
             'payment_status' => PaymentStatus::Berhasil,
             'paid_at' => Carbon::now()->subDays(8),
-            'confirmed_by' => $admin->id,
+            'confirmed_by' => $admin->account_id,
             'confirmed_at' => Carbon::now()->subDays(8),
             'extra_denda_payment' => 150000,
             'histories' => [
@@ -665,7 +665,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 2,
                     'status' => RentalStatus::PembayaranBerhasil,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Konfirmasi pembayaran tunai',
                     'changed_at' => Carbon::now()->subDays(8),
                 ],
@@ -673,7 +673,7 @@ class TransaksiSeeder extends Seeder
                     'sequence_no' => 3,
                     'status' => RentalStatus::Berjalan,
                     'changed_by' => null,
-                    'note' => 'Mobil diserahkan',
+                    'note' => 'Car diserahkan',
                     'changed_at' => Carbon::now()->subDays(8)->startOfDay(),
                 ],
                 [
@@ -686,8 +686,8 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 5,
                     'status' => RentalStatus::Selesai,
-                    'changed_by' => $admin->id,
-                    'note' => 'Mobil dikembalikan, denda Rp 150.000 dibayar lunas',
+                    'changed_by' => $admin->account_id,
+                    'note' => 'Car dikembalikan, denda Rp 150.000 dibayar lunas',
                     'changed_at' => Carbon::now()->subDays(5)->startOfDay(),
                 ],
             ],
@@ -700,7 +700,7 @@ class TransaksiSeeder extends Seeder
             'invoice_number' => 'INV-2026-0007',
             'invoice_issued_at' => Carbon::now()->subDays(15),
             'user' => $customerSiti,
-            'mobil' => $mobils['MOB-DHT-001'], // Daihatsu Xenia
+            'mobil' => $cars['MOB-DHT-001'], // Daihatsu Xenia
             'start_date' => Carbon::now()->subDays(15)->startOfDay(),
             'end_date' => Carbon::now()->subDays(12)->endOfDay(),
             'duration' => 4,
@@ -719,13 +719,13 @@ class TransaksiSeeder extends Seeder
             'payment_method' => PaymentMethod::QRIS,
             'payment_status' => PaymentStatus::Berhasil,
             'paid_at' => Carbon::now()->subDays(15),
-            'confirmed_by' => $admin->id,
+            'confirmed_by' => $admin->account_id,
             'confirmed_at' => Carbon::now()->subDays(15),
             'histories' => [
                 [
                     'sequence_no' => 1,
                     'status' => RentalStatus::PembayaranBerhasil,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Pembayaran terverifikasi',
                     'changed_at' => Carbon::now()->subDays(15),
                 ],
@@ -739,7 +739,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 3,
                     'status' => RentalStatus::Selesai,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Rental selesai',
                     'changed_at' => Carbon::now()->subDays(12)->subHours(1),
                 ],
@@ -753,7 +753,7 @@ class TransaksiSeeder extends Seeder
             'invoice_number' => 'INV-2026-0008',
             'invoice_issued_at' => Carbon::now()->subDays(20),
             'user' => $customerFadhil,
-            'mobil' => $mobils['MOB-HYU-001'], // Hyundai Stargazer
+            'mobil' => $cars['MOB-HYU-001'], // Hyundai Stargazer
             'start_date' => Carbon::now()->subDays(20)->startOfDay(),
             'end_date' => Carbon::now()->subDays(18)->endOfDay(),
             'duration' => 3,
@@ -772,13 +772,13 @@ class TransaksiSeeder extends Seeder
             'payment_method' => PaymentMethod::QRIS,
             'payment_status' => PaymentStatus::Berhasil,
             'paid_at' => Carbon::now()->subDays(20),
-            'confirmed_by' => $admin->id,
+            'confirmed_by' => $admin->account_id,
             'confirmed_at' => Carbon::now()->subDays(20),
             'histories' => [
                 [
                     'sequence_no' => 1,
                     'status' => RentalStatus::PembayaranBerhasil,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Pembayaran dikonfirmasi',
                     'changed_at' => Carbon::now()->subDays(20),
                 ],
@@ -786,13 +786,13 @@ class TransaksiSeeder extends Seeder
                     'sequence_no' => 2,
                     'status' => RentalStatus::Berjalan,
                     'changed_by' => null,
-                    'note' => 'Mobil diserahkan',
+                    'note' => 'Car diserahkan',
                     'changed_at' => Carbon::now()->subDays(20)->startOfDay(),
                 ],
                 [
                     'sequence_no' => 3,
                     'status' => RentalStatus::Selesai,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Selesai dan mobil kembali ke garasi',
                     'changed_at' => Carbon::now()->subDays(18)->subHours(2),
                 ],
@@ -806,7 +806,7 @@ class TransaksiSeeder extends Seeder
             'invoice_number' => 'INV-2026-0009',
             'invoice_issued_at' => Carbon::now()->subDays(25),
             'user' => $customerAhmad,
-            'mobil' => $mobils['MOB-SZK-001'], // Suzuki Ertiga
+            'mobil' => $cars['MOB-SZK-001'], // Suzuki Ertiga
             'start_date' => Carbon::now()->subDays(25)->startOfDay(),
             'end_date' => Carbon::now()->subDays(23)->endOfDay(),
             'duration' => 3,
@@ -826,13 +826,13 @@ class TransaksiSeeder extends Seeder
             'payment_code' => 'TNI-9051-1140',
             'payment_status' => PaymentStatus::Berhasil,
             'paid_at' => Carbon::now()->subDays(25),
-            'confirmed_by' => $admin->id,
+            'confirmed_by' => $admin->account_id,
             'confirmed_at' => Carbon::now()->subDays(25),
             'histories' => [
                 [
                     'sequence_no' => 1,
                     'status' => RentalStatus::PembayaranBerhasil,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Pembayaran tunai diterima',
                     'changed_at' => Carbon::now()->subDays(25),
                 ],
@@ -846,7 +846,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 3,
                     'status' => RentalStatus::Selesai,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Unit diambil kembali oleh petugas, transaksi selesai',
                     'changed_at' => Carbon::now()->subDays(23)->subHours(4),
                 ],
@@ -857,7 +857,7 @@ class TransaksiSeeder extends Seeder
         $this->createRentalWithDetails([
             'trx_code' => 'TRX-202611220014',
             'user' => $customerBudi,
-            'mobil' => $mobils['MOB-DHT-002'], // Daihatsu Terios
+            'mobil' => $cars['MOB-DHT-002'], // Daihatsu Terios
             'start_date' => Carbon::now()->subDays(5)->startOfDay(),
             'end_date' => Carbon::now()->subDays(3)->endOfDay(),
             'duration' => 3,
@@ -897,7 +897,7 @@ class TransaksiSeeder extends Seeder
         $this->createRentalWithDetails([
             'trx_code' => 'TRX-202611220015',
             'user' => $customerFadhil,
-            'mobil' => $mobils['MOB-TYT-002'], // Toyota Fortuner
+            'mobil' => $cars['MOB-TYT-002'], // Toyota Fortuner
             'start_date' => Carbon::now()->subDays(3)->startOfDay(),
             'end_date' => Carbon::now()->subDays(1)->endOfDay(),
             'duration' => 3,
@@ -926,7 +926,7 @@ class TransaksiSeeder extends Seeder
                 [
                     'sequence_no' => 2,
                     'status' => RentalStatus::Dibatalkan,
-                    'changed_by' => $admin->id,
+                    'changed_by' => $admin->account_id,
                     'note' => 'Foto KTP tidak terbaca dan verifikasi identitas tidak sesuai',
                     'changed_at' => Carbon::now()->subDays(3)->addHours(1),
                 ],
@@ -965,8 +965,8 @@ class TransaksiSeeder extends Seeder
             'booking_code' => $data['booking_code'] ?? null,
             'invoice_number' => $data['invoice_number'] ?? null,
             'invoice_issued_at' => $data['invoice_issued_at'] ?? null,
-            'user_id' => $data['user']->id,
-            'mobil_id' => $data['mobil']->id,
+            'account_id' => $data['user']->account_id,
+            'car_id' => $data['mobil']->car_id,
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'],
             'duration' => $data['duration'],
@@ -989,8 +989,8 @@ class TransaksiSeeder extends Seeder
         ]);
 
         // Rental Add On
-        RentalAddOn::create([
-            'rental_id' => $rental->id,
+        AddOn::create([
+            'rental_id' => $rental->rental_id,
             'handover_method' => $data['handover_method'] ?? null,
             'pickup_point' => $data['pickup_point'] ?? null,
             'driver_fee' => $data['driver_fee'] ?? 0,
@@ -1000,7 +1000,7 @@ class TransaksiSeeder extends Seeder
 
         // Payment Sewa
         $payment = Payment::create([
-            'rental_id' => $rental->id,
+            'rental_id' => $rental->rental_id,
             'type' => PaymentType::Sewa,
             'method' => $data['payment_method'],
             'amount' => $data['total_rental'],
@@ -1012,14 +1012,14 @@ class TransaksiSeeder extends Seeder
         ]);
 
         if ($data['payment_method'] === PaymentMethod::QRIS) {
-            QrisPayment::create([
-                'payment_id' => $payment->id,
+            Qris::create([
+                'payment_id' => $payment->payment_id,
                 'qr_ref' => 'QR-'.Str::upper(Str::random(12)),
-                'qr_code' => '00020101021226670016ID.CO.GORENTAL011893600911000'.$rental->id,
+                'qr_code' => '00020101021226670016ID.CO.GORENTAL011893600911000'.$rental->rental_id,
             ]);
         } elseif ($data['payment_method'] === PaymentMethod::Tunai) {
-            CashPayment::create([
-                'payment_id' => $payment->id,
+            Cash::create([
+                'payment_id' => $payment->payment_id,
                 'payment_code' => $data['payment_code'] ?? 'TNI-'.fake()->numerify('####-####'),
             ]);
         }
@@ -1027,7 +1027,7 @@ class TransaksiSeeder extends Seeder
         // Jika ada pembayaran denda tambahan
         if (! empty($data['extra_denda_payment'])) {
             Payment::create([
-                'rental_id' => $rental->id,
+                'rental_id' => $rental->rental_id,
                 'type' => PaymentType::Denda,
                 'method' => PaymentMethod::Tunai,
                 'amount' => $data['extra_denda_payment'],
@@ -1042,7 +1042,7 @@ class TransaksiSeeder extends Seeder
         if (! empty($data['histories'])) {
             foreach ($data['histories'] as $hist) {
                 BookingHistory::create([
-                    'rental_id' => $rental->id,
+                    'rental_id' => $rental->rental_id,
                     'sequence_no' => $hist['sequence_no'],
                     'status' => $hist['status'],
                     'changed_by' => $hist['changed_by'] ?? null,

@@ -21,6 +21,12 @@ class Payment extends Model
     /** @use HasFactory<PaymentFactory> */
     use HasFactory;
 
+    /** @var string */
+    protected $table = 'payment';
+
+    /** @var string */
+    protected $primaryKey = 'payment_id';
+
     /** @var list<string> */
     protected $fillable = [
         'rental_id',
@@ -50,21 +56,21 @@ class Payment extends Model
 
     public function rental(): BelongsTo
     {
-        return $this->belongsTo(Rental::class);
+        return $this->belongsTo(Rental::class, 'rental_id');
     }
 
     public function confirmedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'confirmed_by');
+        return $this->belongsTo(Account::class, 'confirmed_by');
     }
 
     public function qris(): HasOne
     {
-        return $this->hasOne(QrisPayment::class);
+        return $this->hasOne(Qris::class, 'payment_id');
     }
 
     public function cash(): HasOne
     {
-        return $this->hasOne(CashPayment::class);
+        return $this->hasOne(Cash::class, 'payment_id');
     }
 }

@@ -3,9 +3,9 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\CarController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\KatalogController;
-use App\Http\Controllers\MobilController;
 use App\Http\Controllers\PemesananController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -41,9 +41,9 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::get('/edit-profil', [CustomerController::class, 'editProfil'])->name('edit-profil');
         Route::post('/edit-profil', [CustomerController::class, 'updateProfil'])->name('edit-profil.update');
 
-        Route::get('/detail-mobil/{mobil}', [PemesananController::class, 'detailMobil'])->name('detail-mobil');
+        Route::get('/detail-mobil/{mobil}', [PemesananController::class, 'detailCar'])->name('detail-mobil');
         Route::get('/pilih-tanggal', [PemesananController::class, 'pilihTanggal'])->name('pilih-tanggal');
-        Route::get('/ketersediaan-mobil', [PemesananController::class, 'ketersediaanMobil'])->name('ketersediaan-mobil');
+        Route::get('/ketersediaan-mobil', [PemesananController::class, 'ketersediaanCar'])->name('ketersediaan-mobil');
 
         Route::get('/syarat-dan-ketentuan', [PemesananController::class, 'syarat'])->name('syarat');
         Route::post('/syarat-dan-ketentuan', [PemesananController::class, 'syaratStore'])->name('syarat.store');
@@ -88,13 +88,13 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/riwayat-transaksi/{rental}', [AdminController::class, 'showRiwayatTransaksi'])->name('admin.riwayat-transaksi.show');
 
     Route::prefix('/admin/data-mobil')->name('admin.data-mobil.')->group(function () {
-        Route::get('/', [MobilController::class, 'index'])->name('index');
-        Route::get('/create', [MobilController::class, 'create'])->name('create');
-        Route::post('/', [MobilController::class, 'store'])->name('store');
-        Route::get('/{mobil}', [MobilController::class, 'show'])->name('show');
-        Route::get('/{mobil}/edit', [MobilController::class, 'edit'])->name('edit');
-        Route::put('/{mobil}', [MobilController::class, 'update'])->name('update');
-        Route::delete('/{mobil}', [MobilController::class, 'destroy'])->name('destroy');
+        Route::get('/', [CarController::class, 'index'])->name('index');
+        Route::get('/create', [CarController::class, 'create'])->name('create');
+        Route::post('/', [CarController::class, 'store'])->name('store');
+        Route::get('/{mobil}', [CarController::class, 'show'])->name('show');
+        Route::get('/{mobil}/edit', [CarController::class, 'edit'])->name('edit');
+        Route::put('/{mobil}', [CarController::class, 'update'])->name('update');
+        Route::delete('/{mobil}', [CarController::class, 'destroy'])->name('destroy');
     });
 });
 

@@ -1,12 +1,12 @@
 @extends('layouts.customer')
 
-@section('title', 'Ketersediaan Mobil')
+@section('title', 'Ketersediaan Car')
 
 @section('content')
     @php
         $mobil = $mobil ?? null;
         $queryTanggal = http_build_query([
-            'id' => $mobil?->id ?? '',
+            'id' => $mobil?->car_id ?? '',
             'tanggal-mulai' => $tanggalMulai ?? '',
             'tanggal-selesai' => $tanggalSelesai ?? '',
         ]);
@@ -30,14 +30,14 @@
                 <img src="{{ asset('img/ketersediaan/centang-mobil-tersedia.svg') }}" alt="Centang"
                     class="w-75 h-75" />
             </div>
-            <h2 class="text-success fs-5 fw-bold mb-1">Mobil Tersedia</h2>
+            <h2 class="text-success fs-5 fw-bold mb-1">Car Tersedia</h2>
             <p class="text-success small m-0 opacity-75">Pada tanggal yang Anda pilih</p>
         </section>
 
         <section aria-label="Status Ketersediaan" class="card border-0 shadow-sm rounded-4 p-3 my-3 mx-3 bg-white">
             <div class="d-flex flex-column gap-2 mb-3">
                 <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-muted small">Mobil</span>
+                    <span class="text-muted small">Car</span>
                     <strong id="info-mobil"
                         class="text-dark">{{ $mobil ? $mobil->merk.' '.$mobil->nama_mobil : '-' }}</strong>
                 </div>
@@ -73,7 +73,7 @@
         </div>
 
         <form action="{{ route('customer.syarat') }}" method="get">
-            <input type="hidden" name="id" value="{{ $mobil?->id ?? '' }}">
+            <input type="hidden" name="id" value="{{ $mobil?->car_id ?? '' }}">
             <input type="hidden" name="tanggal-mulai" value="{{ $tanggalMulai ?? '' }}">
             <input type="hidden" name="tanggal-selesai" value="{{ $tanggalSelesai ?? '' }}">
             <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
@@ -102,7 +102,7 @@
                     <a href="{{ url('/customer/katalog') }}"
                         class="btn btn-outline-secondary w-100 py-3 rounded-1 fw-bold"
                         style="border-color: #0b1d33; color: #0b1d33;">
-                        Ganti Mobil
+                        Ganti Car
                     </a>
                 </div>
             </div>

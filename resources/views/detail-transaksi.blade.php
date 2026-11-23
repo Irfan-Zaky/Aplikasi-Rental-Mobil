@@ -33,7 +33,7 @@
                                         <strong class="text-dark small">{{ $transaksi->no_hp ?? '0812 8840 2196' }}</strong>
                                     </li>
                                     <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
-                                        <span class="text-muted small">Mobil</span>
+                                        <span class="text-muted small">Car</span>
                                         <strong class="text-dark small">{{ $transaksi->nama_mobil ?? 'Toyota Avanza 1.5 G' }}</strong>
                                     </li>
                                     <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">

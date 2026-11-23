@@ -1,6 +1,6 @@
 @extends('layouts.admin', ['active' => 'data-mobil'])
 
-@section('title', 'Edit Mobil')
+@section('title', 'Edit Car')
 
 @section('content')
     @php
@@ -19,7 +19,7 @@
 
     @include('components.admin-header', [
         'kicker' => 'MANAJEMEN ARMADA',
-        'judul' => 'Edit Mobil',
+        'judul' => 'Edit Car',
         'deskripsi' => 'Atur dan custom data mobil dengan baik',
     ])
 
@@ -29,12 +29,12 @@
                 <div class="col-12 col-lg-4">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="fw-bold m-0 text-dark">Foto Mobil</h5>
+                            <h5 class="fw-bold m-0 text-dark">Foto Car</h5>
                             <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-medium">Aktif</span>
                         </div>
 
                         <div class="mb-3 text-center">
-                            <img src="{{ $fotoUtama['src'] ?? asset('img_admin/edit-mobil/Current vehicle photo.png') }}" alt="Foto Mobil" id="foto-mobil" class="img-fluid rounded-4 object-fit-cover shadow-sm" style="height: 220px; width: 100%;" />
+                            <img src="{{ $fotoUtama['src'] ?? asset('img_admin/edit-mobil/Current vehicle photo.png') }}" alt="Foto Car" id="foto-mobil" class="img-fluid rounded-4 object-fit-cover shadow-sm" style="height: 220px; width: 100%;" />
                         </div>
                         <button type="button" id="btn-ganti-foto" class="btn btn-outline-secondary w-100 rounded-pill py-2 d-flex align-items-center justify-content-center gap-2 fw-medium">
                             <img src="{{ asset('img_admin/edit-mobil/image.svg') }}" alt="" width="18" height="18" />
@@ -55,7 +55,7 @@
                             <header class="mb-4">
                                 <h3 class="fw-bold text-dark">Informasi kendaraan</h3>
                                 <p class="text-muted small mb-1">Terakhir diperbarui {{ optional($mobil->updated_at ?? null)->format('d F Y') ?? '28 September 2026' }} oleh Admin Operasional.</p>
-                                <p class="text-secondary small fw-medium mb-0">Kode_Mobil.{{ $mobil->kode_mobil }}</p>
+                                <p class="text-secondary small fw-medium mb-0">Kode_Car.{{ $mobil->kode_mobil }}</p>
                             </header>
 
                             <div class="row g-3 mb-3">
@@ -65,7 +65,7 @@
                                 </div>
 
                                 <div class="col-12 col-md-6">
-                                    <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Mobil</label>
+                                    <label for="nama-mobil" class="form-label fw-medium small text-dark">Nama Car</label>
                                     <input type="text" name="nama" id="nama-mobil" class="form-control bg-light border-1 py-2 px-3 rounded-pill shadow-sm" value="{{ old('nama', $mobil->nama_mobil ?? '') }}" required />
                                 </div>
 
@@ -117,12 +117,12 @@
         </div>
     </main>
 
-    <div class="modal fade" id="modalFotoMobil" tabindex="-1" aria-labelledby="modalFotoMobilLabel" aria-hidden="true">
+    <div class="modal fade" id="modalCarPhoto" tabindex="-1" aria-labelledby="modalCarPhotoLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 860px;">
             <div class="modal-content border-0 rounded-4 shadow">
                 <div class="modal-header border-0 align-items-start px-4 pt-4 pb-3">
                     <div>
-                        <h4 class="modal-title fw-bold" id="modalFotoMobilLabel" style="color: #0b1d33;">Unggah foto mobil</h4>
+                        <h4 class="modal-title fw-bold" id="modalCarPhotoLabel" style="color: #0b1d33;">Unggah foto mobil</h4>
                         <p class="text-muted small mb-0 mt-1">Tambahkan beberapa foto dan pilih satu sebagai foto utama.</p>
                     </div>
                     <button type="button" class="btn d-flex align-items-center justify-content-center rounded-3 border-0 flex-shrink-0" data-bs-dismiss="modal" aria-label="Tutup" style="width: 36px; height: 36px; background-color: #f4f7fa; color: #64748b; font-size: 20px; line-height: 1;">&times;</button>

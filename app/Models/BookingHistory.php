@@ -16,6 +16,12 @@ class BookingHistory extends Model
     /** @use HasFactory<BookingHistoryFactory> */
     use HasFactory;
 
+    /** @var string */
+    protected $table = 'booking_history';
+
+    /** @var string */
+    protected $primaryKey = 'history_id';
+
     /** @var list<string> */
     protected $fillable = [
         'rental_id',
@@ -38,11 +44,11 @@ class BookingHistory extends Model
 
     public function rental(): BelongsTo
     {
-        return $this->belongsTo(Rental::class);
+        return $this->belongsTo(Rental::class, 'rental_id');
     }
 
     public function changedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'changed_by');
+        return $this->belongsTo(Account::class, 'changed_by');
     }
 }

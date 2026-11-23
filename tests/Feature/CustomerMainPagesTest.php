@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\FotoMobil;
-use App\Models\Mobil;
-use App\Models\User;
+use App\Models\Account;
+use App\Models\Car;
+use App\Models\CarPhoto;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -38,7 +38,7 @@ class CustomerMainPagesTest extends TestCase
     #[DataProvider('halamanCustomer')]
     public function test_admin_tidak_dapat_membuka_halaman_customer(string $url): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $this->actingAs($admin)->get($url)->assertForbidden();
     }
@@ -46,14 +46,14 @@ class CustomerMainPagesTest extends TestCase
     #[DataProvider('halamanCustomer')]
     public function test_customer_dapat_membuka_empat_halaman_utama(string $url): void
     {
-        $customer = User::factory()->create();
+        $customer = Account::factory()->create();
 
         $this->actingAs($customer)->get($url)->assertOk();
     }
 
     public function test_beranda_menampilkan_nama_customer_yang_login(): void
     {
-        $customer = User::factory()->create(['name' => 'Customer Beranda']);
+        $customer = Account::factory()->create(['name' => 'Customer Beranda']);
 
         $this->actingAs($customer)->get(route('customer.beranda'))
             ->assertOk()
@@ -62,7 +62,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_profil_menampilkan_data_customer_yang_login(): void
     {
-        $customer = User::factory()->create([
+        $customer = Account::factory()->create([
             'name' => 'Customer Profil',
             'email' => 'profil@example.com',
             'no_hp' => '081111111111',
@@ -78,9 +78,9 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_katalog_menampilkan_semua_mobil(): void
     {
-        $customer = User::factory()->create();
-        Mobil::factory()->create(['nama_mobil' => 'Avanza Satu']);
-        Mobil::factory()->create(['nama_mobil' => 'Brio Dua']);
+        $customer = Account::factory()->create();
+        Car::factory()->create(['nama_mobil' => 'Avanza Satu']);
+        Car::factory()->create(['nama_mobil' => 'Brio Dua']);
 
         $this->actingAs($customer)->get(route('customer.katalog'))
             ->assertOk()
@@ -90,8 +90,8 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_katalog_mengambil_data_dan_foto_utama_dari_database(): void
     {
-        $customer = User::factory()->create();
-        $mobil = Mobil::factory()->create([
+        $customer = Account::factory()->create();
+        $mobil = Car::factory()->create([
             'merk' => 'MerkUnikDatabase',
             'nama_mobil' => 'ModelUnikDatabase',
             'jenis' => 'SUV',
@@ -99,8 +99,8 @@ class CustomerMainPagesTest extends TestCase
             'harga_sewa' => 725000,
             'spesifikasi' => 'Spesifikasi Unik Database',
         ]);
-        FotoMobil::create([
-            'mobil_id' => $mobil->id,
+        CarPhoto::create([
+            'car_id' => $mobil->car_id,
             'path_foto' => 'mobil-fotos/foto-unik-database.jpg',
             'is_utama' => true,
         ]);
@@ -117,29 +117,29 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_detail_mobil_menampilkan_carousel_banyak_foto_dengan_foto_utama_di_urutan_pertama(): void
     {
-        $customer = User::factory()->create();
-        $mobil = Mobil::factory()->create([
+        $customer = Account::factory()->create();
+        $mobil = Car::factory()->create([
             'merk' => 'Toyota',
             'nama_mobil' => 'Avanza Carousel',
         ]);
 
         // Foto 1: Bukan utama
-        FotoMobil::create([
-            'mobil_id' => $mobil->id,
+        CarPhoto::create([
+            'car_id' => $mobil->car_id,
             'path_foto' => 'mobil-fotos/foto-samping.jpg',
             'is_utama' => false,
         ]);
 
         // Foto 2: Utama (favorit)
-        FotoMobil::create([
-            'mobil_id' => $mobil->id,
+        CarPhoto::create([
+            'car_id' => $mobil->car_id,
             'path_foto' => 'mobil-fotos/foto-favorit-utama.jpg',
             'is_utama' => true,
         ]);
 
         // Foto 3: Bukan utama
-        FotoMobil::create([
-            'mobil_id' => $mobil->id,
+        CarPhoto::create([
+            'car_id' => $mobil->car_id,
             'path_foto' => 'mobil-fotos/foto-interior.jpg',
             'is_utama' => false,
         ]);
@@ -162,9 +162,9 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_katalog_pencarian_kata_kunci(): void
     {
-        $customer = User::factory()->create();
-        Mobil::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza Veloz']);
-        Mobil::factory()->create(['merk' => 'Honda', 'nama_mobil' => 'Civic Turbo']);
+        $customer = Account::factory()->create();
+        Car::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza Veloz']);
+        Car::factory()->create(['merk' => 'Honda', 'nama_mobil' => 'Civic Turbo']);
 
         $response = $this->actingAs($customer)->get(route('customer.katalog', ['keyword' => 'Veloz']));
         $response->assertOk();
@@ -174,9 +174,9 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_katalog_filter_merk_menampilkan_pilihan_dropdown_dan_dapat_difilter(): void
     {
-        $customer = User::factory()->create();
-        Mobil::factory()->create(['merk' => 'Daihatsu', 'nama_mobil' => 'Rocky']);
-        Mobil::factory()->create(['merk' => 'Mitsubishi', 'nama_mobil' => 'Xpander']);
+        $customer = Account::factory()->create();
+        Car::factory()->create(['merk' => 'Daihatsu', 'nama_mobil' => 'Rocky']);
+        Car::factory()->create(['merk' => 'Mitsubishi', 'nama_mobil' => 'Xpander']);
 
         // Verifikasi opsi select berisi merk yang ada di database
         $respKatalog = $this->actingAs($customer)->get(route('customer.katalog'));
@@ -197,9 +197,9 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_katalog_filter_jenis_menampilkan_pilihan_dan_dapat_difilter(): void
     {
-        $customer = User::factory()->create();
-        Mobil::factory()->create(['jenis' => 'SUV', 'nama_mobil' => 'Mobil SUV']);
-        Mobil::factory()->create(['jenis' => 'Sedan', 'nama_mobil' => 'Mobil Sedan']);
+        $customer = Account::factory()->create();
+        Car::factory()->create(['jenis' => 'SUV', 'nama_mobil' => 'Car SUV']);
+        Car::factory()->create(['jenis' => 'Sedan', 'nama_mobil' => 'Car Sedan']);
 
         $respKatalog = $this->actingAs($customer)->get(route('customer.katalog'));
         $respKatalog->assertOk();
@@ -211,16 +211,16 @@ class CustomerMainPagesTest extends TestCase
         // Filter jenis SUV
         $respFilter = $this->actingAs($customer)->get(route('customer.katalog', ['jenis' => 'SUV']));
         $respFilter->assertOk();
-        $respFilter->assertSee('Mobil SUV');
-        $respFilter->assertDontSee('Mobil Sedan');
+        $respFilter->assertSee('Car SUV');
+        $respFilter->assertDontSee('Car Sedan');
     }
 
     public function test_katalog_filter_rentang_harga_min_dan_max(): void
     {
-        $customer = User::factory()->create();
-        Mobil::factory()->create(['nama_mobil' => 'Mobil Murah', 'harga_sewa' => 250000]);
-        Mobil::factory()->create(['nama_mobil' => 'Mobil Sedang', 'harga_sewa' => 500000]);
-        Mobil::factory()->create(['nama_mobil' => 'Mobil Mahal', 'harga_sewa' => 1000000]);
+        $customer = Account::factory()->create();
+        Car::factory()->create(['nama_mobil' => 'Car Murah', 'harga_sewa' => 250000]);
+        Car::factory()->create(['nama_mobil' => 'Car Sedang', 'harga_sewa' => 500000]);
+        Car::factory()->create(['nama_mobil' => 'Car Mahal', 'harga_sewa' => 1000000]);
 
         $response = $this->actingAs($customer)->get(route('customer.katalog', [
             'harga_min' => 400000,
@@ -230,24 +230,24 @@ class CustomerMainPagesTest extends TestCase
         $response->assertSee('modal-filter-harga');
         $response->assertSee('Batas Terendah (Rp)');
         $response->assertSee('Batas Tertinggi (Rp)');
-        $response->assertSee('Mobil Sedang');
-        $response->assertDontSee('Mobil Murah');
-        $response->assertDontSee('Mobil Mahal');
+        $response->assertSee('Car Sedang');
+        $response->assertDontSee('Car Murah');
+        $response->assertDontSee('Car Mahal');
     }
 
     public function test_katalog_dapat_menggabungkan_semua_filter_dalam_satu_form(): void
     {
-        $customer = User::factory()->create();
-        Mobil::factory()->create([
+        $customer = Account::factory()->create();
+        Car::factory()->create([
             'merk' => 'Toyota', 'nama_mobil' => 'Avanza Cocok', 'jenis' => 'SUV', 'harga_sewa' => 500000,
         ]);
-        Mobil::factory()->create([
+        Car::factory()->create([
             'merk' => 'Toyota', 'nama_mobil' => 'Agya MPs', 'jenis' => 'MPV', 'harga_sewa' => 500000,
         ]);
-        Mobil::factory()->create([
+        Car::factory()->create([
             'merk' => 'Honda', 'nama_mobil' => 'BR-V Cocok', 'jenis' => 'SUV', 'harga_sewa' => 500000,
         ]);
-        Mobil::factory()->create([
+        Car::factory()->create([
             'merk' => 'Toyota', 'nama_mobil' => 'Fortuner Mahal', 'jenis' => 'SUV', 'harga_sewa' => 900000,
         ]);
 
@@ -269,33 +269,33 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_katalog_menampilkan_semua_mobil_tanpa_paginasi(): void
     {
-        $customer = User::factory()->create();
-        $mobils = Mobil::factory()->count(12)->create();
+        $customer = Account::factory()->create();
+        $cars = Car::factory()->count(12)->create();
 
         $response = $this->actingAs($customer)->get(route('customer.katalog'));
 
         $response->assertOk()->assertSee('12 mobil');
-        foreach ($mobils as $mobil) {
+        foreach ($cars as $mobil) {
             $response->assertSee($mobil->nama_mobil);
         }
     }
 
     public function test_katalog_tombol_semua_menampilkan_seluruh_mobil(): void
     {
-        $customer = User::factory()->create();
-        Mobil::factory()->create(['nama_mobil' => 'Mobil A']);
-        Mobil::factory()->create(['nama_mobil' => 'Mobil B']);
+        $customer = Account::factory()->create();
+        Car::factory()->create(['nama_mobil' => 'Car A']);
+        Car::factory()->create(['nama_mobil' => 'Car B']);
 
         $response = $this->actingAs($customer)->get(route('customer.katalog'));
         $response->assertOk();
-        $response->assertSee('Mobil A');
-        $response->assertSee('Mobil B');
+        $response->assertSee('Car A');
+        $response->assertSee('Car B');
         $response->assertSee('btn-semua');
     }
 
     public function test_route_katalog_lama_mengarah_ke_katalog_customer(): void
     {
-        $customer = User::factory()->create();
+        $customer = Account::factory()->create();
 
         $this->actingAs($customer)->get('/katalog')
             ->assertRedirect(route('customer.katalog'));
@@ -309,7 +309,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_admin_tidak_dapat_membuka_form_edit_profil_customer(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $this->actingAs($admin)->get(route('customer.edit-profil'))
             ->assertForbidden();
@@ -317,7 +317,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_admin_tidak_dapat_melihat_form_login_customer(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $this->actingAs($admin)->get(route('customer.login'))
             ->assertRedirect(route('dashboard'));
@@ -325,7 +325,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_customer_tidak_dapat_melihat_form_login_admin(): void
     {
-        $customer = User::factory()->create();
+        $customer = Account::factory()->create();
 
         $this->actingAs($customer)->get(route('login'))
             ->assertRedirect(route('customer.beranda'));
@@ -333,7 +333,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_customer_login_lewat_form_admin_tetap_diarahkan_ke_beranda_customer(): void
     {
-        $customer = User::factory()->create([
+        $customer = Account::factory()->create([
             'email' => 'customer@example.com',
             'password' => 'password',
         ]);
@@ -350,7 +350,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_customer_dapat_memperbarui_profilnya(): void
     {
-        $customer = User::factory()->create([
+        $customer = Account::factory()->create([
             'name' => 'Nama Lama',
             'email' => 'lama@example.com',
             'no_hp' => '081222222222',
@@ -363,8 +363,8 @@ class CustomerMainPagesTest extends TestCase
         ]);
 
         $response->assertRedirect(route('customer.profil'));
-        $this->assertDatabaseHas('users', [
-            'id' => $customer->id,
+        $this->assertDatabaseHas('account', [
+            'account_id' => $customer->account_id,
             'name' => 'Nama Baru',
             'email' => 'baru@example.com',
             'no_hp' => '081333333333',
@@ -373,7 +373,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_customer_dapat_mengganti_password_lewat_profil(): void
     {
-        $customer = User::factory()->create(['password' => 'password']);
+        $customer = Account::factory()->create(['password' => 'password']);
 
         $this->actingAs($customer)->post(route('customer.edit-profil.update'), [
             'name' => $customer->name,
@@ -388,8 +388,8 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_profil_menolak_nomor_hp_yang_sudah_dipakai(): void
     {
-        User::factory()->create(['no_hp' => '081444444444']);
-        $customer = User::factory()->create(['no_hp' => '081555555555']);
+        Account::factory()->create(['no_hp' => '081444444444']);
+        $customer = Account::factory()->create(['no_hp' => '081555555555']);
 
         $this->actingAs($customer)->from(route('customer.edit-profil'))
             ->post(route('customer.edit-profil.update'), [
@@ -403,7 +403,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_admin_tidak_dapat_memperbarui_profil_customer(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = Account::factory()->admin()->create();
 
         $this->actingAs($admin)->post(route('customer.edit-profil.update'), [
             'name' => 'Admin Menyamar',
@@ -414,7 +414,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_beranda_menampilkan_foto_profil_bulat(): void
     {
-        $customer = User::factory()->create(['photo_profil' => 'profil/avatar.jpg']);
+        $customer = Account::factory()->create(['photo_profil' => 'profil/avatar.jpg']);
 
         $this->actingAs($customer)->get(route('customer.beranda'))
             ->assertOk()
@@ -424,7 +424,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_edit_profil_menampilkan_pratinjau_dan_pilihan_hapus_saat_foto_ada(): void
     {
-        $customer = User::factory()->create(['photo_profil' => 'profil/avatar.jpg']);
+        $customer = Account::factory()->create(['photo_profil' => 'profil/avatar.jpg']);
 
         $this->actingAs($customer)->get(route('customer.edit-profil'))
             ->assertOk()
@@ -435,7 +435,7 @@ class CustomerMainPagesTest extends TestCase
 
     public function test_edit_profil_tidak_menampilkan_pilihan_hapus_saat_belum_ada_foto(): void
     {
-        $customer = User::factory()->create(['photo_profil' => null]);
+        $customer = Account::factory()->create(['photo_profil' => null]);
 
         $this->actingAs($customer)->get(route('customer.edit-profil'))
             ->assertOk()
@@ -447,7 +447,7 @@ class CustomerMainPagesTest extends TestCase
         Storage::fake('public');
         Storage::disk('public')->put('profil/lama.jpg', 'isi lama');
 
-        $customer = User::factory()->create(['photo_profil' => 'profil/lama.jpg']);
+        $customer = Account::factory()->create(['photo_profil' => 'profil/lama.jpg']);
 
         $this->actingAs($customer)->post(route('customer.edit-profil.update'), [
             'name' => $customer->name,
@@ -465,7 +465,7 @@ class CustomerMainPagesTest extends TestCase
         Storage::fake('public');
         Storage::disk('public')->put('profil/lama.jpg', 'isi lama');
 
-        $customer = User::factory()->create(['photo_profil' => 'profil/lama.jpg']);
+        $customer = Account::factory()->create(['photo_profil' => 'profil/lama.jpg']);
 
         $this->actingAs($customer)->post(route('customer.edit-profil.update'), [
             'name' => $customer->name,

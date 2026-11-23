@@ -15,10 +15,10 @@ Acuan skema database untuk AI agent. Baca dokumen ini setiap kali pekerjaan meny
 1. Migration yang **sudah dijalankan** tidak boleh diubah. Perubahan skema = migration baru.
 2. Semua enum disimpan sebagai `string` (bukan enum database) dan divalidasi lewat PHP Backed Enum.
 3. Semua nilai uang adalah rupiah bulat: `unsignedInteger`. Jangan memakai decimal/float.
-4. Tabel lama (`users`, `mobils`, `mobil_fotos`) tidak di-rename. Tabel baru memakai nama kolom Inggris seperti di bawah, kecuali FK ke tabel lama: `user_id` dan `mobil_id`.
-5. `rentals.customer_nik` memakai cast `encrypted`. Foto KTP dan selfie disimpan di disk private.
-6. FK ke `users` dan `mobils` dari `rentals`: `restrictOnDelete` (riwayat tidak boleh hilang). `mobils` memakai soft delete.
-7. Perubahan `rentals.status` hanya lewat `Rental::transitionTo()` yang menulis `booking_histories`.
+4. Nama tabel mengikuti rancangan: tunggal dan huruf kecil (`account`, `car`, `car_photo`, `rental`, `add_on`, `payment`, `qris`, `cash`, `booking_history`). PK juga mengikuti rancangan (`account_id`, `car_id`, `photo_id`, `rental_id`, `payment_id`, `history_id`), bukan `id`.
+5. `rental.customer_nik` memakai cast `encrypted`. Foto KTP dan selfie disimpan di disk private.
+6. FK ke `account` dan `car` dari `rental`: `restrictOnDelete` (riwayat tidak boleh hilang). `car` memakai soft delete.
+7. Perubahan `rental.status` hanya lewat `Rental::transitionTo()` yang menulis `booking_history`.
 8. Setiap FK dan kolom yang dipakai untuk pencarian/filter harus ber-index (lihat tiap tabel).
 
 ---
@@ -27,13 +27,13 @@ Acuan skema database untuk AI agent. Baca dokumen ini setiap kali pekerjaan meny
 
 | Enum | Kolom | Nilai |
 |---|---|---|
-| `Role` | `users.role` | `admin`, `user` |
-| `MobilStatus` | `mobils.status` | `Tersedia`, `Disewa`, `Perbaikan`, `Nonaktif` |
-| `RentalStatus` | `rentals.status`, `booking_histories.status` | `Menunggu Pembayaran`, `Menunggu Verifikasi`, `Pembayaran Berhasil`, `Berjalan`, `Terlambat`, `Selesai`, `Dibatalkan` |
-| `PaymentStatus` | `payments.status` | `Menunggu Pembayaran`, `Menunggu Konfirmasi`, `Berhasil`, `Gagal`, `Kadaluarsa` |
-| `PaymentMethod` | `payments.method` | `QRIS`, `Tunai` |
-| `PaymentType` | `payments.type` | `Sewa`, `Denda` |
-| `Handoverd` | Metho`rental_add_ons.handover_method` | `Diantar`, `Ambil di garasi` |
+| `Role` | `account.role` | `admin`, `user` |
+| `CarStatus` | `car.status` | `Tersedia`, `Disewa`, `Perbaikan`, `Nonaktif` |
+| `RentalStatus` | `rental.status`, `booking_history.status` | `Menunggu Pembayaran`, `Menunggu Verifikasi`, `Pembayaran Berhasil`, `Berjalan`, `Terlambat`, `Selesai`, `Dibatalkan` |
+| `PaymentStatus` | `payment.status` | `Menunggu Pembayaran`, `Menunggu Konfirmasi`, `Berhasil`, `Gagal`, `Kadaluarsa` |
+| `PaymentMethod` | `payment.method` | `QRIS`, `Tunai` |
+| `PaymentType` | `payment.type` | `Sewa`, `Denda` |
+| `HandoverMethod` | `add_on.handover_method` | `Diantar`, `Ambil di garasi` |
 
 Ejaan baku `Kadaluarsa` (bukan Kedaluwarsa).
 
@@ -42,30 +42,30 @@ Ejaan baku `Kadaluarsa` (bukan Kedaluwarsa).
 ## 3. Relasi
 
 ```text
-users      1───* rentals       *───1 mobils
-mobils     1───* mobil_fotos
-rentals    1───1 rental_add_ons
-rentals    1───* payments
-payments   1───0..1 qris_payments    (method = QRIS,  type = Sewa)
-payments   1───0..1 cash_payments    (method = Tunai, type = Sewa)
-rentals    1───* booking_histories
-payments   *───0..1 users            (confirmed_by)
-booking_histories *───0..1 users     (changed_by)
+account         1───* rental       *───1 car
+car             1───* car_photo
+rental          1───1 add_on
+rental          1───* payment
+payment         1───0..1 qris      (method = QRIS,  type = Sewa)
+payment         1───0..1 cash      (method = Tunai, type = Sewa)
+rental          1───* booking_history
+payment         *───0..1 account   (confirmed_by)
+booking_history *───0..1 account   (changed_by)
 ```
 
 - Satu rental boleh punya banyak payment (percobaan ulang QRIS, pembayaran denda), tetapi hanya satu payment `Sewa` aktif (`Menunggu Pembayaran` / `Menunggu Konfirmasi`) pada satu waktu.
-- `qris_payments` dan `cash_payments` saling eksklusif untuk satu payment.
-- Payment `type = Denda` tidak punya baris di `qris_payments` maupun `cash_payments`.
+- `qris` dan `cash` saling eksklusif untuk satu payment.
+- Payment `type = Denda` tidak punya baris di `qris` maupun `cash`.
 
 ---
 
 ## 4. Tabel yang Sudah Ada
 
-### users
+### account
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| id | bigint PK | |
+| account_id | bigint PK | |
 | name | varchar | Nama lengkap |
 | email | varchar, unique | |
 | password | varchar(255) | Hash, cast `hashed` |
@@ -75,15 +75,15 @@ booking_histories *───0..1 users     (changed_by)
 | photo_profil | varchar(255), null | **Perubahan** |
 | timestamps | | |
 
-**Jangan** menambah kolom `nik`, `ktp_path`, `selfie_path`, `verification_status`, `rejection_note` ke `users`. Data identitas hanya di `rentals`.
+**Jangan** menambah kolom `nik`, `ktp_path`, `selfie_path`, `verification_status`, `rejection_note` ke `account`. Data identitas hanya di `rental`.
 
 Login memakai satu input yang dicocokkan ke `email`, `no_hp`, atau `username`.
 
-### mobils
+### car
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| id | bigint PK | |
+| car_id | bigint PK | |
 | kode_mobil | varchar | |
 | merk | varchar | Merek (menggantikan tabel brand) |
 | nama_mobil | varchar | Model/nama |
@@ -97,39 +97,39 @@ Login memakai satu input yang dicocokkan ke `email`, `no_hp`, atau `username`.
 
 Index tambahan yang disarankan: `(merk)`, `(jenis)`, `(status)`.
 
-### mobil_fotos
+### car_photo
 
 | Kolom | Tipe | Keterangan |
 |---|---|---|
-| id | bigint PK | |
-| mobil_id | FK mobils, cascade on delete | |
+| photo_id | bigint PK | |
+| car_id | FK car.car_id, cascade on delete | |
 | path_foto | varchar | Disk `public` |
 | is_utama | boolean | Foto utama katalog |
 | timestamps | | |
 
-Tidak ada perubahan skema.
+Nama tabel dan PK mengikuti rancangan (`car_photo`, `photo_id`).
 
 ---
 
 ## 5. Tabel Baru
 
-### rentals
+### rental
 
 | Kolom | Tipe | Null | Keterangan |
 |---|---|---|---|
-| id | bigint PK | | |
+| rental_id | bigint PK | | |
 | trx_code | varchar(20) | tidak | **unique**. Format `TRX-…` |
 | booking_code | varchar(20) | ya | **unique**. Format `BK-XXXXXX`, diisi saat konfirmasi pembayaran |
 | invoice_number | varchar(30) | ya | **unique**. Format `INV-…` |
 | invoice_issued_at | timestamp | ya | |
-| user_id | FK users | tidak | restrictOnDelete |
-| mobil_id | FK mobils | tidak | restrictOnDelete |
+| account_id | FK account.account_id | tidak | restrictOnDelete |
+| car_id | FK car.car_id | tidak | restrictOnDelete |
 | start_date | datetime | tidak | Tanggal mulai pukul 00:00:00 |
 | end_date | datetime | tidak | Tanggal selesai pukul 23:59:59 |
 | duration | smallint unsigned | tidak | Jumlah hari kalender inklusif |
-| price_per_day | unsignedInteger | tidak | Snapshot `mobils.harga_sewa` |
+| price_per_day | unsignedInteger | tidak | Snapshot `car.harga_sewa` |
 | subtotal | unsignedInteger | tidak | `price_per_day × duration` |
-| total_rental | unsignedInteger | tidak | `subtotal + rental_add_ons.driver_fee` |
+| total_rental | unsignedInteger | tidak | `subtotal + add_on.driver_fee` |
 | late_fee | unsignedInteger | tidak | Default 0. Denda, di luar `total_rental` |
 | self_driver | boolean | tidak | `1` lepas kunci, `0` dengan sopir |
 | customer_name | varchar(100) | tidak | |
@@ -145,13 +145,13 @@ Tidak ada perubahan skema.
 | cancel_reason | varchar(255) | ya | Wajib saat admin membatalkan |
 | timestamps | | | |
 
-Index: `(mobil_id, start_date, end_date)`, `(user_id, status)`, `(status)`.
+Index: `(car_id, start_date, end_date)`, `(account_id, status)`, `(status)`.
 
-### rental_add_ons
+### add_on
 
 | Kolom | Tipe | Null | Keterangan |
 |---|---|---|---|
-| rental_id | PK + FK rentals | tidak | cascadeOnDelete. Relasi 1:1 |
+| rental_id | PK + FK rental | tidak | cascadeOnDelete. Relasi 1:1 |
 | handover_method | varchar(20) | ya | `Diantar` / `Ambil di garasi`. Null bila dengan sopir |
 | pickup_point | varchar(255) | ya | Alamat antar/jemput. Null bila `Ambil di garasi` |
 | driver_fee | unsignedInteger | tidak | Default 0. `0` bila lepas kunci |
@@ -161,51 +161,51 @@ Index: `(mobil_id, start_date, end_date)`, `(user_id, status)`, `(status)`.
 
 Satu baris dibuat untuk **setiap** rental.
 
-### payments
+### payment
 
 | Kolom | Tipe | Null | Keterangan |
 |---|---|---|---|
-| id | bigint PK | | |
-| rental_id | FK rentals | tidak | restrictOnDelete |
+| payment_id | bigint PK | | |
+| rental_id | FK rental.rental_id | tidak | restrictOnDelete |
 | type | varchar(10) | tidak | Default `Sewa` |
 | method | varchar(10) | tidak | `QRIS` / `Tunai` |
 | amount | unsignedInteger | tidak | Rupiah. Sewa = `total_rental`. Denda = `late_fee` |
 | status | varchar(30) | tidak | Default `Menunggu Pembayaran` |
 | expires_at | datetime | ya | QRIS = dibuat + 10 menit. Tunai = dibuat + 3 jam. Denda = null |
 | paid_at | datetime | ya | Waktu pembayaran |
-| confirmed_by | FK users | ya | nullOnDelete. Admin yang mengonfirmasi |
+| confirmed_by | FK account.account_id | ya | nullOnDelete. Admin yang mengonfirmasi |
 | confirmed_at | datetime | ya | |
 | timestamps | | | |
 
 Index: `(rental_id, status)`, `(status, expires_at)`.
 
-### qris_payments
+### qris
 
 | Kolom | Tipe | Null | Keterangan |
 |---|---|---|---|
-| payment_id | PK + FK payments | tidak | cascadeOnDelete |
+| payment_id | PK + FK payment.payment_id | tidak | cascadeOnDelete |
 | qr_ref | varchar(100) | tidak | **unique**. Referensi gateway, kunci idempotensi webhook |
 | qr_code | text | tidak | Payload/link QR |
 | raw_payload | json | ya | Respons terakhir gateway |
 | timestamps | | | |
 
-### cash_payments
+### cash
 
 | Kolom | Tipe | Null | Keterangan |
 |---|---|---|---|
-| payment_id | PK + FK payments | tidak | cascadeOnDelete |
+| payment_id | PK + FK payment.payment_id | tidak | cascadeOnDelete |
 | payment_code | varchar(50) | tidak | **unique**. Format `TNI-XXXX-XXXX` |
 | timestamps | | | |
 
-### booking_histories
+### booking_history
 
 | Kolom | Tipe | Null | Keterangan |
 |---|---|---|---|
-| id | bigint PK | | |
-| rental_id | FK rentals | tidak | restrictOnDelete |
+| history_id | bigint PK | | |
+| rental_id | FK rental.rental_id | tidak | restrictOnDelete |
 | sequence_no | smallint unsigned | tidak | Mulai 1, naik per perubahan status |
 | status | varchar(30) | tidak | Nilai `RentalStatus` |
-| changed_by | FK users | ya | nullOnDelete. Null bila diubah sistem/scheduler |
+| changed_by | FK account.account_id | ya | nullOnDelete. Null bila diubah sistem/scheduler |
 | note | varchar(255) | ya | |
 | changed_at | timestamp | tidak | Default sekarang |
 
@@ -215,20 +215,20 @@ Unique: `(rental_id, sequence_no)`. `sequence_no` diisi `max + 1` di dalam trans
 
 ## 6. Urutan Migration
 
-Tabel transaksi punya FK, urutannya tidak boleh dibalik.
+Tabel transaksi punya FK, urutannya tidak boleh dibalik. Implementasi sudah memakai nama tabel dan PK di atas; untuk instalasi baru jalankan `php artisan migrate:fresh --seed`. Tabel `brand` dan `car_type` tidak dibuat; `car.merk` dan `car.jenis` tetap berupa kolom string.
 
 | No | Isi | Jenis |
 |---|---|---|
-| 1 | `users`: tambah `no_hp` (unique), `username` (unique), `photo_profil` | Ubah tabel |
-| 2 | `mobils`: `status` → string(20), petakan `Perawatan` → `Perbaikan`, tambah `deleted_at` | Ubah tabel |
-| 3 | `rentals` | Baru |
-| 4 | `rental_add_ons` | Baru |
-| 5 | `payments` | Baru |
-| 6 | `qris_payments` | Baru |
-| 7 | `cash_payments` | Baru |
-| 8 | `booking_histories` | Baru |
+| 1 | `account`: tambah `no_hp` (unique), `username` (unique), `photo_profil` | Ubah tabel |
+| 2 | `car`: `status` → string(20), petakan `Perawatan` → `Perbaikan`, tambah `deleted_at` | Ubah tabel |
+| 3 | `rental` | Baru |
+| 4 | `add_on` | Baru |
+| 5 | `payment` | Baru |
+| 6 | `qris` | Baru |
+| 7 | `cash` | Baru |
+| 8 | `booking_history` | Baru |
 
-Jangan membuat migration untuk kolom verifikasi di `users` (lihat bagian 4).
+Jangan membuat migration untuk kolom verifikasi di `account` (lihat bagian 4).
 
 ---
 
@@ -236,11 +236,11 @@ Jangan membuat migration untuk kolom verifikasi di `users` (lihat bagian 4).
 
 | Key | Dipakai untuk |
 |---|---|
-| `rental.driver_fee_per_day` | `rental_add_ons.driver_fee = nilai × duration` bila dengan sopir |
+| `rental.driver_fee_per_day` | `add_on.driver_fee = nilai × duration` bila dengan sopir |
 | `rental.contact_phone` | Kontak admin di invoice bila tanpa sopir |
-| `rental.pending_ttl_minutes` (30) | `rentals.expires_at` saat rental dibuat |
-| `rental.qris_ttl_minutes` (10) | `payments.expires_at` QRIS |
-| `rental.cash_ttl_hours` (3) | `payments.expires_at` tunai |
+| `rental.pending_ttl_minutes` (30) | `rental.expires_at` saat rental dibuat |
+| `rental.qris_ttl_minutes` (10) | `payment.expires_at` QRIS |
+| `rental.cash_ttl_hours` (3) | `payment.expires_at` tunai |
 
 ---
 

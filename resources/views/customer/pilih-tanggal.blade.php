@@ -5,13 +5,13 @@
 @section('content')
     @php
         $mobil = $mobil ?? null;
-        $fotoMobil = $mobil?->fotoUtama?->path_foto;
+        $fotoCar = $mobil?->fotoUtama?->path_foto;
     @endphp
 
     <nav class="navbar bg-white py-3 border-bottom">
         <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
-            <a id="btn-kembali" href="{{ route('customer.detail-mobil', $mobil?->id) }}"
-                aria-label="Kembali ke Detail Mobil"
+            <a id="btn-kembali" href="{{ route('customer.detail-mobil', $mobil?->car_id) }}"
+                aria-label="Kembali ke Detail Car"
                 class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1"
                 style="width: 40px; height: 40px; color: #0b1d33;">&lsaquo;</a>
             <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Pilih Tanggal</h2>
@@ -32,8 +32,8 @@
         <section class="card rounded-4 border p-3 px-3 mt-3 shadow-sm bg-white">
             <div class="d-flex align-items-center gap-3">
                 <img id="img-mobil"
-                    src="{{ $fotoMobil ? asset('storage/'.$fotoMobil) : asset('img/foto-mobil-kecil.png') }}"
-                    alt="Mobil" class="rounded-3 img-fluid object-fit-cover" style="width: 100px; height: 70px;" />
+                    src="{{ $fotoCar ? asset('storage/'.$fotoCar) : asset('img/foto-mobil-kecil.png') }}"
+                    alt="Car" class="rounded-3 img-fluid object-fit-cover" style="width: 100px; height: 70px;" />
                 <div>
                     <h6 id="nama-mobil" class="fw-bold mb-1 text-dark">
                         {{ $mobil ? $mobil->merk.' '.$mobil->nama_mobil : '-' }}</h6>
@@ -47,7 +47,7 @@
         </section>
 
         <form id="form-lanjut" action="{{ route('customer.ketersediaan-mobil') }}" method="get">
-            <input type="hidden" name="id" value="{{ $mobil?->id ?? '' }}">
+            <input type="hidden" name="id" value="{{ $mobil?->car_id ?? '' }}">
 
         <section class="row g-2 px-3" aria-label="Tanggal sewa">
             <div class="col-6">
@@ -92,7 +92,7 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content rounded-4 border-0">
                     <div class="modal-header border-0 pb-0">
-                        <h5 class="modal-title fw-bold" id="modalTidakTersediaLabel">Mobil Tidak Tersedia</h5>
+                        <h5 class="modal-title fw-bold" id="modalTidakTersediaLabel">Car Tidak Tersedia</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body pt-2">
@@ -110,7 +110,7 @@
                         <a href="{{ route('customer.katalog') }}"
                             class="btn btn-outline-dark py-3 rounded-1 fw-bold"
                             style="border-color: #0b1d33; color: #0b1d33;">
-                            Ganti Mobil
+                            Ganti Car
                         </a>
                     </div>
                 </div>

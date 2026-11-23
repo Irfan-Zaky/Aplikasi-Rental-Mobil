@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -33,13 +33,13 @@ class CustomerProfileUpdateRequest extends FormRequest
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
+                Rule::unique(Account::class)->ignore($this->user()->account_id, 'account_id'),
             ],
             'no_hp' => [
                 'required',
                 'string',
                 'max:15',
-                Rule::unique(User::class, 'no_hp')->ignore($this->user()->id),
+                Rule::unique(Account::class, 'no_hp')->ignore($this->user()->account_id, 'account_id'),
             ],
             'password' => ['nullable', 'string', Password::defaults(), 'confirmed'],
             'photo_profil' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
