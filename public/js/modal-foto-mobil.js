@@ -37,6 +37,7 @@
         var inputFotoUtama = document.getElementById('foto-utama');
         var inputFotoUtamaLama = document.getElementById('foto-utama-lama');
         var wadahFotoLama = document.getElementById('foto-lama-container');
+        var formTarget = opsi.formId ? document.getElementById(opsi.formId) : null;
 
         var modal = new global.bootstrap.Modal(elemenModal);
         var daftarFoto = [];
@@ -258,6 +259,10 @@
                 }
 
                 modal.hide();
+
+                if (formTarget && typeof formTarget.requestSubmit === 'function') {
+                    formTarget.requestSubmit();
+                }
             });
         }
 

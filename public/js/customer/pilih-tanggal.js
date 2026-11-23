@@ -5,6 +5,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputMulai = document.getElementById('tanggal-mulai');
     const inputSelesai = document.getElementById('tanggal-selesai');
 
+    const modalTidakTersedia = document.getElementById('modalTidakTersedia');
+
+    if (modalTidakTersedia && typeof bootstrap !== 'undefined') {
+        const modal = new bootstrap.Modal(modalTidakTersedia);
+        modal.show();
+
+        const btnGantiTanggalModal = document.getElementById('btn-ganti-tanggal-modal');
+
+        if (btnGantiTanggalModal && inputMulai) {
+            btnGantiTanggalModal.addEventListener('click', function () {
+                inputMulai.focus();
+            });
+        }
+    }
+
     if (!inputMulai || !inputSelesai) {
         return;
     }

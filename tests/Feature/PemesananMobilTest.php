@@ -156,11 +156,15 @@ class PemesananMobilTest extends TestCase
             'end_date' => now()->addDays(2),
         ]);
 
-        $this->actingAs($customer)->get(route('customer.ketersediaan-mobil', [
+        $query = [
             'id' => $mobil->id,
             'tanggal-mulai' => $mulai,
             'tanggal-selesai' => $selesai,
-        ]))->assertSessionHasErrors('tanggal-mulai');
+        ];
+
+        $this->actingAs($customer)->get(route('customer.ketersediaan-mobil', $query))
+            ->assertRedirect(route('customer.pilih-tanggal', $query))
+            ->assertSessionHas('modal_tidak_tersedia');
     }
 
     public function test_pembayaran_yang_sudah_kedaluwarsa_tidak_memblokir_tanggal(): void

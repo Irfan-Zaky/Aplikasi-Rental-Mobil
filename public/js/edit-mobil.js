@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const modalFoto = window.ModalFotoMobil.buat({
+        formId: 'form-edit',
         onSimpan: function (fotoUtama) {
             if (fotoUtama && gambarMobil) {
                 gambarMobil.src = fotoUtama.src;

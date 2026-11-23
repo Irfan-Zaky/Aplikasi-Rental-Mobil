@@ -146,6 +146,23 @@ class MobilFlowTest extends TestCase
         $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoKedua->id, 'is_utama' => true]);
     }
 
+    public function test_edit_mobil_tanpa_foto_utama_lama_tetap_mempertahankan_foto_utama(): void
+    {
+        $this->authenticateAsAdmin();
+
+        $mobil = Mobil::factory()->create();
+        $fotoPertama = FotoMobil::factory()->for($mobil)->create(['is_utama' => false]);
+        $fotoFavorit = FotoMobil::factory()->for($mobil)->create(['is_utama' => true]);
+
+        $response = $this->put(route('admin.data-mobil.update', $mobil), $this->payloadMobil($mobil) + [
+            'foto_lama' => [$fotoPertama->id, $fotoFavorit->id],
+        ]);
+
+        $response->assertRedirect('/admin/data-mobil');
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoPertama->id, 'is_utama' => false]);
+        $this->assertDatabaseHas('mobil_fotos', ['id' => $fotoFavorit->id, 'is_utama' => true]);
+    }
+
     public function test_edit_mobil_menyimpan_foto_lama_sebagai_utama_saat_foto_baru_diunggah(): void
     {
         $this->authenticateAsAdmin();

@@ -61,6 +61,7 @@ class PemesananController extends Controller
             'tanggalSelesai' => $tanggalSelesai,
             'durasi' => $durasi,
             'estimasiBiaya' => $estimasiBiaya,
+            'modalTidakTersedia' => session()->pull('modal_tidak_tersedia'),
         ]);
     }
 
@@ -81,7 +82,15 @@ class PemesananController extends Controller
         $durasi = $this->hitungDurasi($start, $end);
 
         if (! $this->mobilTersedia($mobil, $start, $end)) {
-            return back()->withErrors(['tanggal-mulai' => 'Mobil tidak tersedia pada tanggal yang dipilih.']);
+            return redirect()->route('customer.pilih-tanggal', [
+                'id' => $mobil->id,
+                'tanggal-mulai' => $validated['tanggal-mulai'],
+                'tanggal-selesai' => $validated['tanggal-selesai'],
+            ])->with('modal_tidak_tersedia', [
+                'nama_mobil' => $mobil->merk.' '.$mobil->nama_mobil,
+                'tanggal_mulai' => $start->format('d M Y'),
+                'tanggal_selesai' => $end->format('d M Y'),
+            ]);
         }
 
         $this->simpanDraft([

@@ -130,6 +130,7 @@ class MobilController extends Controller
                 || array_key_exists('fotos', $validated);
 
             if ($adaPerubahanFoto) {
+                $fotoUtamaSebelumnyaId = $mobil->fotoUtama?->id;
                 $fotoLamaDiminta = array_key_exists('foto_lama', $validated);
                 $fotoLamaIds = collect($validated['foto_lama'] ?? [])
                     ->filter(fn (mixed $id): bool => filled($id))
@@ -146,21 +147,22 @@ class MobilController extends Controller
 
                 $fotoUtamaLamaId = isset($validated['foto_utama_lama']) ? (int) $validated['foto_utama_lama'] : null;
                 $utamaLamaDipilih = $fotoUtamaLamaId !== null && $fotoLama->contains('id', $fotoUtamaLamaId);
+                $indeksUtamaBaru = $utamaLamaDipilih || $fotoBaru === []
+                    ? -1
+                    : $this->indeksFotoUtama($validated['foto_utama'] ?? null, count($fotoBaru));
 
                 $fotoLama->each(function (FotoMobil $foto) use ($fotoUtamaLamaId, $utamaLamaDipilih): void {
                     $foto->update(['is_utama' => $utamaLamaDipilih && $foto->id === $fotoUtamaLamaId]);
                 });
 
-                $this->simpanFoto(
-                    $mobil,
-                    $fotoBaru,
-                    $utamaLamaDipilih || $fotoBaru === []
-                        ? -1
-                        : $this->indeksFotoUtama($validated['foto_utama'] ?? null, count($fotoBaru)),
-                );
+                $this->simpanFoto($mobil, $fotoBaru, $indeksUtamaBaru);
 
-                if (! $utamaLamaDipilih && $fotoBaru === [] && $fotoLama->isNotEmpty()) {
-                    $fotoLama->first()->update(['is_utama' => true]);
+                $adaUtamaBaru = $fotoBaru !== [] && $indeksUtamaBaru >= 0;
+
+                if (! $utamaLamaDipilih && ! $adaUtamaBaru && $fotoLama->isNotEmpty()) {
+                    $fotoUtamaFallback = $fotoLama->firstWhere('id', $fotoUtamaSebelumnyaId) ?? $fotoLama->first();
+
+                    $fotoUtamaFallback->update(['is_utama' => true]);
                 }
             }
 
