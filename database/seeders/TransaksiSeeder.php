@@ -17,7 +17,9 @@ use App\Models\RentalAddOn;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class TransaksiSeeder extends Seeder
@@ -27,6 +29,8 @@ class TransaksiSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->pastikanFileDokumenDemo();
+
         // 1. Ambil atau buat Admin
         $admin = User::firstOrCreate(
             ['email' => 'octaimub@gmail.com'],
@@ -928,6 +932,25 @@ class TransaksiSeeder extends Seeder
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Pastikan file dokumen contoh tersedia di disk private.
+     */
+    protected function pastikanFileDokumenDemo(): void
+    {
+        $dokumen = [
+            'verifikasi/ktp/ktp_demo.jpg' => 'img_admin/detail-transaksi/Identity document.png',
+            'verifikasi/selfie/selfie_demo.jpg' => 'img_admin/detail-transaksi/Selfie document.png',
+        ];
+
+        $disk = Storage::disk('local');
+
+        foreach ($dokumen as $path => $sumber) {
+            if (! $disk->exists($path)) {
+                $disk->put($path, File::get(public_path($sumber)));
+            }
+        }
     }
 
     /**

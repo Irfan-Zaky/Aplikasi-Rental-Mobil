@@ -80,6 +80,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/admin/transaksi', [AdminController::class, 'transaksi'])->name('admin.transaksi');
     Route::get('/admin/transaksi/{rental}', [AdminController::class, 'showTransaksi'])->name('admin.transaksi.show');
+    Route::get('/admin/transaksi/{rental}/dokumen/{jenis}', [AdminController::class, 'dokumen'])
+        ->whereIn('jenis', ['ktp', 'selfie'])
+        ->name('admin.transaksi.dokumen');
 
     Route::get('/admin/riwayat-transaksi', [AdminController::class, 'riwayatTransaksi'])->name('admin.riwayat-transaksi');
     Route::get('/admin/riwayat-transaksi/{rental}', [AdminController::class, 'showRiwayatTransaksi'])->name('admin.riwayat-transaksi.show');

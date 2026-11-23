@@ -125,10 +125,10 @@
                 </div>
                 <div class="document-images-container d-flex align-items-center mb-3 gap-3">
                     <div class="doc-box">
-                        <img src="{{ asset('img_admin/detail-transaksi/Identity document.png') }}" alt="Foto KTP" />
+                        <img src="{{ route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'ktp']) }}" alt="Foto KTP" />
                     </div>
                     <div class="doc-box">
-                        <img src="{{ asset('img_admin/detail-transaksi/Selfie document.png') }}" alt="Foto Selfie KTP" />
+                        <img src="{{ route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'selfie']) }}" alt="Foto Selfie KTP" />
                     </div>
                 </div>
             </div>

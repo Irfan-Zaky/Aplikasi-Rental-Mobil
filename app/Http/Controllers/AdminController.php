@@ -10,7 +10,9 @@ use App\Models\Mobil;
 use App\Models\Payment;
 use App\Models\Rental;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AdminController extends Controller
 {
@@ -140,6 +142,24 @@ class AdminController extends Controller
         return view('detail-transaksi', [
             'transaksi' => $transaksiObj,
             'rental' => $rental,
+        ]);
+    }
+
+    /**
+     * Stream a private verification document for an admin (F006).
+     */
+    public function dokumen(Rental $rental, string $jenis): BinaryFileResponse
+    {
+        $path = $jenis === 'ktp'
+            ? $rental->customer_ktp_photo
+            : $rental->customer_selfie_photo;
+
+        $disk = Storage::disk('local');
+
+        abort_unless(filled($path) && $disk->exists($path), 404);
+
+        return response()->file($disk->path($path), [
+            'Content-Type' => $disk->mimeType($path) ?: 'application/octet-stream',
         ]);
     }
 

@@ -12,6 +12,7 @@ use App\Models\RentalAddOn;
 use App\Models\User;
 use Database\Seeders\TransaksiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class TransaksiFilterDanRiwayatTest extends TestCase
@@ -32,6 +33,8 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
     public function test_transaksi_seeder_berhasil_dijalankan(): void
     {
+        Storage::fake('local');
+
         $this->seed(TransaksiSeeder::class);
 
         $this->assertDatabaseHas('users', ['email' => 'octaimub@gmail.com', 'role' => 'admin']);
@@ -40,6 +43,8 @@ class TransaksiFilterDanRiwayatTest extends TestCase
         $this->assertDatabaseHas('rentals', ['status' => RentalStatus::Berjalan->value]);
         $this->assertDatabaseHas('rentals', ['status' => RentalStatus::Selesai->value]);
         $this->assertDatabaseHas('rentals', ['status' => RentalStatus::Dibatalkan->value]);
+        Storage::disk('local')->assertExists('verifikasi/ktp/ktp_demo.jpg');
+        Storage::disk('local')->assertExists('verifikasi/selfie/selfie_demo.jpg');
     }
 
     public function test_admin_transaksi_hanya_menampilkan_transaksi_belum_selesai(): void
