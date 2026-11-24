@@ -33,11 +33,12 @@ Satu model `Account` (tabel `account`), pembeda hanya `role`.
 | `Pembayaran Berhasil` | `Berjalan` | `start_date` tiba | Scheduler |
 | `Berjalan` | `Terlambat` | Lewat `end_date` dan belum dikembalikan | Scheduler |
 | `Berjalan` / `Terlambat` | `Selesai` | Admin menekan Selesaikan Transaksi | Admin |
-| `Menunggu Pembayaran` / `Menunggu Verifikasi` | `Dibatalkan` | Melewati `expires_at` | Scheduler |
+| `Menunggu Pembayaran` / `Menunggu Verifikasi` | `Dibatalkan` | Payment `Sewa` masih `Menunggu Pembayaran` dan melewati `payment.expires_at`; payment `Menunggu Konfirmasi` / `Berhasil` tidak dibatalkan otomatis | Scheduler |
 | `Menunggu Pembayaran` / `Menunggu Verifikasi` / `Pembayaran Berhasil` | `Dibatalkan` | Admin menekan Batalkan Pesanan (alasan wajib) | Admin |
 
 - Perubahan status **hanya** lewat satu method terpusat (`Rental::transitionTo()`) yang juga menulis `booking_history`.
 - Transisi di luar tabel ini **ditolak**.
+- Auto-cancel hanya untuk payment yang benar-benar belum dibayar. Payment `Menunggu Konfirmasi` atau `Berhasil` tidak dibatalkan otomatis meskipun `expires_at` terlewat; pembayaran yang sudah masuk menunggu konfirmasi admin.
 
 ### 2.2 Status pembayaran (`payment.status`)
 
@@ -100,7 +101,7 @@ Wajib dalam satu `DB::transaction`:
 
 1. `lockForUpdate()` pada baris mobil.
 2. Validasi ulang ketersediaan (3.1) di dalam transaksi.
-3. Buat rental: status `Menunggu Pembayaran`, `expires_at = now + 30 menit`, `trx_code`.
+3. Buat rental: status `Menunggu Pembayaran`, `expires_at = now + 30 menit` (berlaku sampai metode bayar dipilih, lalu disamakan dengan `payment.expires_at`), `trx_code`.
 4. Buat `add_on`.
 5. Tulis `booking_history` urutan 1.
 
@@ -112,8 +113,9 @@ Wajib dalam satu `DB::transaction`:
 | Detail | baris `qris` | baris `cash` (`payment_code` format `TNI-XXXX-XXXX`) |
 | Sukses | Webhook → payment `Menunggu Konfirmasi`, rental `Menunggu Verifikasi` | Admin memasukkan kode valid → payment `Menunggu Konfirmasi`, rental `Menunggu Verifikasi` |
 | Gagal | Webhook gagal → payment `Gagal`; customer boleh membuat payment baru selama rental belum `Dibatalkan` | — |
-| Kedaluwarsa | payment `Kadaluarsa`, rental `Dibatalkan` | payment `Kadaluarsa`, rental `Dibatalkan`, kode tidak bisa dipakai lagi |
+| Kedaluwarsa | Payment masih `Menunggu Pembayaran` saat `expires_at` lewat → `Kadaluarsa`, rental `Dibatalkan`. Bila sudah `Menunggu Konfirmasi`, tetap menunggu admin | Sama; kode tidak bisa dipakai lagi setelah payment `Kadaluarsa` |
 
+- Saat payment `Sewa` dibuat, `rental.expires_at` ikut disamakan dengan `payment.expires_at` dalam transaksi yang sama, supaya aturan pemblokir tanggal (3.1) dan auto-cancel (3.6) memakai batas waktu yang sama.
 - Satu rental hanya boleh punya **satu payment `Sewa` aktif** (`Menunggu Pembayaran` / `Menunggu Konfirmasi`) pada satu waktu.
 - `amount` = `total_rental`.
 - Webhook: `POST /webhooks/qris`, di luar CSRF, wajib verifikasi signature, **idempoten** berdasarkan `qris.qr_ref`. Penyedia gateway belum ditentukan. Untuk demo boleh memakai simulasi yang memanggil logika yang sama.
@@ -133,7 +135,7 @@ Semua kode unik. Invoice dibuat dari data rental (halaman/PDF), bukan tabel send
 
 | Perintah | Jadwal | Tugas |
 |---|---|---|
-| `rentals:expire` | tiap menit | Batalkan rental yang lewat `expires_at` dan tandai payment aktif yang lewat `expires_at` sebagai `Kadaluarsa`. |
+| `rentals:expire` | tiap menit | Batalkan rental `Menunggu Pembayaran`/`Menunggu Verifikasi` yang punya payment `Sewa` masih `Menunggu Pembayaran` dengan `payment.expires_at <= now()`; payment itu → `Kadaluarsa`. Payment `Menunggu Konfirmasi`/`Berhasil` dilewati. |
 | `rentals:tick` | tiap menit | `Pembayaran Berhasil` → `Berjalan` (mobil → `Disewa`) saat `start_date` tiba. `Berjalan` → `Terlambat` saat lewat `end_date`. |
 | `mobils:purge-inactive` | harian | Soft delete mobil `Nonaktif` yang tidak lagi punya rental pemblokir. |
 

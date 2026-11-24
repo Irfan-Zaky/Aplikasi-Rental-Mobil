@@ -219,6 +219,8 @@ class PemesananCarTest extends TestCase
             ->and($payment->expires_at->toDateTimeString())->toBe('2026-11-24 10:10:00')
             ->and($payment->qris)->not->toBeNull();
 
+        expect($rental->fresh()->expires_at->toDateTimeString())->toBe('2026-11-24 10:10:00');
+
         $this->assertDatabaseCount('payment', 1);
     }
 
@@ -244,6 +246,8 @@ class PemesananCarTest extends TestCase
         expect($payment->method)->toBe(PaymentMethod::Tunai)
             ->and($payment->expires_at->toDateTimeString())->toBe('2026-11-24 13:00:00')
             ->and($payment->cash->payment_code)->toMatch('/^TNI-\d{4}-\d{4}$/');
+
+        expect($rental->fresh()->expires_at->toDateTimeString())->toBe('2026-11-24 13:00:00');
 
         $this->get(route('customer.pembayaran-tunai'))->assertOk();
         $this->assertDatabaseCount('payment', 1);

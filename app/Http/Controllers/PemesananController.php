@@ -446,6 +446,8 @@ class PemesananController extends Controller
                 ? now()->addMinutes((int) config('rental.qris_ttl_minutes'))
                 : now()->addHours((int) config('rental.cash_ttl_hours'));
 
+            $rentalTerkunci->update(['expires_at' => $expiresAt]);
+
             $payment = $rentalTerkunci->payments()->create([
                 'type' => PaymentType::Sewa,
                 'method' => $metode,

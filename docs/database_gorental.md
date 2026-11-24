@@ -238,7 +238,7 @@ Jangan membuat migration untuk kolom verifikasi di `account` (lihat bagian 4).
 |---|---|
 | `rental.driver_fee_per_day` | `add_on.driver_fee = nilai × duration` bila dengan sopir |
 | `rental.contact_phone` | Kontak admin di invoice bila tanpa sopir |
-| `rental.pending_ttl_minutes` (30) | `rental.expires_at` saat rental dibuat |
+| `rental.pending_ttl_minutes` (30) | `rental.expires_at` saat rental dibuat, sebelum metode bayar dipilih |
 | `rental.qris_ttl_minutes` (10) | `payment.expires_at` QRIS |
 | `rental.cash_ttl_hours` (3) | `payment.expires_at` tunai |
 
