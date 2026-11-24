@@ -56,6 +56,9 @@ Route::prefix('customer')->name('customer.')->group(function () {
 
         Route::get('/data-diri', [PemesananController::class, 'dataDiri'])->name('data-diri');
         Route::post('/data-diri', [PemesananController::class, 'dataDiriStore'])->name('data-diri.store');
+        Route::get('/data-diri/dokumen/{jenis}', [PemesananController::class, 'dokumenDraft'])
+            ->whereIn('jenis', ['ktp', 'sim', 'selfie'])
+            ->name('data-diri.dokumen');
 
         Route::get('/ringkasan-pemesanan', [PemesananController::class, 'ringkasan'])->name('ringkasan-pemesanan');
         Route::post('/ringkasan-pemesanan', [PemesananController::class, 'ringkasanStore'])->name('ringkasan-pemesanan.store');
@@ -89,7 +92,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/transaksi/{rental}/batalkan', [AdminController::class, 'batalkan'])
         ->name('admin.transaksi.batalkan');
     Route::get('/admin/transaksi/{rental}/dokumen/{jenis}', [AdminController::class, 'dokumen'])
-        ->whereIn('jenis', ['ktp', 'selfie'])
+        ->whereIn('jenis', ['ktp', 'sim', 'selfie'])
         ->name('admin.transaksi.dokumen');
 
     Route::get('/admin/riwayat-transaksi', [AdminController::class, 'riwayatTransaksi'])->name('admin.riwayat-transaksi');

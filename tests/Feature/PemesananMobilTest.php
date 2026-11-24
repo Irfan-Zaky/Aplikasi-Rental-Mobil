@@ -81,6 +81,7 @@ class PemesananCarTest extends TestCase
             'nomor_hp' => '081234567890',
             'nik' => '1234567890123456',
             'foto_ktp' => UploadedFile::fake()->image('ktp.jpg'),
+            'foto_sim' => UploadedFile::fake()->image('sim.jpg'),
             'swafoto' => UploadedFile::fake()->image('selfie.jpg'),
         ])->assertRedirect(route('customer.ringkasan-pemesanan'));
 
@@ -122,7 +123,9 @@ class PemesananCarTest extends TestCase
         ]);
         $this->assertGreaterThan(now(), $rental->expires_at);
         $this->assertLessThanOrEqual(now()->addMinutes(30), $rental->expires_at);
+        $this->assertStringStartsWith('verifikasi/sim/', $rental->customer_sim_photo);
         Storage::disk('local')->assertExists($rental->customer_ktp_photo);
+        Storage::disk('local')->assertExists($rental->customer_sim_photo);
         Storage::disk('local')->assertExists($rental->customer_selfie_photo);
 
         $this->get(route('customer.pilihan-pembayaran'))->assertOk()->assertSee('Rp 1.000.000');
@@ -141,7 +144,7 @@ class PemesananCarTest extends TestCase
             'nomor_hp' => '081234567890',
             'nik' => '12345',
             'foto_ktp' => UploadedFile::fake()->image('ktp.jpg'),
-        ])->assertSessionHasErrors(['nik', 'swafoto']);
+        ])->assertSessionHasErrors(['nik', 'foto_sim', 'swafoto']);
 
         $this->assertDatabaseCount('rental', 0);
     }
@@ -313,6 +316,7 @@ class PemesananCarTest extends TestCase
             'nomor_hp' => '081234567890',
             'nik' => '1234567890123456',
             'foto_ktp' => UploadedFile::fake()->image('ktp.jpg'),
+            'foto_sim' => UploadedFile::fake()->image('sim.jpg'),
             'swafoto' => UploadedFile::fake()->image('selfie.jpg'),
         ])->assertRedirect(route('customer.ringkasan-pemesanan'));
 
@@ -345,6 +349,7 @@ class PemesananCarTest extends TestCase
             'nomor_hp' => '081234567890',
             'nik' => '1234567890123456',
             'foto_ktp' => UploadedFile::fake()->image('ktp.jpg'),
+            'foto_sim' => UploadedFile::fake()->image('sim.jpg'),
             'swafoto' => UploadedFile::fake()->image('selfie.jpg'),
         ])->assertRedirect(route('customer.ringkasan-pemesanan'));
 

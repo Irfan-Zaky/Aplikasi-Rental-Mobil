@@ -941,6 +941,7 @@ class TransaksiSeeder extends Seeder
     {
         $dokumen = [
             'verifikasi/ktp/ktp_demo.jpg' => 'img_admin/detail-transaksi/Identity document.png',
+            'verifikasi/sim/sim_demo.jpg' => 'img_admin/detail-transaksi/Identity document.png',
             'verifikasi/selfie/selfie_demo.jpg' => 'img_admin/detail-transaksi/Selfie document.png',
         ];
 
@@ -979,6 +980,7 @@ class TransaksiSeeder extends Seeder
             'customer_nik' => '3201'.fake()->numerify('############'),
             'customer_phone' => $data['customer_phone'],
             'customer_ktp_photo' => 'verifikasi/ktp/ktp_demo.jpg',
+            'customer_sim_photo' => 'verifikasi/sim/sim_demo.jpg',
             'customer_selfie_photo' => 'verifikasi/selfie/selfie_demo.jpg',
             'terms_accepted_at' => Carbon::now()->subMinutes(60),
             'status' => $data['status'],

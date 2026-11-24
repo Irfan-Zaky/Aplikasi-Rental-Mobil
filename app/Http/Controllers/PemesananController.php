@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PemesananController extends Controller
 {
@@ -237,6 +238,11 @@ class PemesananController extends Controller
             'namaPenyewa' => $this->draft('customer.nama_lengkap') ?? $request->user()->name,
             'nomorHpPenyewa' => $this->draft('customer.nomor_hp') ?? $request->user()->no_hp,
             'selfDriver' => $this->draft('self_driver'),
+            'dokumenDraft' => [
+                'ktp' => $this->draft('customer.foto_ktp'),
+                'sim' => $this->draft('customer.foto_sim'),
+                'selfie' => $this->draft('customer.swafoto'),
+            ],
         ]);
     }
 
@@ -251,8 +257,12 @@ class PemesananController extends Controller
 
         $draftCustomer = $this->draft('customer', []);
 
-        foreach (['ktp', 'selfie'] as $jenis) {
-            $kunci = $jenis === 'ktp' ? 'foto_ktp' : 'swafoto';
+        foreach (['ktp', 'sim', 'selfie'] as $jenis) {
+            $kunci = match ($jenis) {
+                'ktp' => 'foto_ktp',
+                'sim' => 'foto_sim',
+                'selfie' => 'swafoto',
+            };
 
             if (! empty($draftCustomer[$kunci])) {
                 Storage::disk('local')->delete($draftCustomer[$kunci]);
@@ -267,11 +277,37 @@ class PemesananController extends Controller
                 'nomor_hp' => $validated['nomor_hp'],
                 'nik' => Crypt::encryptString($validated['nik']),
                 'foto_ktp' => $request->file('foto_ktp')->store('verifikasi/ktp', 'local'),
+                'foto_sim' => $request->file('foto_sim')->store('verifikasi/sim', 'local'),
                 'swafoto' => $request->file('swafoto')->store('verifikasi/selfie', 'local'),
             ],
         ]);
 
         return redirect()->route('customer.ringkasan-pemesanan');
+    }
+
+    /**
+     * Stream a verification document from the current booking draft (C-12).
+     */
+    public function dokumenDraft(string $jenis): BinaryFileResponse
+    {
+        $kunci = match ($jenis) {
+            'ktp' => 'customer.foto_ktp',
+            'sim' => 'customer.foto_sim',
+            'selfie' => 'customer.swafoto',
+            default => abort(404),
+        };
+
+        $path = $this->draft($kunci);
+        $disk = Storage::disk('local');
+
+        abort_unless(filled($path) && $disk->exists($path), 404);
+
+        $response = response()->file($disk->path($path), [
+            'Content-Type' => $disk->mimeType($path) ?: 'application/octet-stream',
+        ]);
+        $response->headers->set('Cache-Control', 'no-store', true);
+
+        return $response;
     }
 
     /**
@@ -325,6 +361,7 @@ class PemesananController extends Controller
                 'customer_nik' => Crypt::decryptString($draft['customer']['nik']),
                 'customer_phone' => $draft['customer']['nomor_hp'],
                 'customer_ktp_photo' => $draft['customer']['foto_ktp'],
+                'customer_sim_photo' => $draft['customer']['foto_sim'],
                 'customer_selfie_photo' => $draft['customer']['swafoto'],
                 'terms_accepted_at' => $draft['terms_accepted_at'],
                 'status' => RentalStatus::MenungguPembayaran,
@@ -547,6 +584,9 @@ class PemesananController extends Controller
     {
         return $this->draft('car_id') !== null
             && $this->draft('customer.nama_lengkap') !== null
+            && $this->draft('customer.foto_ktp') !== null
+            && $this->draft('customer.foto_sim') !== null
+            && $this->draft('customer.swafoto') !== null
             && $this->draft('total_rental') !== null
             && $this->draft('terms_accepted_at') !== null;
     }

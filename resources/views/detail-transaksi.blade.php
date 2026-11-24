@@ -119,14 +119,20 @@
                     </div>
                     <div>
                         <span class="text-success d-inline-flex align-items-center gap-1 fw-bold">
-                            <img src="{{ asset('img_admin/detail-transaksi/shield-check.svg') }}" alt="" /> 2 dokumen diterima
+                            <img src="{{ asset('img_admin/detail-transaksi/shield-check.svg') }}" alt="" />
+                            {{ collect([$rental->customer_ktp_photo, $rental->customer_sim_photo, $rental->customer_selfie_photo])->filter()->count() }} dokumen diterima
                         </span>
                     </div>
                 </div>
-                <div class="document-images-container d-flex align-items-center mb-3 gap-3">
+                <div class="document-images-container d-flex align-items-center flex-wrap mb-3 gap-3">
                     <div class="doc-box">
                         <img src="{{ route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'ktp']) }}" alt="Foto KTP" />
                     </div>
+                    @if (filled($rental->customer_sim_photo))
+                        <div class="doc-box">
+                            <img src="{{ route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'sim']) }}" alt="Foto SIM" />
+                        </div>
+                    @endif
                     <div class="doc-box">
                         <img src="{{ route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'selfie']) }}" alt="Foto Selfie KTP" />
                     </div>

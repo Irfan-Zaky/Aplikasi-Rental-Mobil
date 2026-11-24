@@ -34,6 +34,7 @@ class RentalFactory extends Factory
             'customer_nik' => fake()->numerify('################'),
             'customer_phone' => fake()->numerify('08##########'),
             'customer_ktp_photo' => 'verifikasi/ktp/ktp.jpg',
+            'customer_sim_photo' => 'verifikasi/sim/sim.jpg',
             'customer_selfie_photo' => 'verifikasi/selfie/selfie.jpg',
             'terms_accepted_at' => now(),
             'status' => RentalStatus::MenungguPembayaran,

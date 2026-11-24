@@ -136,6 +136,7 @@ Nama tabel dan PK mengikuti rancangan (`car_photo`, `photo_id`).
 | customer_nik | text | tidak | Cast `encrypted`. NIK asli 16 digit |
 | customer_phone | varchar(15) | tidak | |
 | customer_ktp_photo | varchar(255) | tidak | Path disk private |
+| customer_sim_photo | varchar(255) | tidak | Path disk private. Baris lama tanpa SIM memakai string kosong |
 | customer_selfie_photo | varchar(255) | tidak | Path disk private |
 | terms_accepted_at | timestamp | ya | Waktu menyetujui syarat dan ketentuan |
 | status | varchar(30) | tidak | Default `Menunggu Pembayaran`. **Index** |
@@ -227,6 +228,7 @@ Tabel transaksi punya FK, urutannya tidak boleh dibalik. Implementasi sudah mema
 | 6 | `qris` | Baru |
 | 7 | `cash` | Baru |
 | 8 | `booking_history` | Baru |
+| 9 | `rental`: tambah `customer_sim_photo` | Ubah tabel (migration baru) |
 
 Jangan membuat migration untuk kolom verifikasi di `account` (lihat bagian 4).
 
@@ -248,3 +250,4 @@ Jangan membuat migration untuk kolom verifikasi di `account` (lihat bagian 4).
 
 - Akun admin: `role = admin`, `username` terisi, password di-hash. Tidak ada fitur pendaftaran admin.
 - Contoh mobil dan foto untuk pengembangan.
+- Contoh rental menyertakan path dokumen verifikasi KTP, SIM, dan selfie di disk private.

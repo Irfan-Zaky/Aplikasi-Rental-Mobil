@@ -27,6 +27,7 @@ class DataDiriRequest extends FormRequest
             'nomor_hp' => ['required', 'string', 'max:15'],
             'nik' => ['required', 'digits:16'],
             'foto_ktp' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'foto_sim' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'swafoto' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }

@@ -46,6 +46,7 @@ class Rental extends Model
         'customer_nik',
         'customer_phone',
         'customer_ktp_photo',
+        'customer_sim_photo',
         'customer_selfie_photo',
         'terms_accepted_at',
         'status',

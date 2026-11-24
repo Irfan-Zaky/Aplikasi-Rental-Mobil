@@ -163,9 +163,12 @@ class AdminController extends Controller
      */
     public function dokumen(Rental $rental, string $jenis): BinaryFileResponse
     {
-        $path = $jenis === 'ktp'
-            ? $rental->customer_ktp_photo
-            : $rental->customer_selfie_photo;
+        $path = match ($jenis) {
+            'ktp' => $rental->customer_ktp_photo,
+            'sim' => $rental->customer_sim_photo,
+            'selfie' => $rental->customer_selfie_photo,
+            default => null,
+        };
 
         $disk = Storage::disk('local');
 

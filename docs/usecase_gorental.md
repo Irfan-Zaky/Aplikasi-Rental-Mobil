@@ -119,6 +119,7 @@ Wajib dalam satu `DB::transaction`:
 - Satu rental hanya boleh punya **satu payment `Sewa` aktif** (`Menunggu Pembayaran` / `Menunggu Konfirmasi`) pada satu waktu.
 - `amount` = `total_rental`.
 - Webhook: `POST /webhooks/qris`, di luar CSRF, wajib verifikasi signature, **idempoten** berdasarkan `qris.qr_ref`. Penyedia gateway belum ditentukan. Untuk demo boleh memakai simulasi yang memanggil logika yang sama.
+- gunakan dokumen `AI_RULES_PAYMENT_MIDTRANS` sebagai acuan langkah pembuatan.
 
 ### 3.5 Kode
 
@@ -141,7 +142,7 @@ Semua kode unik. Invoice dibuat dari data rental (halaman/PDF), bukan tabel send
 
 ### 3.7 Keamanan data
 
-- NIK, foto KTP, dan selfie adalah data pribadi. NIK terenkripsi. KTP dan selfie di disk **private** dan hanya bisa diakses admin atau pemilik rental lewat route terproteksi.
+- NIK, foto KTP, foto SIM, dan selfie adalah data pribadi. NIK terenkripsi. KTP, SIM, dan selfie di disk **private** dan hanya bisa diakses admin atau pemilik rental lewat route terproteksi.
 - Password di-hash. Customer tidak pernah melihat password (tidak ditampilkan di profil).
 
 ---
@@ -221,7 +222,7 @@ Urutan wajib:
    - Dengan Sopir → alamat/titik penjemputan wajib (`pickup_point`).
    - Lepas Kunci → pilih `Diantar` atau `Ambil di garasi` (`handover_method`). `Diantar` → alamat pengantaran wajib (`pickup_point`). `Ambil di garasi` → tanpa alamat.
    - Alamat tidak valid → minta isi ulang.
-6. **C-12 Data Diri:** nama lengkap, nomor HP, NIK (16 digit angka), foto KTP, swafoto. Semua wajib (S-03 bila tidak valid).
+6. **C-12 Data Diri:** nama lengkap, nomor HP, NIK (16 digit angka), foto KTP, foto SIM, swafoto. Semua wajib (S-03 bila tidak valid); foto KTP, SIM, dan swafoto berupa gambar `jpg`/`jpeg`/`png`/`webp` maksimal 2048 KB.
 7. **C-13 Ringkasan:** tampilkan mobil, tanggal, durasi, layanan, penerimaan, lokasi, data penyewa, subtotal, biaya sopir, total. Customer menekan Konfirmasi Pemesanan.
 8. Sistem membuat rental dengan aturan atomik 3.3, lalu mengarahkan ke C-14.
 
@@ -251,13 +252,13 @@ Urutan wajib:
 1. Customer datang ke garasi dan menunjukkan kode.
 2. Admin memasukkan kode di A-08 (tab Tunai). Kode tidak ditemukan → "Kode pembayaran tidak ditemukan." dan input ulang. Kode kedaluwarsa → ditolak.
 3. Kode valid → sistem menampilkan detail pesanan; payment → `Menunggu Konfirmasi`, rental → `Menunggu Verifikasi`.
-4. Admin memeriksa detail dan dokumen verifikasi (KTP, selfie).
+4. Admin memeriksa detail dan dokumen verifikasi (KTP, SIM, selfie).
 5. Admin menekan Konfirmasi Pembayaran.
 
 **QRIS:**
 
 1. Setelah webhook sukses, admin melihat notifikasi (daftar "Pembayaran Menunggu Konfirmasi" di A-02 / tab QRIS di A-08).
-2. Admin membuka detail, memeriksa kesesuaian pembayaran, data, dan dokumen.
+2. Admin membuka detail, memeriksa kesesuaian pembayaran, data, dan dokumen verifikasi (KTP, SIM, selfie).
 3. Admin menekan Konfirmasi Pembayaran.
 
 **Saat konfirmasi (satu transaksi database):**
