@@ -9,8 +9,11 @@ use App\Enums\RentalStatus;
 use App\Models\Car;
 use App\Models\Payment;
 use App\Models\Rental;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -124,7 +127,7 @@ class AdminController extends Controller
             'tgl_sewa' => $rental->start_date->format('d M').' - '.$rental->end_date->format('d M Y'),
             'durasi' => $rental->duration.' hari',
             'layanan' => $rental->self_driver ? 'Lepas Kunci' : 'Dengan Sopir',
-            'penerimaan' => $rental->addOn?->handover_method === 'Diantar'
+            'penerimaan' => $rental->addOn?->handover_method?->value === 'Diantar'
                 ? 'Diantar ('.($rental->addOn->pickup_point ?? '-').')'
                 : 'Ambil di garasi',
             'status' => $rental->status->value,
@@ -142,6 +145,16 @@ class AdminController extends Controller
         return view('detail-transaksi', [
             'transaksi' => $transaksiObj,
             'rental' => $rental,
+            'bisaDikonfirmasi' => $rental->status === RentalStatus::MenungguVerifikasi
+                && $paymentSewa?->status === PaymentStatus::MenungguKonfirmasi,
+            'bisaDiselesaikan' => in_array($rental->status, [RentalStatus::Berjalan, RentalStatus::Terlambat], true),
+            'bisaDibatalkan' => in_array($rental->status, [
+                RentalStatus::MenungguPembayaran,
+                RentalStatus::MenungguVerifikasi,
+                RentalStatus::PembayaranBerhasil,
+            ], true),
+            'terlambat' => now()->greaterThan($rental->end_date),
+            'lamaTerlambat' => max(1, (int) $rental->end_date->diffInDays(now())),
         ]);
     }
 
@@ -161,6 +174,175 @@ class AdminController extends Controller
         return response()->file($disk->path($path), [
             'Content-Type' => $disk->mimeType($path) ?: 'application/octet-stream',
         ]);
+    }
+
+    /**
+     * Confirm a verified payment and issue booking/invoice codes (F006).
+     */
+    public function konfirmasiPembayaran(Request $request, Rental $rental): RedirectResponse
+    {
+        $admin = $request->user();
+
+        DB::transaction(function () use ($rental, $admin): void {
+            $rentalTerkunci = Rental::whereKey($rental->rental_id)->lockForUpdate()->firstOrFail();
+
+            abort_unless(
+                $rentalTerkunci->status === RentalStatus::MenungguVerifikasi,
+                409,
+                'Pesanan ini tidak menunggu verifikasi pembayaran.'
+            );
+
+            $payment = $rentalTerkunci->payments()
+                ->where('type', PaymentType::Sewa)
+                ->where('status', PaymentStatus::MenungguKonfirmasi)
+                ->lockForUpdate()
+                ->first();
+
+            abort_unless($payment, 409, 'Pembayaran sewa belum menunggu konfirmasi.');
+
+            $payment->update([
+                'status' => PaymentStatus::Berhasil,
+                'paid_at' => now(),
+                'confirmed_by' => $admin->account_id,
+                'confirmed_at' => now(),
+            ]);
+
+            $rentalTerkunci->update([
+                'booking_code' => $this->kodeBooking(),
+                'invoice_number' => $this->nomorInvoice(),
+                'invoice_issued_at' => now(),
+            ]);
+
+            $rentalTerkunci->transitionTo(
+                RentalStatus::PembayaranBerhasil,
+                $admin,
+                'Pembayaran dikonfirmasi admin'
+            );
+        });
+
+        return back()->with('success', 'Pembayaran berhasil dikonfirmasi.');
+    }
+
+    /**
+     * Complete a returned rental, recording a fine when the return is late (F008).
+     */
+    public function selesaikan(Request $request, Rental $rental): RedirectResponse
+    {
+        $validated = $request->validate([
+            'late_fee' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        if (now()->greaterThan($rental->end_date)) {
+            $validated = $request->validate([
+                'late_fee' => ['required', 'integer', 'min:1'],
+            ], [
+                'late_fee.required' => 'Nominal denda wajib diisi untuk pengembalian terlambat.',
+            ]);
+        }
+
+        $admin = $request->user();
+
+        DB::transaction(function () use ($rental, $admin, $validated): void {
+            $rentalTerkunci = Rental::whereKey($rental->rental_id)->lockForUpdate()->firstOrFail();
+
+            abort_unless(
+                in_array($rentalTerkunci->status, [RentalStatus::Berjalan, RentalStatus::Terlambat], true),
+                409,
+                'Hanya transaksi Berjalan atau Terlambat yang bisa diselesaikan.'
+            );
+
+            $terlambat = now()->greaterThan($rentalTerkunci->end_date);
+            $lateFee = $terlambat ? (int) $validated['late_fee'] : 0;
+
+            $rentalTerkunci->update([
+                'returned_at' => now(),
+                'late_fee' => $lateFee,
+            ]);
+
+            if ($terlambat) {
+                Payment::create([
+                    'rental_id' => $rentalTerkunci->rental_id,
+                    'type' => PaymentType::Denda,
+                    'method' => PaymentMethod::Tunai,
+                    'amount' => $lateFee,
+                    'status' => PaymentStatus::Berhasil,
+                    'paid_at' => now(),
+                    'confirmed_by' => $admin->account_id,
+                    'confirmed_at' => now(),
+                ]);
+            }
+
+            $rentalTerkunci->transitionTo(
+                RentalStatus::Selesai,
+                $admin,
+                $terlambat ? 'Dikembalikan terlambat' : 'Dikembalikan tepat waktu'
+            );
+        });
+
+        return back()->with('success', 'Transaksi berhasil diselesaikan.');
+    }
+
+    /**
+     * Cancel a rental with a mandatory reason (F006).
+     */
+    public function batalkan(Request $request, Rental $rental): RedirectResponse
+    {
+        $validated = $request->validate([
+            'cancel_reason' => ['required', 'string', 'max:255'],
+        ], [
+            'cancel_reason.required' => 'Alasan pembatalan wajib diisi.',
+        ]);
+
+        $admin = $request->user();
+
+        DB::transaction(function () use ($rental, $admin, $validated): void {
+            $rentalTerkunci = Rental::whereKey($rental->rental_id)->lockForUpdate()->firstOrFail();
+
+            abort_unless(in_array($rentalTerkunci->status, [
+                RentalStatus::MenungguPembayaran,
+                RentalStatus::MenungguVerifikasi,
+                RentalStatus::PembayaranBerhasil,
+            ], true), 409, 'Pesanan ini tidak bisa dibatalkan.');
+
+            $rentalTerkunci->update([
+                'cancel_reason' => $validated['cancel_reason'],
+                'cancelled_at' => now(),
+            ]);
+
+            $rentalTerkunci->payments()
+                ->where('status', '!=', PaymentStatus::Berhasil)
+                ->update(['status' => PaymentStatus::Kadaluarsa]);
+
+            $rentalTerkunci->transitionTo(
+                RentalStatus::Dibatalkan,
+                $admin,
+                'Dibatalkan: '.$validated['cancel_reason']
+            );
+        });
+
+        return back()->with('success', 'Pesanan berhasil dibatalkan.');
+    }
+
+    private function kodeBooking(): string
+    {
+        do {
+            $kode = 'BK-'.Str::upper(Str::random(6));
+        } while (Rental::where('booking_code', $kode)->exists());
+
+        return $kode;
+    }
+
+    private function nomorInvoice(): string
+    {
+        $prefix = 'INV-'.now()->year.'-';
+        $terakhir = Rental::where('invoice_number', 'like', $prefix.'%')->max('invoice_number');
+        $urutan = $terakhir ? (int) Str::afterLast($terakhir, '-') + 1 : 1;
+
+        do {
+            $nomor = $prefix.str_pad((string) $urutan++, 4, '0', STR_PAD_LEFT);
+        } while (Rental::where('invoice_number', $nomor)->exists());
+
+        return $nomor;
     }
 
     /**
@@ -285,7 +467,7 @@ class AdminController extends Controller
             'tgl_sewa' => $rental->start_date->format('d M').' - '.$rental->end_date->format('d M Y'),
             'durasi' => $rental->duration.' Hari',
             'layanan' => $rental->self_driver ? 'Lepas Kunci' : 'Dengan Sopir',
-            'penerimaan' => $rental->addOn?->handover_method === 'Diantar' ? 'Diantar' : 'Ambil di Garasi',
+            'penerimaan' => $rental->addOn?->handover_method?->value === 'Diantar' ? 'Diantar' : 'Ambil di Garasi',
             'status' => $rental->status->value,
             'metode_pembayaran' => $paymentSewa?->method?->value ?? 'QRIS',
             'harga_per_hari' => 'Rp '.number_format($rental->price_per_day, 0, ',', '.'),

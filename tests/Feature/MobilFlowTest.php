@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CarStatus;
 use App\Enums\RentalStatus;
 use App\Models\Account;
 use App\Models\Car;
@@ -25,6 +26,34 @@ class CarFlowTest extends TestCase
         $response->assertOk()
             ->assertSee('Tambah Car')
             ->assertSee(route('admin.data-mobil.create'), false);
+    }
+
+    public function test_daftar_mobil_diurutkan_dari_car_id_terbesar(): void
+    {
+        $this->authenticateAsAdmin();
+
+        $waktu = now()->subDay();
+
+        Car::factory()->create([
+            'nama_mobil' => 'Mobil Lama',
+            'created_at' => $waktu,
+            'updated_at' => $waktu,
+        ]);
+        Car::factory()->create([
+            'nama_mobil' => 'Mobil Baru',
+            'created_at' => $waktu,
+            'updated_at' => $waktu,
+        ]);
+
+        $konten = $this->get('/admin/data-mobil')
+            ->assertOk()
+            ->getContent();
+
+        $this->assertLessThan(
+            strpos($konten, 'Mobil Lama'),
+            strpos($konten, 'Mobil Baru'),
+            'Mobil dengan car_id terbesar harus tampil lebih awal.',
+        );
     }
 
     public function test_pencarian_keyword_dan_filter_menampilkan_hanya_mobil_yang_cocok(): void
@@ -62,7 +91,55 @@ class CarFlowTest extends TestCase
         $response->assertOk()
             ->assertSee('Simpan Kendaraan')
             ->assertSee(route('admin.data-mobil.store'), false)
-            ->assertSee('enctype="multipart/form-data"', false);
+            ->assertSee('enctype="multipart/form-data"', false)
+            ->assertSee('id="modalFotoMobil"', false)
+            ->assertSee('id="input-foto-modal"', false)
+            ->assertSee('id="kotak-upload-foto"', false);
+    }
+
+    public function test_status_mobil_valid_mengikuti_semua_nilai_enum_car_status(): void
+    {
+        $this->authenticateAsAdmin();
+        Storage::fake('public');
+
+        foreach (CarStatus::cases() as $status) {
+            $this->post('/admin/data-mobil', [
+                'merk' => 'Toyota',
+                'nama' => 'Mobil '.$status->value,
+                'jenis' => 'MPV',
+                'status' => $status->value,
+                'harga' => 100000,
+                'plat' => 'B '.fake()->unique()->numerify('#### AAA'),
+                'spesifikasi' => 'Spesifikasi mobil',
+                'foto_utama' => '0',
+                'fotos' => [UploadedFile::fake()->image('mobil.jpg')],
+            ])->assertSessionDoesntHaveErrors('status');
+        }
+
+        $this->assertSame(
+            collect(CarStatus::cases())->pluck('value')->sort()->values()->all(),
+            Car::query()->pluck('status')->sort()->values()->all(),
+        );
+    }
+
+    public function test_status_perawatan_ditolak_karena_bukan_nilai_enum(): void
+    {
+        $this->authenticateAsAdmin();
+        Storage::fake('public');
+
+        $this->from('/admin/data-mobil/create')->post('/admin/data-mobil', [
+            'merk' => 'Toyota',
+            'nama' => 'Mobil Status Lama',
+            'jenis' => 'MPV',
+            'status' => 'Perawatan',
+            'harga' => 100000,
+            'plat' => 'B 9999 ZZZ',
+            'spesifikasi' => 'Spesifikasi mobil',
+            'fotos' => [UploadedFile::fake()->image('mobil.jpg')],
+        ])->assertRedirect('/admin/data-mobil/create')
+            ->assertSessionHasErrors('status');
+
+        $this->assertDatabaseMissing('car', ['nomor_polisi' => 'B 9999 ZZZ']);
     }
 
     public function test_payload_valid_menyimpan_mobil_beserta_foto_utama(): void
@@ -118,14 +195,16 @@ class CarFlowTest extends TestCase
         $this->get(route('admin.data-mobil.show', $mobil))
             ->assertOk()
             ->assertSee($mobil->nama_mobil)
-            ->assertSee($mobil->kode_mobil);
+            ->assertSee($mobil->kode_mobil)
+            ->assertSee('id="carouselCarPhoto"', false);
 
         $this->get(route('admin.data-mobil.edit', $mobil))
             ->assertOk()
             ->assertSee($mobil->nama_mobil)
             ->assertSee(route('admin.data-mobil.update', $mobil), false)
             ->assertSee('id="foto-utama-lama"', false)
-            ->assertSee('id="foto-lama-container"', false);
+            ->assertSee('id="foto-lama-container"', false)
+            ->assertSee('id="modalFotoMobil"', false);
     }
 
     public function test_edit_mobil_mengganti_foto_utama_di_antara_foto_lama(): void

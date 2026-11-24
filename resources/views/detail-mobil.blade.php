@@ -90,9 +90,9 @@
                                     <label for="status" class="form-label fw-medium small text-dark">Status</label>
                                     <select name="status" id="status" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm" disabled>
                                         <option value="">Pilih Status</option>
-                                        <option value="Tersedia" @selected(($mobil->status ?? '') === 'Tersedia')>Tersedia</option>
-                                        <option value="Disewa" @selected(($mobil->status ?? '') === 'Disewa')>Disewa</option>
-                                        <option value="Perawatan" @selected(($mobil->status ?? '') === 'Perawatan')>Perawatan</option>
+                                        @foreach (App\Enums\CarStatus::cases() as $status)
+                                            <option value="{{ $status->value }}" @selected(($mobil->status ?? '') === $status->value)>{{ $status->value }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\CarStatus;
 use App\Models\Car;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -31,7 +32,7 @@ class UpdateCarRequest extends FormRequest
             'merk' => ['required', 'string', 'max:255'],
             'nama' => ['required', 'string', 'max:255'],
             'jenis' => ['required', Rule::in(['MPV', 'SUV', 'Hatchback', 'Sedan'])],
-            'status' => ['required', Rule::in(['Tersedia', 'Disewa', 'Perawatan'])],
+            'status' => ['required', Rule::in(array_column(CarStatus::cases(), 'value'))],
             'harga' => ['required', 'integer', 'min:0'],
             'plat' => [
                 'required',

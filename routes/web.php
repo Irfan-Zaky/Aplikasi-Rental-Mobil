@@ -60,6 +60,8 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::get('/ringkasan-pemesanan', [PemesananController::class, 'ringkasan'])->name('ringkasan-pemesanan');
         Route::post('/ringkasan-pemesanan', [PemesananController::class, 'ringkasanStore'])->name('ringkasan-pemesanan.store');
         Route::get('/pilihan-pembayaran', [PemesananController::class, 'pilihanPembayaran'])->name('pilihan-pembayaran');
+        Route::get('/pembayaran-qris', [PemesananController::class, 'pembayaranQris'])->name('pembayaran-qris');
+        Route::get('/pembayaran-tunai', [PemesananController::class, 'pembayaranTunai'])->name('pembayaran-tunai');
     });
 });
 
@@ -80,6 +82,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/admin/transaksi', [AdminController::class, 'transaksi'])->name('admin.transaksi');
     Route::get('/admin/transaksi/{rental}', [AdminController::class, 'showTransaksi'])->name('admin.transaksi.show');
+    Route::post('/admin/transaksi/{rental}/konfirmasi-pembayaran', [AdminController::class, 'konfirmasiPembayaran'])
+        ->name('admin.transaksi.konfirmasi-pembayaran');
+    Route::post('/admin/transaksi/{rental}/selesaikan', [AdminController::class, 'selesaikan'])
+        ->name('admin.transaksi.selesaikan');
+    Route::post('/admin/transaksi/{rental}/batalkan', [AdminController::class, 'batalkan'])
+        ->name('admin.transaksi.batalkan');
     Route::get('/admin/transaksi/{rental}/dokumen/{jenis}', [AdminController::class, 'dokumen'])
         ->whereIn('jenis', ['ktp', 'selfie'])
         ->name('admin.transaksi.dokumen');

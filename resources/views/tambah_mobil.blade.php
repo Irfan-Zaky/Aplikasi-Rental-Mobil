@@ -94,8 +94,8 @@
                                     <label for="status" class="form-label fw-medium small text-dark">Status</label>
                                     <select name="status" id="status" class="form-select bg-light border-1 py-2 px-3 rounded-pill shadow-sm @error('status') is-invalid @enderror" required>
                                         <option value="">Pilih Status</option>
-                                        @foreach (['Tersedia', 'Disewa', 'Perawatan'] as $status)
-                                            <option value="{{ $status }}" @selected(old('status', 'Tersedia') === $status)>{{ $status }}</option>
+                                        @foreach (App\Enums\CarStatus::cases() as $status)
+                                            <option value="{{ $status->value }}" @selected(old('status', 'Tersedia') === $status->value)>{{ $status->value }}</option>
                                         @endforeach
                                     </select>
                                     @error('status')
@@ -139,12 +139,12 @@
         </div>
     </main>
 
-    <div class="modal fade" id="modalCarPhoto" tabindex="-1" aria-labelledby="modalCarPhotoLabel" aria-hidden="true">
+    <div class="modal fade" id="modalFotoMobil" tabindex="-1" aria-labelledby="modalFotoMobilLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 860px;">
             <div class="modal-content border-0 rounded-4 shadow">
                 <div class="modal-header border-0 align-items-start px-4 pt-4 pb-3">
                     <div>
-                        <h4 class="modal-title fw-bold" id="modalCarPhotoLabel" style="color: #0b1d33;">Unggah foto mobil</h4>
+                        <h4 class="modal-title fw-bold" id="modalFotoMobilLabel" style="color: #0b1d33;">Unggah foto mobil</h4>
                         <p class="text-muted small mb-0 mt-1">Tambahkan beberapa foto dan pilih satu sebagai foto utama.</p>
                     </div>
                     <button type="button" class="btn d-flex align-items-center justify-content-center rounded-3 border-0 flex-shrink-0" data-bs-dismiss="modal" aria-label="Tutup" style="width: 36px; height: 36px; background-color: #f4f7fa; color: #64748b; font-size: 20px; line-height: 1;">&times;</button>

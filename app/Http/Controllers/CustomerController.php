@@ -131,7 +131,7 @@ class CustomerController extends Controller
             'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : '-',
             'tgl_sewa' => $rental->start_date->format('d M').' - '.$rental->end_date->format('d M Y'),
             'layanan' => $rental->self_driver ? 'Lepas Kunci' : 'Dengan Sopir',
-            'penerimaan' => $rental->addOn?->handover_method === 'Diantar'
+            'penerimaan' => $rental->addOn?->handover_method?->value === 'Diantar'
                 ? 'Diantar ('.($rental->addOn->pickup_point ?? '-').')'
                 : 'Ambil di garasi',
             'nama_customer' => $rental->customer_name,

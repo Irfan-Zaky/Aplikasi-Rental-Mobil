@@ -4,11 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Enums\CarStatus;
 use App\Enums\HandoverMethod;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
+use App\Enums\PaymentType;
 use App\Enums\RentalStatus;
 use App\Http\Requests\DataDiriRequest;
 use App\Http\Requests\DetailLayananRequest;
 use App\Models\AddOn;
 use App\Models\Car;
+use App\Models\Cash;
+use App\Models\Payment;
 use App\Models\Rental;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class PemesananController extends Controller
@@ -367,6 +373,121 @@ class PemesananController extends Controller
     }
 
     /**
+     * Display the QRIS payment screen, creating or reusing its payment (C-15).
+     */
+    public function pembayaranQris(): View|RedirectResponse
+    {
+        return $this->tampilkanPembayaran(PaymentMethod::QRIS);
+    }
+
+    /**
+     * Display the cash payment screen, creating or reusing its payment (C-16).
+     */
+    public function pembayaranTunai(): View|RedirectResponse
+    {
+        return $this->tampilkanPembayaran(PaymentMethod::Tunai);
+    }
+
+    private function tampilkanPembayaran(PaymentMethod $metode): View|RedirectResponse
+    {
+        $rental = Rental::query()
+            ->with('payments')
+            ->where('account_id', auth()->id())
+            ->find(session('pemesanan_terakhir'));
+
+        if (! $rental || $rental->status !== RentalStatus::MenungguPembayaran) {
+            return redirect()->route('customer.katalog');
+        }
+
+        $payment = $rental->payments->first(fn (Payment $item): bool => $item->type === PaymentType::Sewa
+            && in_array($item->status, [PaymentStatus::MenungguPembayaran, PaymentStatus::MenungguKonfirmasi], true));
+
+        if ($payment && $payment->method !== $metode) {
+            return redirect()->route(
+                $payment->method === PaymentMethod::QRIS
+                    ? 'customer.pembayaran-qris'
+                    : 'customer.pembayaran-tunai'
+            );
+        }
+
+        $payment ??= $this->buatPaymentSewa($rental, $metode);
+        $totalBiaya = $this->rupiah($rental->total_rental);
+        $sisaWaktu = $this->formatSisaWaktu($payment->expires_at);
+
+        if ($metode === PaymentMethod::QRIS) {
+            return view('customer.pembayaran-qris', [
+                'totalBiaya' => $totalBiaya,
+                'sisaWaktu' => $sisaWaktu,
+            ]);
+        }
+
+        return view('customer.pembayaran-tunai', [
+            'kodePembayaran' => $payment->cash?->payment_code ?? '-',
+            'totalBiaya' => $totalBiaya,
+            'sisaWaktu' => $sisaWaktu,
+        ]);
+    }
+
+    private function buatPaymentSewa(Rental $rental, PaymentMethod $metode): Payment
+    {
+        return DB::transaction(function () use ($rental, $metode): Payment {
+            $rentalTerkunci = Rental::whereKey($rental->rental_id)->lockForUpdate()->firstOrFail();
+
+            $aktif = $rentalTerkunci->payments()
+                ->where('type', PaymentType::Sewa)
+                ->whereIn('status', [PaymentStatus::MenungguPembayaran, PaymentStatus::MenungguKonfirmasi])
+                ->first();
+
+            if ($aktif) {
+                return $aktif;
+            }
+
+            $expiresAt = $metode === PaymentMethod::QRIS
+                ? now()->addMinutes((int) config('rental.qris_ttl_minutes'))
+                : now()->addHours((int) config('rental.cash_ttl_hours'));
+
+            $payment = $rentalTerkunci->payments()->create([
+                'type' => PaymentType::Sewa,
+                'method' => $metode,
+                'amount' => $rentalTerkunci->total_rental,
+                'status' => PaymentStatus::MenungguPembayaran,
+                'expires_at' => $expiresAt,
+            ]);
+
+            if ($metode === PaymentMethod::QRIS) {
+                $qrRef = 'QRIS-'.Str::upper(Str::random(12));
+
+                $payment->qris()->create([
+                    'qr_ref' => $qrRef,
+                    'qr_code' => 'SIMULASI-'.$qrRef,
+                ]);
+            } else {
+                do {
+                    $kodePembayaran = sprintf('TNI-%04d-%04d', random_int(0, 9999), random_int(0, 9999));
+                } while (Cash::where('payment_code', $kodePembayaran)->exists());
+
+                $payment->cash()->create(['payment_code' => $kodePembayaran]);
+            }
+
+            return $payment;
+        });
+    }
+
+    private function formatSisaWaktu(?Carbon $expiresAt): string
+    {
+        if (! $expiresAt) {
+            return '00:00:00';
+        }
+
+        $detik = max(0, (int) now()->diffInSeconds($expiresAt, false));
+        $jam = intdiv($detik, 3600);
+        $menit = intdiv($detik % 3600, 60);
+        $detik = $detik % 60;
+
+        return sprintf('%02d:%02d:%02d', $jam, $menit, $detik);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function draft(?string $key = null, mixed $default = null): mixed
@@ -489,7 +610,7 @@ class PemesananController extends Controller
     private function kodeTransaksi(): string
     {
         do {
-            $kode = 'TRX-'.str_pad((string) ((int) Rental::query()->max('id') + 1), 6, '0', STR_PAD_LEFT);
+            $kode = 'TRX-'.str_pad((string) ((int) Rental::query()->max('rental_id') + 1), 6, '0', STR_PAD_LEFT);
         } while (Rental::where('trx_code', $kode)->exists());
 
         return $kode;

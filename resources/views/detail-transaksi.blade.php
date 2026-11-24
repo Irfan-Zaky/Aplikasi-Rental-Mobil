@@ -135,13 +135,15 @@
         </div>
 
         <div class="d-flex align-items-center gap-3 flex-wrap">
-            <form action="{{ url('admin/transaksi/' . ($transaksi->id ?? '') . '/konfirmasi-pembayaran') }}" method="POST" class="form-konfirmasi" data-pesan="Konfirmasi pembayaran ini?">
-                @csrf
-                <button type="submit" class="btn text-white px-4 py-2 rounded-3 fw-medium d-inline-flex align-items-center gap-2 shadow-sm" style="background-color: #ff7a3d;">
-                    <img src="{{ asset('img_admin/detail-transaksi/badge-check.svg') }}" alt="" width="20" height="20" />
-                    <span>Konfirmasi Pembayaran</span>
-                </button>
-            </form>
+            @if ($bisaDikonfirmasi)
+                <form action="{{ route('admin.transaksi.konfirmasi-pembayaran', $rental) }}" method="POST" class="form-konfirmasi" data-pesan="Konfirmasi pembayaran ini?">
+                    @csrf
+                    <button type="submit" class="btn text-white px-4 py-2 rounded-3 fw-medium d-inline-flex align-items-center gap-2 shadow-sm" style="background-color: #ff7a3d;">
+                        <img src="{{ asset('img_admin/detail-transaksi/badge-check.svg') }}" alt="" width="20" height="20" />
+                        <span>Konfirmasi Pembayaran</span>
+                    </button>
+                </form>
+            @endif
 
             <button type="button" class="btn text-white px-4 py-2 rounded-3 fw-medium d-inline-flex align-items-center gap-2 shadow-sm" style="background-color: #0d1b2a;" title="Serah terima kendaraan kepada customer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -153,24 +155,61 @@
                 <span>Serah Terima Unit</span>
             </button>
 
-            <form action="{{ url('admin/transaksi/' . ($transaksi->id ?? '') . '/selesaikan') }}" method="POST" class="form-konfirmasi" data-pesan="Selesaikan transaksi ini?">
-                @csrf
-                <button type="submit" class="btn text-dark px-4 py-2 rounded-3 fw-medium d-inline-flex align-items-center gap-2 shadow-sm bg-white" style="border-color: #cbd5e1;">
-                    <img src="{{ asset('img_admin/detail-transaksi/check-circle.svg') }}" alt="" width="20" height="20" />
-                    <span>Selesaikan Transaksi</span>
-                </button>
-            </form>
+            @if ($bisaDiselesaikan)
+                @if ($terlambat)
+                    <button type="button" class="btn text-dark px-4 py-2 rounded-3 fw-medium d-inline-flex align-items-center gap-2 shadow-sm bg-white" style="border-color: #cbd5e1;" data-bs-toggle="modal" data-bs-target="#modalDenda">
+                        <img src="{{ asset('img_admin/detail-transaksi/check-circle.svg') }}" alt="" width="20" height="20" />
+                        <span>Selesaikan Transaksi</span>
+                    </button>
+                @else
+                    <form action="{{ route('admin.transaksi.selesaikan', $rental) }}" method="POST" class="form-konfirmasi" data-pesan="Selesaikan transaksi ini?">
+                        @csrf
+                        <button type="submit" class="btn text-dark px-4 py-2 rounded-3 fw-medium d-inline-flex align-items-center gap-2 shadow-sm bg-white" style="border-color: #cbd5e1;">
+                            <img src="{{ asset('img_admin/detail-transaksi/check-circle.svg') }}" alt="" width="20" height="20" />
+                            <span>Selesaikan Transaksi</span>
+                        </button>
+                    </form>
+                @endif
+            @endif
 
-            <form action="{{ url('admin/transaksi/' . ($transaksi->id ?? '') . '/batalkan') }}" method="POST" class="form-konfirmasi" data-pesan="Batalkan pesanan ini?">
-                @csrf
-                <button type="submit" class="btn text-danger px-4 py-2 rounded-3 fw-medium shadow-sm" style="color: #dc2626; background-color: #fef2f2; border: 1px solid #fca5a5;">
-                    <span>Batalkan Pesanan</span>
-                </button>
-            </form>
+            @if ($bisaDibatalkan)
+                <form action="{{ route('admin.transaksi.batalkan', $rental) }}" method="POST" class="form-konfirmasi d-flex align-items-center gap-2" data-pesan="Batalkan pesanan ini?">
+                    @csrf
+                    <input type="text" name="cancel_reason" class="form-control form-control-sm" style="width: 220px;" placeholder="Alasan pembatalan" maxlength="255" required>
+                    <button type="submit" class="btn text-danger px-4 py-2 rounded-3 fw-medium shadow-sm" style="color: #dc2626; background-color: #fef2f2; border: 1px solid #fca5a5;">
+                        <span>Batalkan Pesanan</span>
+                    </button>
+                </form>
+            @endif
 
-            <a href="{{ url('admin/transaksi') }}" class="btn btn-outline-light px-4 py-2 rounded-3 fw-medium shadow-sm bg-white text-decoration-none" style="border-color: #ff7a00; color:#ff7a00">Kembali</a>
+            <a href="{{ route('admin.transaksi') }}" class="btn btn-outline-light px-4 py-2 rounded-3 fw-medium shadow-sm bg-white text-decoration-none" style="border-color: #ff7a00; color:#ff7a00">Kembali</a>
         </div>
     </main>
+
+    @if ($bisaDiselesaikan && $terlambat)
+        <div class="modal fade" id="modalDenda" tabindex="-1" aria-labelledby="modalDendaLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form action="{{ route('admin.transaksi.selesaikan', $rental) }}" method="POST" class="modal-content form-konfirmasi" data-pesan="Konfirmasi pengembalian terlambat ini?">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold" id="modalDendaLabel">Pengembalian Terlambat</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small mb-3">
+                            Keterlambatan {{ $lamaTerlambat }} hari. Masukkan nominal denda secara manual.
+                        </p>
+                        <label for="late_fee" class="form-label fw-medium small">Nominal denda (Rp)</label>
+                        <input type="number" name="late_fee" id="late_fee" class="form-control" min="1" step="1" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn text-white" style="background-color: #ff7a3d;">Konfirmasi & Selesaikan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('styles')

@@ -7,7 +7,8 @@
         $warnaStatus = [
             'Tersedia' => 'success',
             'Disewa' => 'secondary',
-            'Perawatan' => 'warning',
+            'Perbaikan' => 'warning',
+            'Nonaktif' => 'danger',
         ];
     @endphp
 

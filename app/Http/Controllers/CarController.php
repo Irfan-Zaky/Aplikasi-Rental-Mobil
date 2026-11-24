@@ -6,8 +6,8 @@ use App\Enums\CarStatus;
 use App\Enums\RentalStatus;
 use App\Http\Requests\StoreCarRequest;
 use App\Http\Requests\UpdateCarRequest;
-use App\Models\CarPhoto;
 use App\Models\Car;
+use App\Models\CarPhoto;
 use App\Models\Rental;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -40,7 +40,7 @@ class CarController extends Controller
             ->when($request->filled('jenis'), fn (Builder $query): Builder => $query->where('jenis', $request->string('jenis')->toString()))
             ->when($request->filled('status'), fn (Builder $query): Builder => $query->where('status', $request->string('status')->toString()))
             ->latest()
-            ->orderByDesc('id')
+            ->orderByDesc('car_id')
             ->get();
 
         return view('data-mobil', ['cars' => $cars]);

@@ -23,9 +23,9 @@
             </li>
 
             <li class="nav-item">
-                <a href="{{ route('admin.data-mobil.index') }}" class="nav-link {{ $active === 'data-mobil' ? 'text-white d-flex align-items-center gap-2 py-2 px-2' : 'text-white-50 d-flex align-items-center gap-3 py-2 px-3' }} rounded-pill" @style(['background-color: #ff7a3d;' => $active === 'data-mobil']) title="Data Car">
+                <a href="{{ route('admin.data-mobil.index') }}" class="nav-link {{ $active === 'data-mobil' ? 'text-white d-flex align-items-center gap-2 py-2 px-2' : 'text-white-50 d-flex align-items-center gap-3 py-2 px-3' }} rounded-pill" @style(['background-color: #ff7a3d;' => $active === 'data-mobil']) title="Data Mobil">
                     <img src="{{ asset('img_admin/dashboard/icon-data-mobil.svg') }}" alt="" width="20" height="20" />
-                    <span class="{{ $active === 'data-mobil' ? 'fw-medium' : '' }}" style="color: {{ $active === 'data-mobil' ? 'white' : '#ff7a3d' }}">Data Car</span>
+                    <span class="{{ $active === 'data-mobil' ? 'fw-medium' : '' }}" style="color: {{ $active === 'data-mobil' ? 'white' : '#ff7a3d' }}">Data Mobil</span>
                 </a>
             </li>
 

@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    const carousel = document.getElementById('carouselFotoMobil');
+    const carousel = document.getElementById('carouselCarPhoto');
 
     if (!carousel) {
         return;

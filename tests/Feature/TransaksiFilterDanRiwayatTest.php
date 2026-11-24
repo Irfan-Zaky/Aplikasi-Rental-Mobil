@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CarStatus;
+use App\Enums\HandoverMethod;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Enums\PaymentType;
 use App\Enums\RentalStatus;
 use App\Models\Account;
 use App\Models\AddOn;
@@ -287,6 +290,241 @@ class TransaksiFilterDanRiwayatTest extends TestCase
         $respSelesai->assertOk();
         $respSelesai->assertSee('TRX-CUST-SELESAI');
         $respSelesai->assertDontSee('TRX-CUST-AKTIF');
+    }
+
+    public function test_detail_transaksi_menampilkan_lokasi_pengantaran_diantar(): void
+    {
+        $mobil = Car::factory()->create(['merk' => 'Toyota', 'nama_mobil' => 'Avanza']);
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'car_id' => $mobil->car_id,
+            'status' => RentalStatus::Berjalan,
+        ]);
+
+        AddOn::create([
+            'rental_id' => $rental->rental_id,
+            'handover_method' => HandoverMethod::Diantar,
+            'pickup_point' => 'Jl. Merdeka No. 45',
+            'driver_fee' => 0,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.transaksi.show', $rental))
+            ->assertOk()
+            ->assertSee('Diantar (Jl. Merdeka No. 45)');
+
+        $this->actingAs($this->customer)
+            ->get(route('customer.detail-pesanan', ['id' => $rental->rental_id]))
+            ->assertOk()
+            ->assertSee('Diantar (Jl. Merdeka No. 45)');
+    }
+
+    public function test_admin_mengonfirmasi_pembayaran_dan_menerbitkan_kode_booking(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::MenungguVerifikasi,
+        ]);
+        $payment = Payment::factory()->create([
+            'rental_id' => $rental->rental_id,
+            'type' => PaymentType::Sewa,
+            'method' => PaymentMethod::QRIS,
+            'status' => PaymentStatus::MenungguKonfirmasi,
+            'amount' => 750000,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.konfirmasi-pembayaran', $rental))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('payment', [
+            'payment_id' => $payment->payment_id,
+            'status' => PaymentStatus::Berhasil->value,
+            'confirmed_by' => $this->admin->account_id,
+            'paid_at' => '2026-11-24 10:00:00',
+            'confirmed_at' => '2026-11-24 10:00:00',
+        ]);
+
+        $rental->refresh();
+
+        expect($rental->status)->toBe(RentalStatus::PembayaranBerhasil)
+            ->and($rental->booking_code)->toStartWith('BK-')->toHaveLength(9)
+            ->and($rental->invoice_number)->toBe('INV-2026-0001')
+            ->and($rental->invoice_issued_at->toDateTimeString())->toBe('2026-11-24 10:00:00');
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::PembayaranBerhasil->value,
+            'booking_code' => $rental->booking_code,
+            'invoice_number' => $rental->invoice_number,
+        ]);
+        $this->assertDatabaseHas('booking_history', [
+            'rental_id' => $rental->rental_id,
+            'sequence_no' => 1,
+            'status' => RentalStatus::PembayaranBerhasil->value,
+            'changed_by' => $this->admin->account_id,
+        ]);
+    }
+
+    public function test_admin_tidak_dapat_mengonfirmasi_pesanan_yang_belum_terverifikasi(): void
+    {
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::MenungguPembayaran,
+        ]);
+        $payment = Payment::factory()->create([
+            'rental_id' => $rental->rental_id,
+            'status' => PaymentStatus::MenungguKonfirmasi,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.konfirmasi-pembayaran', $rental))
+            ->assertConflict();
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::MenungguPembayaran->value,
+        ]);
+        $this->assertDatabaseHas('payment', [
+            'payment_id' => $payment->payment_id,
+            'status' => PaymentStatus::MenungguKonfirmasi->value,
+        ]);
+        $this->assertDatabaseCount('booking_history', 0);
+    }
+
+    public function test_admin_menyelesaikan_pengembalian_tepat_waktu_tanpa_denda(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $mobil = Car::factory()->create(['status' => CarStatus::Disewa]);
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'car_id' => $mobil->car_id,
+            'status' => RentalStatus::Berjalan,
+            'end_date' => now()->addDay(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.selesaikan', $rental))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Selesai->value,
+            'late_fee' => 0,
+            'returned_at' => '2026-11-24 10:00:00',
+        ]);
+        $this->assertSame(CarStatus::Tersedia->value, $mobil->fresh()->status);
+        $this->assertDatabaseCount('payment', 0);
+        $this->assertDatabaseHas('booking_history', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Selesai->value,
+        ]);
+    }
+
+    public function test_admin_menyelesaikan_pengembalian_terlambat_dengan_payment_denda(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $mobil = Car::factory()->create(['status' => CarStatus::Disewa]);
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'car_id' => $mobil->car_id,
+            'status' => RentalStatus::Terlambat,
+            'end_date' => now()->subDay(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.selesaikan', $rental), ['late_fee' => 150000])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Selesai->value,
+            'late_fee' => 150000,
+            'returned_at' => '2026-11-24 10:00:00',
+        ]);
+        $this->assertDatabaseHas('payment', [
+            'rental_id' => $rental->rental_id,
+            'type' => PaymentType::Denda->value,
+            'method' => PaymentMethod::Tunai->value,
+            'amount' => 150000,
+            'status' => PaymentStatus::Berhasil->value,
+            'confirmed_by' => $this->admin->account_id,
+        ]);
+        $this->assertSame(CarStatus::Tersedia->value, $mobil->fresh()->status);
+    }
+
+    public function test_admin_harus_mengisi_denda_untuk_pengembalian_terlambat(): void
+    {
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::Terlambat,
+            'end_date' => now()->subDay(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.selesaikan', $rental))
+            ->assertSessionHasErrors('late_fee');
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Terlambat->value,
+        ]);
+        $this->assertDatabaseCount('payment', 0);
+    }
+
+    public function test_admin_membatalkan_pesanan_dengan_alasan_wajib(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::MenungguVerifikasi,
+        ]);
+        $payment = Payment::factory()->create([
+            'rental_id' => $rental->rental_id,
+            'status' => PaymentStatus::MenungguKonfirmasi,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.batalkan', $rental), ['cancel_reason' => 'Data tidak sesuai'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Dibatalkan->value,
+            'cancel_reason' => 'Data tidak sesuai',
+            'cancelled_at' => '2026-11-24 10:00:00',
+        ]);
+        $this->assertDatabaseHas('payment', [
+            'payment_id' => $payment->payment_id,
+            'status' => PaymentStatus::Kadaluarsa->value,
+        ]);
+        $this->assertDatabaseHas('booking_history', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Dibatalkan->value,
+            'changed_by' => $this->admin->account_id,
+        ]);
+    }
+
+    public function test_admin_tidak_dapat_membatalkan_pesanan_tanpa_alasan(): void
+    {
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::MenungguVerifikasi,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.batalkan', $rental))
+            ->assertSessionHasErrors('cancel_reason');
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::MenungguVerifikasi->value,
+        ]);
     }
 
     public function test_customer_detail_pesanan_dapat_diakses_oleh_pemilik(): void

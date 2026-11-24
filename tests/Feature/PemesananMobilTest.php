@@ -3,9 +3,13 @@
 namespace Tests\Feature;
 
 use App\Enums\HandoverMethod;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
+use App\Enums\PaymentType;
 use App\Enums\RentalStatus;
 use App\Models\Account;
 use App\Models\Car;
+use App\Models\Payment;
 use App\Models\Rental;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -187,6 +191,136 @@ class PemesananCarTest extends TestCase
             'tanggal-mulai' => $mulai,
             'tanggal-selesai' => $selesai,
         ]))->assertOk()->assertSee('Car Tersedia');
+    }
+
+    public function test_halaman_qris_membuat_payment_sewa_dan_detail_qris(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $customer = Account::factory()->create();
+        $rental = Rental::factory()->create([
+            'account_id' => $customer->account_id,
+            'status' => RentalStatus::MenungguPembayaran,
+            'total_rental' => 750000,
+        ]);
+
+        $this->actingAs($customer)
+            ->withSession(['pemesanan_terakhir' => $rental->rental_id])
+            ->get(route('customer.pembayaran-qris'))
+            ->assertOk()
+            ->assertSee('Rp 750.000');
+
+        $payment = $rental->payments()->firstOrFail();
+
+        expect($payment->method)->toBe(PaymentMethod::QRIS)
+            ->and($payment->type)->toBe(PaymentType::Sewa)
+            ->and($payment->status)->toBe(PaymentStatus::MenungguPembayaran)
+            ->and($payment->amount)->toBe(750000)
+            ->and($payment->expires_at->toDateTimeString())->toBe('2026-11-24 10:10:00')
+            ->and($payment->qris)->not->toBeNull();
+
+        $this->assertDatabaseCount('payment', 1);
+    }
+
+    public function test_halaman_tunai_membuat_kode_dan_memakai_ulang_payment(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $customer = Account::factory()->create();
+        $rental = Rental::factory()->create([
+            'account_id' => $customer->account_id,
+            'status' => RentalStatus::MenungguPembayaran,
+            'total_rental' => 500000,
+        ]);
+
+        $this->actingAs($customer)
+            ->withSession(['pemesanan_terakhir' => $rental->rental_id])
+            ->get(route('customer.pembayaran-tunai'))
+            ->assertOk()
+            ->assertSee('Rp 500.000');
+
+        $payment = $rental->payments()->firstOrFail();
+
+        expect($payment->method)->toBe(PaymentMethod::Tunai)
+            ->and($payment->expires_at->toDateTimeString())->toBe('2026-11-24 13:00:00')
+            ->and($payment->cash->payment_code)->toMatch('/^TNI-\d{4}-\d{4}$/');
+
+        $this->get(route('customer.pembayaran-tunai'))->assertOk();
+        $this->assertDatabaseCount('payment', 1);
+    }
+
+    public function test_halaman_pembayaran_menolak_pesanan_milik_customer_lain(): void
+    {
+        $customer = Account::factory()->create();
+        $rental = Rental::factory()->create([
+            'status' => RentalStatus::MenungguPembayaran,
+        ]);
+
+        $this->actingAs($customer)
+            ->withSession(['pemesanan_terakhir' => $rental->rental_id])
+            ->get(route('customer.pembayaran-qris'))
+            ->assertRedirect(route('customer.katalog'));
+
+        $this->assertDatabaseCount('payment', 0);
+    }
+
+    public function test_halaman_pembayaran_mengarahkan_ke_metode_payment_aktif(): void
+    {
+        $customer = Account::factory()->create();
+        $rental = Rental::factory()->create([
+            'account_id' => $customer->account_id,
+            'status' => RentalStatus::MenungguPembayaran,
+        ]);
+        $payment = Payment::factory()->create([
+            'rental_id' => $rental->rental_id,
+            'method' => PaymentMethod::Tunai,
+            'status' => PaymentStatus::MenungguPembayaran,
+        ]);
+        $payment->cash()->create(['payment_code' => 'TNI-1234-5678']);
+
+        $this->actingAs($customer)
+            ->withSession(['pemesanan_terakhir' => $rental->rental_id])
+            ->get(route('customer.pembayaran-qris'))
+            ->assertRedirect(route('customer.pembayaran-tunai'));
+
+        $this->assertDatabaseCount('payment', 1);
+    }
+
+    public function test_kode_transaksi_mengikuti_rental_id_terbesar(): void
+    {
+        $customer = Account::factory()->create();
+        $mobil = Car::factory()->create([
+            'status' => 'Tersedia',
+            'harga_sewa' => 500000,
+        ]);
+
+        $rentalLama = Rental::factory()->create([
+            'car_id' => $mobil->car_id,
+            'status' => RentalStatus::Selesai,
+            'start_date' => now()->subDays(10),
+            'end_date' => now()->subDays(8),
+        ]);
+
+        $this->actingAs($customer);
+        $this->simpanDraftHinggaDataDiri($mobil);
+
+        $this->post(route('customer.data-diri.store'), [
+            'nama_lengkap' => 'Aku Customer',
+            'nomor_hp' => '081234567890',
+            'nik' => '1234567890123456',
+            'foto_ktp' => UploadedFile::fake()->image('ktp.jpg'),
+            'swafoto' => UploadedFile::fake()->image('selfie.jpg'),
+        ])->assertRedirect(route('customer.ringkasan-pemesanan'));
+
+        $this->post(route('customer.ringkasan-pemesanan.store'))
+            ->assertRedirect(route('customer.pilihan-pembayaran'));
+
+        $rentalBaru = Rental::query()->whereKeyNot($rentalLama->getKey())->firstOrFail();
+
+        $this->assertSame(
+            'TRX-'.str_pad((string) $rentalBaru->rental_id, 6, '0', STR_PAD_LEFT),
+            $rentalBaru->trx_code,
+        );
     }
 
     public function test_dengan_sopir_menambahkan_biaya_sopir_ke_total(): void
