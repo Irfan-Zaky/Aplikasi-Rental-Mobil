@@ -9,6 +9,8 @@ use App\Enums\RentalStatus;
 use App\Models\Car;
 use App\Models\Payment;
 use App\Models\Rental;
+use App\Services\Payment\LateFeeCalculator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,18 +21,32 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AdminController extends Controller
 {
+    public function __construct(private LateFeeCalculator $lateFeeCalculator) {}
+
     /**
      * Display the admin dashboard.
      */
     public function index(): View
     {
+        $menungguQuery = $this->rentalMenungguKonfirmasi();
+
         return view('dashboard', [
             'title' => 'home',
             'totalCar' => Car::count(),
             'mobilTersedia' => Car::where('status', 'Tersedia')->count(),
             'mobilDisewa' => Car::where('status', 'Disewa')->count(),
             'totalPesanan' => Rental::count(),
-            'pesananMenunggu' => Rental::where('status', RentalStatus::MenungguVerifikasi)->count(),
+            'pesananMenunggu' => (clone $menungguQuery)->count(),
+            'daftarMenunggu' => $menungguQuery->latest()->limit(5)->get()
+                ->map(fn (Rental $rental): object => (object) [
+                    'id' => $rental->rental_id,
+                    'kode' => $rental->booking_code ?? $rental->trx_code,
+                    'customer' => $rental->customer_name,
+                    'mobil' => $rental->mobil ? $rental->mobil->merk.' '.$rental->mobil->nama_mobil : '-',
+                    'metode' => $rental->payments->firstWhere('type', PaymentType::Sewa)?->method?->value ?? '-',
+                    'total' => 'Rp '.number_format($rental->total_rental, 0, ',', '.'),
+                    'status' => $rental->status->value,
+                ]),
         ]);
     }
 
@@ -39,13 +55,16 @@ class AdminController extends Controller
      */
     public function transaksi(Request $request): View
     {
-        $query = Rental::query()
-            ->with(['mobil', 'payments.qris', 'payments.cash', 'user'])
-            ->whereNotIn('status', [RentalStatus::Selesai, RentalStatus::Dibatalkan])
-            ->latest();
+        $filter = $request->query('filter');
+
+        $query = $filter === 'konfirmasi'
+            ? $this->rentalMenungguKonfirmasi()->latest()
+            : Rental::query()
+                ->with(['mobil', 'payments.qris', 'payments.cash', 'user'])
+                ->whereNotIn('status', [RentalStatus::Selesai, RentalStatus::Dibatalkan])
+                ->latest();
 
         // 1. Filter Tab / Tombol: QRIS, Tunai, Penyelesaian
-        $filter = $request->query('filter');
         if ($filter === 'qris') {
             $query->whereHas('payments', function ($p): void {
                 $p->where('method', PaymentMethod::QRIS);
@@ -57,8 +76,6 @@ class AdminController extends Controller
         } elseif ($filter === 'penyelesaian') {
             // Unit sudah di customer atau siap dikembalikan
             $query->whereIn('status', [RentalStatus::Berjalan, RentalStatus::Terlambat]);
-        } elseif ($filter === 'konfirmasi') {
-            $query->where('status', RentalStatus::MenungguVerifikasi);
         }
 
         // 2. Pencarian kata kunci
@@ -72,6 +89,9 @@ class AdminController extends Controller
                         $m->where('nama_mobil', 'like', "%{$keyword}%")
                             ->orWhere('merk', 'like', "%{$keyword}%")
                             ->orWhere('nomor_polisi', 'like', "%{$keyword}%");
+                    })
+                    ->orWhereHas('payments.cash', function ($cash) use ($keyword): void {
+                        $cash->where('payment_code', 'like', "%{$keyword}%");
                     });
             });
         }
@@ -93,7 +113,7 @@ class AdminController extends Controller
 
         $statistik = [
             'semua_pesanan' => Rental::whereNotIn('status', [RentalStatus::Selesai, RentalStatus::Dibatalkan])->count(),
-            'menunggu_konfirmasi' => Rental::where('status', RentalStatus::MenungguVerifikasi)->count(),
+            'menunggu_konfirmasi' => (clone $this->rentalMenungguKonfirmasi())->count(),
             'sedang_berjalan' => Rental::whereIn('status', [RentalStatus::Berjalan, RentalStatus::Terlambat])->count(),
             'selesai' => Rental::where('status', RentalStatus::Selesai)->count(),
         ];
@@ -131,7 +151,7 @@ class AdminController extends Controller
                 ? 'Diantar ('.($rental->addOn->pickup_point ?? '-').')'
                 : 'Ambil di garasi',
             'status' => $rental->status->value,
-            'kode_booking' => $rental->booking_code ?? $rental->trx_code,
+            'kode_booking' => $rental->booking_code ?? '-',
             'metode_pembayaran' => $paymentSewa?->method?->value ?? 'Tunai',
             'kode_pembayaran' => $paymentSewa?->cash?->payment_code ?? ($paymentSewa?->qris?->qr_ref ?? '-'),
             'harga_per_hari' => 'Rp '.number_format($rental->price_per_day, 0, ',', '.'),
@@ -142,19 +162,31 @@ class AdminController extends Controller
             'status_pembayaran' => $paymentSewa?->status?->value ?? 'Menunggu',
         ];
 
+        $terlambat = now()->greaterThan($rental->end_date);
+
+        $bisaDikonfirmasi = match ($rental->status) {
+            RentalStatus::MenungguVerifikasi => $paymentSewa?->status === PaymentStatus::MenungguKonfirmasi,
+            RentalStatus::MenungguPembayaran => $paymentSewa?->method === PaymentMethod::Tunai
+                && $paymentSewa?->status === PaymentStatus::MenungguPembayaran
+                && ($paymentSewa->expires_at === null || $paymentSewa->expires_at->greaterThan(now())),
+            default => false,
+        };
+
         return view('detail-transaksi', [
             'transaksi' => $transaksiObj,
             'rental' => $rental,
-            'bisaDikonfirmasi' => $rental->status === RentalStatus::MenungguVerifikasi
-                && $paymentSewa?->status === PaymentStatus::MenungguKonfirmasi,
+            'bisaDikonfirmasi' => $bisaDikonfirmasi,
             'bisaDiselesaikan' => in_array($rental->status, [RentalStatus::Berjalan, RentalStatus::Terlambat], true),
             'bisaDibatalkan' => in_array($rental->status, [
                 RentalStatus::MenungguPembayaran,
                 RentalStatus::MenungguVerifikasi,
                 RentalStatus::PembayaranBerhasil,
             ], true),
-            'terlambat' => now()->greaterThan($rental->end_date),
+            'terlambat' => $terlambat,
             'lamaTerlambat' => max(1, (int) $rental->end_date->diffInDays(now())),
+            'dendaOtomatis' => $terlambat
+                ? $this->lateFeeCalculator->hitung($rental->end_date, $rental->price_per_day)
+                : 0,
         ]);
     }
 
@@ -163,9 +195,12 @@ class AdminController extends Controller
      */
     public function dokumen(Rental $rental, string $jenis): BinaryFileResponse
     {
-        $path = $jenis === 'ktp'
-            ? $rental->customer_ktp_photo
-            : $rental->customer_selfie_photo;
+        $path = match ($jenis) {
+            'ktp' => $rental->customer_ktp_photo,
+            'sim' => $rental->customer_sim_photo,
+            'selfie' => $rental->customer_selfie_photo,
+            default => null,
+        };
 
         $disk = Storage::disk('local');
 
@@ -186,19 +221,30 @@ class AdminController extends Controller
         DB::transaction(function () use ($rental, $admin): void {
             $rentalTerkunci = Rental::whereKey($rental->rental_id)->lockForUpdate()->firstOrFail();
 
-            abort_unless(
-                $rentalTerkunci->status === RentalStatus::MenungguVerifikasi,
-                409,
-                'Pesanan ini tidak menunggu verifikasi pembayaran.'
-            );
-
-            $payment = $rentalTerkunci->payments()
+            $queryPembayaran = $rentalTerkunci->payments()
                 ->where('type', PaymentType::Sewa)
-                ->where('status', PaymentStatus::MenungguKonfirmasi)
-                ->lockForUpdate()
-                ->first();
+                ->lockForUpdate();
 
-            abort_unless($payment, 409, 'Pembayaran sewa belum menunggu konfirmasi.');
+            if ($rentalTerkunci->status === RentalStatus::MenungguVerifikasi) {
+                $queryPembayaran->where('status', PaymentStatus::MenungguKonfirmasi);
+            } elseif ($rentalTerkunci->status === RentalStatus::MenungguPembayaran) {
+                $queryPembayaran->where('method', PaymentMethod::Tunai)
+                    ->where('status', PaymentStatus::MenungguPembayaran);
+            } else {
+                abort(409, 'Pesanan ini tidak menunggu konfirmasi pembayaran.');
+            }
+
+            $payment = $queryPembayaran->first();
+
+            abort_unless($payment, 409, 'Pembayaran sewa belum siap dikonfirmasi.');
+
+            if ($rentalTerkunci->status === RentalStatus::MenungguPembayaran) {
+                abort_unless(
+                    $payment->expires_at === null || $payment->expires_at->greaterThan(now()),
+                    409,
+                    'Kode tunai sudah kedaluwarsa.'
+                );
+            }
 
             $payment->update([
                 'status' => PaymentStatus::Berhasil,
@@ -228,17 +274,29 @@ class AdminController extends Controller
      */
     public function selesaikan(Request $request, Rental $rental): RedirectResponse
     {
-        $validated = $request->validate([
-            'late_fee' => ['nullable', 'integer', 'min:0'],
-        ]);
+        $aturanValidasi = [];
 
         if (now()->greaterThan($rental->end_date)) {
-            $validated = $request->validate([
-                'late_fee' => ['required', 'integer', 'min:1'],
-            ], [
-                'late_fee.required' => 'Nominal denda wajib diisi untuk pengembalian terlambat.',
-            ]);
+            $konfirmasiDikirim = $request->filled('konfirmasi');
+            $tanpaDendaDikirim = $request->filled('tanpa_denda');
+
+            $aturanValidasi = match (true) {
+                $konfirmasiDikirim && $tanpaDendaDikirim => [
+                    'konfirmasi' => ['prohibited'],
+                    'tanpa_denda' => ['prohibited'],
+                ],
+                $tanpaDendaDikirim => ['tanpa_denda' => ['accepted']],
+                default => ['konfirmasi' => ['required', 'accepted']],
+            };
         }
+
+        $validated = $request->validate($aturanValidasi, [
+            'konfirmasi.accepted' => 'Konfirmasi denda diperlukan untuk pengembalian terlambat.',
+            'konfirmasi.required' => 'Pilih konfirmasi denda atau selesaikan tanpa denda.',
+            'konfirmasi.prohibited' => 'Pilih salah satu cara penyelesaian.',
+            'tanpa_denda.accepted' => 'Konfirmasi pengembalian tanpa denda tidak valid.',
+            'tanpa_denda.prohibited' => 'Pilih salah satu cara penyelesaian.',
+        ]);
 
         $admin = $request->user();
 
@@ -252,14 +310,24 @@ class AdminController extends Controller
             );
 
             $terlambat = now()->greaterThan($rentalTerkunci->end_date);
-            $lateFee = $terlambat ? (int) $validated['late_fee'] : 0;
+            $dendaDikonfirmasi = $terlambat && filled($validated['konfirmasi'] ?? null);
+            $tanpaDenda = $terlambat && filled($validated['tanpa_denda'] ?? null);
+
+            if ($terlambat && ! $dendaDikonfirmasi && ! $tanpaDenda) {
+                abort(422, 'Konfirmasi denda diperlukan untuk pengembalian terlambat.');
+            }
+
+            $returnedAt = $tanpaDenda ? $rentalTerkunci->end_date : now();
+            $lateFee = $dendaDikonfirmasi
+                ? $this->lateFeeCalculator->hitung($rentalTerkunci->end_date, $rentalTerkunci->price_per_day)
+                : 0;
 
             $rentalTerkunci->update([
-                'returned_at' => now(),
+                'returned_at' => $returnedAt,
                 'late_fee' => $lateFee,
             ]);
 
-            if ($terlambat) {
+            if ($dendaDikonfirmasi) {
                 Payment::create([
                     'rental_id' => $rentalTerkunci->rental_id,
                     'type' => PaymentType::Denda,
@@ -272,11 +340,13 @@ class AdminController extends Controller
                 ]);
             }
 
-            $rentalTerkunci->transitionTo(
-                RentalStatus::Selesai,
-                $admin,
-                $terlambat ? 'Dikembalikan terlambat' : 'Dikembalikan tepat waktu'
-            );
+            $catatan = match (true) {
+                $tanpaDenda => 'Dikembalikan tepat waktu (tanpa denda)',
+                $dendaDikonfirmasi => 'Dikembalikan terlambat',
+                default => 'Dikembalikan tepat waktu',
+            };
+
+            $rentalTerkunci->transitionTo(RentalStatus::Selesai, $admin, $catatan);
         });
 
         return back()->with('success', 'Transaksi berhasil diselesaikan.');
@@ -321,6 +391,35 @@ class AdminController extends Controller
         });
 
         return back()->with('success', 'Pesanan berhasil dibatalkan.');
+    }
+
+    /**
+     * Rental yang masih perlu tindakan admin: QRIS sudah dibayar atau Tunai menunggu di garasi.
+     */
+    private function rentalMenungguKonfirmasi(): Builder
+    {
+        return Rental::query()
+            ->with(['mobil', 'payments'])
+            ->where(function ($query): void {
+                $query->where(function ($qris): void {
+                    $qris->where('status', RentalStatus::MenungguVerifikasi)
+                        ->whereHas('payments', function ($payment): void {
+                            $payment->where('type', PaymentType::Sewa)
+                                ->where('status', PaymentStatus::MenungguKonfirmasi);
+                        });
+                })->orWhere(function ($tunai): void {
+                    $tunai->where('status', RentalStatus::MenungguPembayaran)
+                        ->whereHas('payments', function ($payment): void {
+                            $payment->where('type', PaymentType::Sewa)
+                                ->where('method', PaymentMethod::Tunai)
+                                ->where('status', PaymentStatus::MenungguPembayaran)
+                                ->where(function ($expiry): void {
+                                    $expiry->whereNull('expires_at')
+                                        ->orWhere('expires_at', '>', now());
+                                });
+                        });
+                });
+            });
     }
 
     private function kodeBooking(): string

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Diri</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+</head>
+
+<body style="color: #0b1d33">
+    <nav class="navbar bg-white py-3 border-bottom">
+        <div class="container-fluid position-relative d-flex justify-content-center align-items-center px-3">
+            <a href="syarat-dan-ketentuan.html" aria-label="Kembali ke Syarat dan ketentuan" class="position-absolute start-0 ms-3 d-flex align-items-center justify-content-center rounded-circle bg-light text-decoration-none text-dark fw-bold fs-3 pb-1" style="width: 40px; height: 40px; color: #0b1d33;">‹</a>
+            <h2 class="fs-3 fw-bold m-0" style="color: #0b1d33;">Data Diri</h2>
+        </div>
+    </nav>
+
+    <main>
+
+        <h2 class="fs-4 fw-bold px-3 my-2">Lengkapi data penyewa</h2>
+        <p class="text-secondary small px-3 my-1">Pastikan data sesuai dokumen resmi untuk proses verifikasi.</p>
+
+        <form action="pilihan-layanan.html" method="get" class="my-4">
+
+            <div class="mb-4 px-3">
+                <label for="nama-lengkap" class="h8 fw-bold">Nama Lengkap</label>
+                <input type="text" class="form-control mt-1" style="border-color: #0b1d33" id="nama-lengkap" name="nama-lengkap" placeholder="Masukkan nama lengkap" required />
+            </div>
+
+            <div class="mb-4 px-3">
+                <label for="nomor-hp" class="h8 fw-bold">Nomor HP</label>
+                <input type="tel" class="form-control mt-1" style="border-color: #0b1d33" id="nomor-hp" name="nomor-hp" placeholder="08xxxxxxxxxx" required />
+            </div>
+
+            <div class="mb-4 px-3">
+                <label for="nik" class="h8 fw-bold">NIK</label>
+                <input type="text" class="form-control mt-1" style="border-color: #0b1d33" id="nik" name="nik" placeholder="16 digit nomor KTP" inputmode="numeric" required />
+            </div>
+
+            <!-- FOTO KTP -->
+            <div class="mb-4 px-3">
+                <p class="form-label fw-bold mb-2" style="color: #0b1d33;">Foto KTP</p>
+                <div class="w-100 bg-light rounded-4 overflow-hidden border" style="border-color: #a0aec0 !important; max-width: 570px; aspect-ratio: 19 / 6;">
+                    <img src="../img/data-diri/contoh-ktp.jpeg" alt="Foto KTP" class="w-100 h-100 object-fit-contain" />
+                </div>
+            </div>
+
+            <!-- FOTO SIM -->
+            <div class="mb-4 px-3">
+                <p class="form-label fw-bold mb-2" style="color: #0b1d33;">Foto SIM</p>
+                <div class="w-100 bg-light rounded-4 overflow-hidden border" style="border-color: #a0aec0 !important; max-width: 570px; aspect-ratio: 19 / 6;">
+                    <img src="../img/data-diri/contoh-sim.jpeg" alt="Foto SIM" class="w-100 h-100 object-fit-contain" />
+                </div>
+            </div>
+
+            <!-- SWAFOTO (SELFIE) -->
+            <div class="mb-4 px-3">
+                <p class="form-label fw-bold mb-2" style="color: #0b1d33;">Swafoto (Selfie)</p>
+                <div class="w-100 bg-light rounded-4 overflow-hidden border" style="border-color: #a0aec0 !important; max-width: 300px; aspect-ratio: 3 / 4;">
+                    <img src="../img/data-diri/contoh-selfie.jpeg" alt="Swafoto" class="w-100 h-100 object-fit-contain" />
+                </div>
+            </div>
+
+            <div class="p-3 rounded-4 d-flex align-items-center gap-3 mb-4" style="background-color: #eef7fc;">
+                <img src="../img/data-diri/icon-data-anda-terenkripsi.svg" alt="Ikon Enkripsi" class="flex-shrink-0" width="24" height="24" />
+                <p class="text-secondary small mb-0 fw-medium"> Data Anda dienkripsi dan hanya digunakan untuk verifikasi penyewaan.</p>
+            </div>
+
+            <div class="fixed-bottom bg-white py-3 px-3 border-top shadow-sm">
+                <div class="container p-0">
+                    <button type="submit" class="btn text-white w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2" style="background-color: #0b1d33;"> Lanjut 
+                  <img src="../img/data-diri/lanjut.svg" alt="lanjut" width="18" height="18" />
+                </button>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Tangkap form data diri saat disubmit
+        const formDataDiri = document.querySelector('form');
+        formDataDiri.addEventListener('submit', function(e) {
+            // Ambil nilai dari input yang diisi user
+            const namaPenyewa = document.getElementById('nama-lengkap').value;
+            const noHpPenyewa = document.getElementById('nomor-hp').value;
+
+            // Simpan ke localStorage agar bisa dipanggil nanti
+            localStorage.setItem('sewa_nama_penyewa', namaPenyewa);
+            localStorage.setItem('sewa_nohp_penyewa', noHpPenyewa);
+        });
+    </script>
+
+</body>
+
+</html>

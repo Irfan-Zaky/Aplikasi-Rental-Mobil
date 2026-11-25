@@ -136,6 +136,7 @@ Nama tabel dan PK mengikuti rancangan (`car_photo`, `photo_id`).
 | customer_nik | text | tidak | Cast `encrypted`. NIK asli 16 digit |
 | customer_phone | varchar(15) | tidak | |
 | customer_ktp_photo | varchar(255) | tidak | Path disk private |
+| customer_sim_photo | varchar(255) | tidak | Path disk private. Baris lama tanpa SIM memakai string kosong |
 | customer_selfie_photo | varchar(255) | tidak | Path disk private |
 | terms_accepted_at | timestamp | ya | Waktu menyetujui syarat dan ketentuan |
 | status | varchar(30) | tidak | Default `Menunggu Pembayaran`. **Index** |
@@ -189,6 +190,8 @@ Index: `(rental_id, status)`, `(status, expires_at)`.
 | raw_payload | json | ya | Respons terakhir gateway |
 | timestamps | | | |
 
+`qr_ref` adalah `order_id` Midtrans dan kunci idempotensi webhook. `qr_code` menyimpan URL QR dari `actions[name=generate-qr-code].url`. `raw_payload` menyimpan respons gateway terakhir. **Jangan** menambah kolom `qr_url`, `deeplink_url`, `midtrans_transaction_id`, `midtrans_payment_type`, atau `midtrans_response`.
+
 ### cash
 
 | Kolom | Tipe | Null | Keterangan |
@@ -227,6 +230,7 @@ Tabel transaksi punya FK, urutannya tidak boleh dibalik. Implementasi sudah mema
 | 6 | `qris` | Baru |
 | 7 | `cash` | Baru |
 | 8 | `booking_history` | Baru |
+| 9 | `rental`: tambah `customer_sim_photo` | Ubah tabel (migration baru) |
 
 Jangan membuat migration untuk kolom verifikasi di `account` (lihat bagian 4).
 
@@ -238,9 +242,11 @@ Jangan membuat migration untuk kolom verifikasi di `account` (lihat bagian 4).
 |---|---|
 | `rental.driver_fee_per_day` | `add_on.driver_fee = nilai × duration` bila dengan sopir |
 | `rental.contact_phone` | Kontak admin di invoice bila tanpa sopir |
-| `rental.pending_ttl_minutes` (30) | `rental.expires_at` saat rental dibuat |
-| `rental.qris_ttl_minutes` (10) | `payment.expires_at` QRIS |
+| `rental.pending_ttl_minutes` (30) | `rental.expires_at` saat rental dibuat, sebelum metode bayar dipilih |
+| `rental.qris_ttl_minutes` (10) | `payment.expires_at` QRIS dan `custom_expiry` Midtrans |
 | `rental.cash_ttl_hours` (3) | `payment.expires_at` tunai |
+| `rental.late_fee_rate_per_hour` (0.06) | Denda otomatis: `ceil(menit/60) × rate × price_per_day` |
+| `midtrans.is_production`, `midtrans.server_key`, `midtrans.client_key`, `midtrans.signature_secret_key`, `midtrans.base_url` | Midtrans Core API; Server Key untuk API, Signature Secret Key untuk verifikasi notifikasi; tidak ada kolom tambahan di `qris` |
 
 ---
 
@@ -248,3 +254,4 @@ Jangan membuat migration untuk kolom verifikasi di `account` (lihat bagian 4).
 
 - Akun admin: `role = admin`, `username` terisi, password di-hash. Tidak ada fitur pendaftaran admin.
 - Contoh mobil dan foto untuk pengembangan.
+- Contoh rental menyertakan path dokumen verifikasi KTP, SIM, dan selfie di disk private.

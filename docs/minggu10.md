@@ -85,7 +85,7 @@ Urutan dependency: **P0 → (P1, P2, P3, P4) → P5**. P1–P4 bisa dikerjakan p
 
 | ID | Kepingan | Acceptance |
 |---|---|---|
-| P2.1 | Command `rentals:expire` (tiap menit): rental `Menunggu Pembayaran`/`Menunggu Verifikasi` dengan `expires_at <= now()` → payment belum `Berhasil` jadi `Kadaluarsa`, rental → `Dibatalkan` lewat `transitionTo()`. | Test `travelTo()` membuktikan status & payment berubah. |
+| P2.1 | Command `rentals:expire` (tiap menit): rental `Menunggu Pembayaran`/`Menunggu Verifikasi` dengan payment `Sewa` masih `Menunggu Pembayaran` dan `payment.expires_at <= now()` → payment `Kadaluarsa`, rental → `Dibatalkan` lewat `transitionTo()`. Payment `Menunggu Konfirmasi`/`Berhasil` dilewati. | Test `travelTo()` membuktikan status & payment berubah, dan payment `Menunggu Konfirmasi` aman. |
 | P2.2 | Command `rentals:tick` (tiap menit): `Pembayaran Berhasil` + `start_date` tiba → `Berjalan` (mobil `Disewa`); `Berjalan` + lewat `end_date` → `Terlambat`. | Test transisi dan mobil `Disewa`. |
 | P2.3 | Command `mobils:purge-inactive` (harian): soft delete mobil `Nonaktif` yang sudah tidak punya rental pemblokir. | Test tidak menghapus mobil yang masih dipesan. |
 | P2.4 | Daftarkan ketiganya di `bootstrap/app.php` via `->withSchedule(...)`. | `php artisan schedule:list` menampilkan jadwal. |

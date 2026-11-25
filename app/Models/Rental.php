@@ -46,6 +46,7 @@ class Rental extends Model
         'customer_nik',
         'customer_phone',
         'customer_ktp_photo',
+        'customer_sim_photo',
         'customer_selfie_photo',
         'terms_accepted_at',
         'status',
@@ -111,7 +112,7 @@ class Rental extends Model
     public function transitionTo(RentalStatus $status, ?Account $changedBy = null, ?string $note = null): void
     {
         $allowed = match ($this->status) {
-            RentalStatus::MenungguPembayaran => [RentalStatus::MenungguVerifikasi, RentalStatus::Dibatalkan],
+            RentalStatus::MenungguPembayaran => [RentalStatus::MenungguVerifikasi, RentalStatus::PembayaranBerhasil, RentalStatus::Dibatalkan],
             RentalStatus::MenungguVerifikasi => [RentalStatus::PembayaranBerhasil, RentalStatus::Dibatalkan],
             RentalStatus::PembayaranBerhasil => [RentalStatus::Berjalan, RentalStatus::Dibatalkan],
             RentalStatus::Berjalan => [RentalStatus::Terlambat, RentalStatus::Selesai],

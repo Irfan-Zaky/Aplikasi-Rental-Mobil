@@ -105,57 +105,26 @@
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                     <h4 class="fw-bold mb-4">Riwayat Status</h4>
                     <div class="row g-3">
-                        <div class="col-md-3">
-                            <div class="card border border-secondary-subtle shadow-sm rounded-3 p-3 h-100 bg-white">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <img src="{{ asset('img_admin/detail-riwayat-transaksi/check.svg') }}" alt="" width="20" />
-                                    <h6 class="fw-bold mb-0" style="font-size: 14px;">Menunggu Pembayaran</h6>
-                                </div>
-                                <div>
-                                    <p class="text-primary small mb-1 fw-semibold" style="font-size: 12px;">05 Okt 2026 · 09.10 WIB</p>
-                                    <small class="text-muted" style="font-size: 11px;">Pesanan dibuat melalui aplikasi</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="card border border-secondary-subtle shadow-sm rounded-3 p-3 h-100 bg-white">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <img src="{{ asset('img_admin/detail-riwayat-transaksi/check.svg') }}" alt="" width="20" />
-                                    <h6 class="fw-bold mb-0" style="font-size: 14px;">Pembayaran Berhasil</h6>
-                                </div>
-                                <div>
-                                    <p class="text-primary small mb-1 fw-semibold" style="font-size: 12px;">05 Okt 2026 · 09.14 WIB</p>
-                                    <small class="text-muted" style="font-size: 11px;">QRIS diverifikasi otomatis</small>
+                        @forelse ($rental->bookingHistories->sortBy('sequence_no') as $history)
+                            <div class="col-md-3">
+                                <div class="card border border-secondary-subtle shadow-sm rounded-3 p-3 h-100 bg-white">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <img src="{{ asset('img_admin/detail-riwayat-transaksi/check.svg') }}" alt="" width="20" />
+                                        <h6 class="fw-bold mb-0" style="font-size: 14px;">
+                                            {{ $history->sequence_no }}. {{ $history->status->value }}
+                                        </h6>
+                                    </div>
+                                    <div>
+                                        <p class="text-primary small mb-1 fw-semibold" style="font-size: 12px;">
+                                            {{ $history->changed_at?->format('d M Y · H.i') }} WIB
+                                        </p>
+                                        <small class="text-muted" style="font-size: 11px;">{{ $history->note ?: 'Perubahan status' }}</small>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="card border border-secondary-subtle shadow-sm rounded-3 p-3 h-100 bg-white">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <img src="{{ asset('img_admin/detail-riwayat-transaksi/check.svg') }}" alt="" width="20" />
-                                    <h6 class="fw-bold mb-0" style="font-size: 14px;">Kendaraan Diserahkan</h6>
-                                </div>
-                                <div>
-                                    <p class="text-primary small mb-1 fw-semibold" style="font-size: 12px;">05 Okt 2026 · 08.02 WIB</p>
-                                    <small class="text-muted" style="font-size: 11px;">Serah terima oleh petugas</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="card shadow-sm rounded-3 p-3 h-100" style="background-color: #f0fdf4; border: 1px solid #22c55e;">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <img src="{{ asset('img_admin/detail-riwayat-transaksi/check.svg') }}" alt="" width="20" />
-                                    <h6 class="fw-bold mb-0 text-success" style="font-size: 14px;">Selesai</h6>
-                                </div>
-                                <div>
-                                    <p class="text-success small mb-1 fw-semibold" style="font-size: 12px;">08 Okt 2026 · 16.30 WIB</p>
-                                    <small class="text-muted" style="font-size: 11px;">Kendaraan diterima tanpa kerusakan</small>
-                                </div>
-                            </div>
-                        </div>
+                        @empty
+                            <div class="col-12 text-muted small">Belum ada riwayat status.</div>
+                        @endforelse
                     </div>
                 </div>
 

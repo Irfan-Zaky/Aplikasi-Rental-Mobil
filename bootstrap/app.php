@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsCustomer;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,7 +14,26 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->command('rentals:expire')
+            ->everyMinute()
+            ->withoutOverlapping(5);
+
+        $schedule->command('rentals:tick')
+            ->everyMinute()
+            ->withoutOverlapping(5);
+
+        $schedule->command('mobils:purge-inactive')
+            ->daily()
+            ->withoutOverlapping(30);
+    })
     ->withMiddleware(function (Middleware $middleware): void {
+        // ngrok meneruskan Host lokal, tetapi menyimpan host publik di X-Forwarded-Host.
+        // Percayakan header tersebut dari proxy lokal agar URL tidak di-generate ke domain lokal.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
+        $middleware->preventRequestForgery(except: ['webhooks/qris']);
+
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'customer' => EnsureUserIsCustomer::class,

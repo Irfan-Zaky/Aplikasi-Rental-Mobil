@@ -28,16 +28,18 @@ Satu model `Account` (tabel `account`), pembeda hanya `role`.
 | Dari | Ke | Pemicu | Pelaku |
 |---|---|---|---|
 | (baru) | `Menunggu Pembayaran` | Customer mengonfirmasi pemesanan (C-13) | Customer |
-| `Menunggu Pembayaran` | `Menunggu Verifikasi` | QRIS: webhook sukses. Tunai: admin memasukkan kode valid yang belum kedaluwarsa | Sistem / Admin |
-| `Menunggu Verifikasi` | `Pembayaran Berhasil` | Admin menekan Konfirmasi Pembayaran | Admin |
+| `Menunggu Pembayaran` | `Menunggu Verifikasi` | QRIS: webhook Midtrans sukses | Sistem |
+| `Menunggu Pembayaran` | `Pembayaran Berhasil` | Tunai: admin menemukan transaksi lewat kode tunai lalu menekan Konfirmasi Pembayaran | Admin |
+| `Menunggu Verifikasi` | `Pembayaran Berhasil` | QRIS: admin menekan Konfirmasi Pembayaran | Admin |
 | `Pembayaran Berhasil` | `Berjalan` | `start_date` tiba | Scheduler |
 | `Berjalan` | `Terlambat` | Lewat `end_date` dan belum dikembalikan | Scheduler |
 | `Berjalan` / `Terlambat` | `Selesai` | Admin menekan Selesaikan Transaksi | Admin |
-| `Menunggu Pembayaran` / `Menunggu Verifikasi` | `Dibatalkan` | Melewati `expires_at` | Scheduler |
+| `Menunggu Pembayaran` / `Menunggu Verifikasi` | `Dibatalkan` | Payment `Sewa` masih `Menunggu Pembayaran` dan melewati `payment.expires_at`; payment `Menunggu Konfirmasi` / `Berhasil` tidak dibatalkan otomatis | Scheduler |
 | `Menunggu Pembayaran` / `Menunggu Verifikasi` / `Pembayaran Berhasil` | `Dibatalkan` | Admin menekan Batalkan Pesanan (alasan wajib) | Admin |
 
 - Perubahan status **hanya** lewat satu method terpusat (`Rental::transitionTo()`) yang juga menulis `booking_history`.
 - Transisi di luar tabel ini **ditolak**.
+- Auto-cancel hanya untuk payment yang benar-benar belum dibayar. Payment `Menunggu Konfirmasi` atau `Berhasil` tidak dibatalkan otomatis meskipun `expires_at` terlewat; pembayaran yang sudah masuk menunggu konfirmasi admin.
 
 ### 2.2 Status pembayaran (`payment.status`)
 
@@ -100,7 +102,7 @@ Wajib dalam satu `DB::transaction`:
 
 1. `lockForUpdate()` pada baris mobil.
 2. Validasi ulang ketersediaan (3.1) di dalam transaksi.
-3. Buat rental: status `Menunggu Pembayaran`, `expires_at = now + 30 menit`, `trx_code`.
+3. Buat rental: status `Menunggu Pembayaran`, `expires_at = now + 30 menit` (berlaku sampai metode bayar dipilih, lalu disamakan dengan `payment.expires_at`), `trx_code`.
 4. Buat `add_on`.
 5. Tulis `booking_history` urutan 1.
 
@@ -110,13 +112,16 @@ Wajib dalam satu `DB::transaction`:
 |---|---|---|
 | Masa berlaku | 10 menit (`payment.expires_at`) | 3 jam (`payment.expires_at`) |
 | Detail | baris `qris` | baris `cash` (`payment_code` format `TNI-XXXX-XXXX`) |
-| Sukses | Webhook → payment `Menunggu Konfirmasi`, rental `Menunggu Verifikasi` | Admin memasukkan kode valid → payment `Menunggu Konfirmasi`, rental `Menunggu Verifikasi` |
+| Sukses | Webhook Midtrans → payment `Menunggu Konfirmasi`, rental `Menunggu Verifikasi` | Admin mencari transaksi dengan kode tunai, lalu konfirmasi langsung → payment `Berhasil`, rental `Pembayaran Berhasil` |
 | Gagal | Webhook gagal → payment `Gagal`; customer boleh membuat payment baru selama rental belum `Dibatalkan` | — |
-| Kedaluwarsa | payment `Kadaluarsa`, rental `Dibatalkan` | payment `Kadaluarsa`, rental `Dibatalkan`, kode tidak bisa dipakai lagi |
+| Kedaluwarsa | Payment masih `Menunggu Pembayaran` saat `expires_at` lewat → `Kadaluarsa`, rental `Dibatalkan`. Bila sudah `Menunggu Konfirmasi`, tetap menunggu admin | Sama; kode tidak bisa dipakai lagi setelah payment `Kadaluarsa` |
 
+- Saat payment `Sewa` dibuat, `rental.expires_at` ikut disamakan dengan `payment.expires_at` dalam transaksi yang sama, supaya aturan pemblokir tanggal (3.1) dan auto-cancel (3.6) memakai batas waktu yang sama.
 - Satu rental hanya boleh punya **satu payment `Sewa` aktif** (`Menunggu Pembayaran` / `Menunggu Konfirmasi`) pada satu waktu.
 - `amount` = `total_rental`.
-- Webhook: `POST /webhooks/qris`, di luar CSRF, wajib verifikasi signature, **idempoten** berdasarkan `qris.qr_ref`. Penyedia gateway belum ditentukan. Untuk demo boleh memakai simulasi yang memanggil logika yang sama.
+- Gateway QRIS adalah **Midtrans Core API** dengan `payment_type = gopay`. Ikuti dokumen `AI_RULES_PAYMENT_MIDTRANS.md` untuk charge dan webhook.
+- Webhook: `POST /webhooks/qris`, di luar CSRF, wajib verifikasi signature memakai **Signature Secret Key**, lalu ambil status terbaru lewat Get Status Midtrans, dan **idempoten** berdasarkan `qris.qr_ref`. Get Status harus ber-`status_code = 200`, `201` (`201` untuk `pending`), atau `407` (`407` untuk `expire`) dan memiliki `transaction_status`; jika tidak, balas `502` dan jangan ubah status. Dilarang memakai QR simulasi atau `transaction_status` dari notifikasi sebagai fallback.
+- Kode tunai `TNI-XXXX-XXXX` hanya dipakai untuk **pencarian transaksi** oleh admin. Tidak ada input verifikasi kode tunai, tidak ada status `Menunggu Konfirmasi` untuk Tunai.
 
 ### 3.5 Kode
 
@@ -133,13 +138,25 @@ Semua kode unik. Invoice dibuat dari data rental (halaman/PDF), bukan tabel send
 
 | Perintah | Jadwal | Tugas |
 |---|---|---|
-| `rentals:expire` | tiap menit | Batalkan rental yang lewat `expires_at` dan tandai payment aktif yang lewat `expires_at` sebagai `Kadaluarsa`. |
+| `rentals:expire` | tiap menit | Batalkan rental `Menunggu Pembayaran`/`Menunggu Verifikasi` yang punya payment `Sewa` masih `Menunggu Pembayaran` dengan `payment.expires_at <= now()`; payment itu → `Kadaluarsa`. Payment `Menunggu Konfirmasi`/`Berhasil` dilewati. |
 | `rentals:tick` | tiap menit | `Pembayaran Berhasil` → `Berjalan` (mobil → `Disewa`) saat `start_date` tiba. `Berjalan` → `Terlambat` saat lewat `end_date`. |
 | `mobils:purge-inactive` | harian | Soft delete mobil `Nonaktif` yang tidak lagi punya rental pemblokir. |
 
-### 3.7 Keamanan data
+### 3.7 Konfigurasi
 
-- NIK, foto KTP, dan selfie adalah data pribadi. NIK terenkripsi. KTP dan selfie di disk **private** dan hanya bisa diakses admin atau pemilik rental lewat route terproteksi.
+| Key | Dipakai untuk |
+|---|---|
+| `rental.driver_fee_per_day` | Biaya sopir. |
+| `rental.contact_phone` | Kontak invoice tanpa sopir. |
+| `rental.pending_ttl_minutes` | Batas rental sebelum metode bayar dipilih. |
+| `rental.qris_ttl_minutes` | Batas QRIS dan `custom_expiry` Midtrans. |
+| `rental.cash_ttl_hours` | Batas pembayaran Tunai. |
+| `rental.late_fee_rate_per_hour` | Tarif denda per jam keterlambatan (default `0.06`). |
+| `midtrans.is_production`, `midtrans.server_key`, `midtrans.client_key`, `midtrans.signature_secret_key`, `midtrans.base_url` | Integrasi Midtrans Core API. Server Key untuk charge/status; Signature Secret Key untuk verifikasi webhook. |
+
+### 3.8 Keamanan data
+
+- NIK, foto KTP, foto SIM, dan selfie adalah data pribadi. NIK terenkripsi. KTP, SIM, dan selfie di disk **private** dan hanya bisa diakses admin atau pemilik rental lewat route terproteksi.
 - Password di-hash. Customer tidak pernah melihat password (tidak ditampilkan di profil).
 
 ---
@@ -219,7 +236,7 @@ Urutan wajib:
    - Dengan Sopir → alamat/titik penjemputan wajib (`pickup_point`).
    - Lepas Kunci → pilih `Diantar` atau `Ambil di garasi` (`handover_method`). `Diantar` → alamat pengantaran wajib (`pickup_point`). `Ambil di garasi` → tanpa alamat.
    - Alamat tidak valid → minta isi ulang.
-6. **C-12 Data Diri:** nama lengkap, nomor HP, NIK (16 digit angka), foto KTP, swafoto. Semua wajib (S-03 bila tidak valid).
+6. **C-12 Data Diri:** nama lengkap, nomor HP, NIK (16 digit angka), foto KTP, foto SIM, swafoto. Semua wajib (S-03 bila tidak valid); foto KTP, SIM, dan swafoto berupa gambar `jpg`/`jpeg`/`png`/`webp` maksimal 2048 KB.
 7. **C-13 Ringkasan:** tampilkan mobil, tanggal, durasi, layanan, penerimaan, lokasi, data penyewa, subtotal, biaya sopir, total. Customer menekan Konfirmasi Pemesanan.
 8. Sistem membuat rental dengan aturan atomik 3.3, lalu mengarahkan ke C-14.
 
@@ -235,6 +252,7 @@ Urutan wajib:
 2. QRIS → buat payment + `qris`, tampilkan QR, nominal, hitung mundur 10 menit, status, instruksi (C-15).
 3. Tunai → buat payment + `cash`, tampilkan kode pembayaran, total, batas 3 jam, instruksi, lokasi garasi (C-16).
 4. Aturan status dan kedaluwarsa mengikuti 3.4.
+5. C-15 memantau status pembayaran dari database (bukan memanggil Midtrans dari browser). Begitu payment menjadi `Menunggu Konfirmasi` atau `Berhasil`, halaman menampilkan "Pembayaran diterima" dan otomatis mengarahkan customer ke C-04. Status rental tetap `Menunggu Verifikasi` sampai admin mengonfirmasi pada F006; polling tidak mengubah status dan tidak menerbitkan booking/invoice.
 
 **Modal:** S-04 (QRIS gagal: Tutup / Bayar Kembali), S-05 (QRIS kedaluwarsa), S-06 (kode tunai kedaluwarsa). S-05 dan S-06 → Kembali ke Dashboard.
 
@@ -246,17 +264,18 @@ Urutan wajib:
 
 **Tunai:**
 
-1. Customer datang ke garasi dan menunjukkan kode.
-2. Admin memasukkan kode di A-08 (tab Tunai). Kode tidak ditemukan → "Kode pembayaran tidak ditemukan." dan input ulang. Kode kedaluwarsa → ditolak.
-3. Kode valid → sistem menampilkan detail pesanan; payment → `Menunggu Konfirmasi`, rental → `Menunggu Verifikasi`.
-4. Admin memeriksa detail dan dokumen verifikasi (KTP, selfie).
-5. Admin menekan Konfirmasi Pembayaran.
+1. Customer datang ke garasi dan menunjukkan kode tunai.
+2. Admin mencari transaksi dengan kode tersebut pada A-02/A-08 (kolom pencarian transaksi). Kode tidak ditemukan atau payment sudah `Kadaluarsa` → beri pesan, tidak ada konfirmasi.
+3. Admin membuka detail transaksi, memeriksa detail dan dokumen verifikasi (KTP, SIM, selfie).
+4. Admin menekan Konfirmasi Pembayaran. Payment langsung dari `Menunggu Pembayaran` menjadi `Berhasil`, rental langsung menjadi `Pembayaran Berhasil`.
+5. Tidak ada status `Menunggu Konfirmasi` / `Menunggu Verifikasi` untuk Tunai.
 
 **QRIS:**
 
-1. Setelah webhook sukses, admin melihat notifikasi (daftar "Pembayaran Menunggu Konfirmasi" di A-02 / tab QRIS di A-08).
-2. Admin membuka detail, memeriksa kesesuaian pembayaran, data, dan dokumen.
-3. Admin menekan Konfirmasi Pembayaran.
+1. Midtrans mengirim webhook `settlement` yang tervalidasi ke `POST /webhooks/qris`; backend melakukan Get Status dan payment menjadi `Menunggu Konfirmasi`, rental `Menunggu Verifikasi`.
+2. Admin melihat notifikasi pada daftar "Pembayaran Menunggu Konfirmasi" di A-02 / tab QRIS di A-08.
+3. Admin membuka detail, memeriksa kesesuaian pembayaran, data, dan dokumen verifikasi (KTP, SIM, selfie).
+4. Admin menekan Konfirmasi Pembayaran.
 
 **Saat konfirmasi (satu transaksi database):**
 
@@ -267,7 +286,7 @@ Urutan wajib:
 
 **Alternatif:**
 
-- Data tidak sesuai → admin **tidak** mengonfirmasi, status tetap `Menunggu Verifikasi` / `Menunggu Konfirmasi`.
+- Data tidak sesuai → admin **tidak** mengonfirmasi. QRIS tetap `Menunggu Verifikasi` / `Menunggu Konfirmasi`; Tunai tetap `Menunggu Pembayaran` / `Menunggu Pembayaran`.
 - Admin menekan **Batalkan Pesanan** (alasan wajib → `cancel_reason`, `cancelled_at`) → rental `Dibatalkan`, payment yang belum `Berhasil` → `Kadaluarsa`. Refund di luar lingkup.
 - QRIS belum diterima → payment tetap `Menunggu Pembayaran`, admin belum bisa konfirmasi.
 - QRIS gagal → payment `Gagal`, **tidak** ada invoice dan kode booking.
@@ -298,13 +317,16 @@ Urutan wajib:
 
 1. Customer mengembalikan mobil. Admin memeriksa mobil.
 2. Admin mencari transaksi berdasarkan kode booking, lalu menekan Selesaikan Transaksi. Sistem mengisi `returned_at = now()`.
-3. Bila `returned_at <= end_date` → rental `Selesai`, mobil `Tersedia` (bila status `Disewa`).
-4. Bila `returned_at > end_date` → tampilkan modal S-09 (lama keterlambatan + input nominal denda). Admin mengisi nominal dan mengonfirmasi:
-   - `rental.late_fee` = nominal.
-   - Buat payment `type = Denda`, `method = Tunai`, `amount = late_fee`, status `Berhasil`, `confirmed_by` = admin. Tanpa baris `cash`.
-   - Rental `Selesai`, mobil `Tersedia` (bila status `Disewa`).
+3. Bila `returned_at <= end_date` → rental `Selesai`, mobil `Tersedia` (bila status `Disewa`), `late_fee = 0`.
+4. Bila `returned_at > end_date` → tampilkan modal S-09 berisi lama keterlambatan dan nominal denda yang dihitung server. Admin memilih Ya/Tidak:
+   - **Ya (Konfirmasi & Selesaikan):**
+     - `late_fee = ceil(menit keterlambatan / 60) × config('rental.late_fee_rate_per_hour') × price_per_day`, dibulatkan ke rupiah bulat.
+     - Server menghitung ulang nominal saat konfirmasi; nilai dari form tidak dipercaya.
+     - Buat payment `type = Denda`, `method = Tunai`, `amount = late_fee`, status `Berhasil`, `confirmed_by` = admin. Tanpa baris `cash`.
+     - Rental `Selesai`, mobil `Tersedia` (bila status `Disewa`), catatan history "Dikembalikan terlambat".
+   - **Tidak (Selesaikan Tanpa Denda):** jalan keluar bila admin terlambat menekan tombol, padahal customer mengembalikan mobil tepat waktu. Simpan `returned_at = end_date`, `late_fee = 0`, tanpa payment `Denda`; rental `Selesai`, mobil `Tersedia` (bila status `Disewa`), catatan history "Dikembalikan tepat waktu (tanpa denda)". Kedua pilihan tidak boleh dikirim sekaligus.
 
-Nominal denda diisi manual oleh admin. Tidak dihitung otomatis.
+Perhitungan denda otomatis wajib. Admin tidak mengisi nominal manual.
 
 ### F009 — Log Out
 
@@ -321,7 +343,7 @@ Nominal denda diisi manual oleh admin. Tidak dihitung otomatis.
 ## 5. Dashboard (ringkasan data)
 
 - **C-04 Customer:** nama, ringkasan jumlah pesanan per grup (Aktif / Menunggu / Selesai), pesanan terakhir, navigasi Beranda / Katalog / Riwayat / Profil.
-- **A-02 Admin:** total mobil, mobil `Tersedia`, mobil `Disewa`, total pesanan, jumlah menunggu konfirmasi, daftar "Pembayaran Menunggu Konfirmasi" (kode, customer, mobil, metode, total, status), navigasi Data Mobil / Pesanan / Riwayat / Logout.
+- **A-02 Admin:** total mobil, mobil `Tersedia`, mobil `Disewa`, total pesanan, jumlah menunggu konfirmasi, daftar "Pembayaran Menunggu Konfirmasi" dari data nyata (QRIS `Menunggu Verifikasi` dan Tunai `Menunggu Pembayaran` yang belum kedaluwarsa): kode, customer, mobil, metode, total, status; navigasi Data Mobil / Pesanan / Riwayat / Logout.
 
 ---
 
@@ -332,4 +354,4 @@ Nominal denda diisi manual oleh admin. Tidak dihitung otomatis.
 - Fitur laporan keuangan terpisah.
 - Verifikasi KTP tingkat akun (verifikasi hanya per pemesanan, diperiksa admin saat F006).
 - Tabel brand dan tipe mobil terpisah.
-- Perhitungan denda otomatis.
+- Pembatalan dan refund pembayaran denda.

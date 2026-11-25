@@ -28,6 +28,7 @@ class DokumenVerifikasiTest extends TestCase
             ->get(route('admin.transaksi.show', $rental))
             ->assertOk()
             ->assertSee(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'ktp']))
+            ->assertSee(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'sim']))
             ->assertSee(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'selfie']))
             ->assertDontSee('Identity document.png')
             ->assertDontSee('Selfie document.png');
@@ -37,11 +38,16 @@ class DokumenVerifikasiTest extends TestCase
     {
         $rental = Rental::factory()->create([
             'customer_ktp_photo' => 'verifikasi/ktp/ktp.jpg',
+            'customer_sim_photo' => 'verifikasi/sim/sim.jpg',
             'customer_selfie_photo' => 'verifikasi/selfie/selfie.jpg',
         ]);
 
         Storage::disk('local')->put(
             $rental->customer_ktp_photo,
+            File::get(public_path('img_admin/detail-transaksi/Identity document.png'))
+        );
+        Storage::disk('local')->put(
+            $rental->customer_sim_photo,
             File::get(public_path('img_admin/detail-transaksi/Identity document.png'))
         );
         Storage::disk('local')->put(
@@ -51,7 +57,7 @@ class DokumenVerifikasiTest extends TestCase
 
         $admin = $this->actingAs(Account::factory()->admin()->create());
 
-        foreach (['ktp', 'selfie'] as $jenis) {
+        foreach (['ktp', 'sim', 'selfie'] as $jenis) {
             $admin->get(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => $jenis]))
                 ->assertOk()
                 ->assertHeader('Content-Type', 'image/png');
@@ -63,9 +69,12 @@ class DokumenVerifikasiTest extends TestCase
         $rental = Rental::factory()->create();
         Storage::disk('local')->put($rental->customer_ktp_photo, 'isi dokumen');
 
-        $this->actingAs(Account::factory()->create())
-            ->get(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'ktp']))
-            ->assertForbidden();
+        $customer = $this->actingAs(Account::factory()->create());
+
+        foreach (['ktp', 'sim', 'selfie'] as $jenis) {
+            $customer->get(route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => $jenis]))
+                ->assertForbidden();
+        }
     }
 
     public function test_tamu_diarahkan_ke_login_saat_membuka_dokumen(): void

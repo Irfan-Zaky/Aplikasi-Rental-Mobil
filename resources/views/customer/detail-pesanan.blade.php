@@ -46,10 +46,11 @@
             </ol>
         </section>
 
-        <section aria-label="Kode booking"
-            class="px-3 p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-4 my-3">
-            <p class="text-success small mb-1 fw-medium">Kode Booking</p>
-            <h5 id="info-booking" class="text-success fw-bold m-0">{{ data_get($pesanan, 'kode', '-') }}</h5>
+        <section aria-label="Kode booking" class="px-3 p-3 bg-light border rounded-4 my-3">
+            <p class="text-muted small mb-1 fw-medium">Kode Booking</p>
+            <h5 id="info-booking" class="text-dark fw-bold m-0">{{ data_get($pesanan, 'kode_booking', '-') }}</h5>
+            <p class="text-muted small mb-1 mt-3 fw-medium">Nomor Invoice</p>
+            <h6 id="info-invoice" class="text-dark fw-bold m-0">{{ data_get($pesanan, 'invoice', '-') }}</h6>
         </section>
 
         <section aria-label="Informasi Pesanan" class="card border-0 shadow-sm rounded-4 p-3 my-3">
@@ -102,8 +103,20 @@
                     <span class="text-muted small">Metode</span>
                     <strong id="info-metode" class="text-dark">{{ data_get($pesanan, 'metode', '-') }}</strong>
                 </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Status Pembayaran</span>
+                    <strong id="info-status-pembayaran" class="text-dark">{{ data_get($pesanan, 'status_pembayaran', '-') }}</strong>
+                </div>
             </div>
         </section>
+
+        @if (data_get($pesanan, 'tautan_pembayaran'))
+            <div class="container my-3">
+                <a href="{{ data_get($pesanan, 'tautan_pembayaran') }}"
+                    class="btn btn-outline-primary w-100 py-3 rounded-4 fw-bold">Lihat Pembayaran</a>
+            </div>
+        @endif
 
         <div class="container my-4 pb-5 d-grid gap-3">
             <a href="{{ url('/customer/beranda') }}" class="btn btn-outline-dark py-3 rounded-1 fw-bold"

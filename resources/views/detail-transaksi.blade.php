@@ -60,7 +60,7 @@
 
                                 <div class="bg-light p-3 rounded-4 d-flex justify-content-between align-items-center mt-auto border">
                                     <span class="text-muted small fw-medium">Kode Booking</span>
-                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 rounded-pill fw-bold">{{ $transaksi->kode_booking ?? 'BK-104829' }}</span>
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 rounded-pill fw-bold">{{ $transaksi->kode_booking ?: '-' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -77,7 +77,7 @@
                                 </li>
                                 <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
                                     <span class="text-muted small">Kode pembayaran</span>
-                                    <strong class="text-dark small">{{ $transaksi->kode_pembayaran ?? 'TNI-2841-9820' }}</strong>
+                                    <strong class="text-dark small">{{ $transaksi->kode_pembayaran ?: '-' }}</strong>
                                 </li>
                                 <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
                                     <span class="text-muted small">Harga/hari</span>
@@ -119,14 +119,20 @@
                     </div>
                     <div>
                         <span class="text-success d-inline-flex align-items-center gap-1 fw-bold">
-                            <img src="{{ asset('img_admin/detail-transaksi/shield-check.svg') }}" alt="" /> 2 dokumen diterima
+                            <img src="{{ asset('img_admin/detail-transaksi/shield-check.svg') }}" alt="" />
+                            {{ collect([$rental->customer_ktp_photo, $rental->customer_sim_photo, $rental->customer_selfie_photo])->filter()->count() }} dokumen diterima
                         </span>
                     </div>
                 </div>
-                <div class="document-images-container d-flex align-items-center mb-3 gap-3">
+                <div class="document-images-container d-flex align-items-center flex-wrap mb-3 gap-3">
                     <div class="doc-box">
                         <img src="{{ route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'ktp']) }}" alt="Foto KTP" />
                     </div>
+                    @if (filled($rental->customer_sim_photo))
+                        <div class="doc-box">
+                            <img src="{{ route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'sim']) }}" alt="Foto SIM" />
+                        </div>
+                    @endif
                     <div class="doc-box">
                         <img src="{{ route('admin.transaksi.dokumen', ['rental' => $rental, 'jenis' => 'selfie']) }}" alt="Foto Selfie KTP" />
                     </div>
@@ -189,24 +195,33 @@
     @if ($bisaDiselesaikan && $terlambat)
         <div class="modal fade" id="modalDenda" tabindex="-1" aria-labelledby="modalDendaLabel" aria-hidden="true">
             <div class="modal-dialog">
-                <form action="{{ route('admin.transaksi.selesaikan', $rental) }}" method="POST" class="modal-content form-konfirmasi" data-pesan="Konfirmasi pengembalian terlambat ini?">
-                    @csrf
+                <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title fw-bold" id="modalDendaLabel">Pengembalian Terlambat</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body">
                         <p class="text-muted small mb-3">
-                            Keterlambatan {{ $lamaTerlambat }} hari. Masukkan nominal denda secara manual.
+                            Keterlambatan {{ $lamaTerlambat }} hari. Denda dihitung otomatis oleh sistem.
                         </p>
-                        <label for="late_fee" class="form-label fw-medium small">Nominal denda (Rp)</label>
-                        <input type="number" name="late_fee" id="late_fee" class="form-control" min="1" step="1" required>
+                        <div class="alert alert-warning fw-bold mb-0">
+                            Rp {{ number_format($dendaOtomatis, 0, ',', '.') }}
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn text-white" style="background-color: #ff7a3d;">Konfirmasi & Selesaikan</button>
+                    <div class="modal-footer flex-column gap-2">
+                        <form action="{{ route('admin.transaksi.selesaikan', $rental) }}" method="POST" class="form-konfirmasi w-100" data-pesan="Konfirmasi pengembalian terlambat ini?">
+                            @csrf
+                            <input type="hidden" name="konfirmasi" value="1">
+                            <button type="submit" class="btn text-white w-100" style="background-color: #ff7a3d;">Konfirmasi & Selesaikan</button>
+                        </form>
+                        <form action="{{ route('admin.transaksi.selesaikan', $rental) }}" method="POST" class="form-konfirmasi w-100" data-pesan="Selesaikan tanpa denda? Pastikan customer benar-benar mengembalikan mobil tepat waktu.">
+                            @csrf
+                            <input type="hidden" name="tanpa_denda" value="1">
+                            <button type="submit" class="btn btn-outline-secondary w-100">Selesaikan Tanpa Denda</button>
+                        </form>
+                        <button type="button" class="btn btn-link text-decoration-none" data-bs-dismiss="modal">Batal</button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     @endif
