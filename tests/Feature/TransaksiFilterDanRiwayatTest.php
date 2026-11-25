@@ -517,6 +517,106 @@ class TransaksiFilterDanRiwayatTest extends TestCase
         $this->assertDatabaseCount('payment', 0);
     }
 
+    public function test_admin_menyelesaikan_pengembalian_terlambat_tanpa_denda(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $mobil = Car::factory()->create(['status' => CarStatus::Disewa]);
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'car_id' => $mobil->car_id,
+            'status' => RentalStatus::Terlambat,
+            'end_date' => '2026-11-23 23:59:59',
+            'price_per_day' => 500000,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.selesaikan', $rental), ['tanpa_denda' => 1])
+            ->assertRedirect()
+            ->assertSessionHas('success', 'Transaksi berhasil diselesaikan.');
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Selesai->value,
+            'late_fee' => 0,
+            'returned_at' => '2026-11-23 23:59:59',
+        ]);
+        $this->assertDatabaseCount('payment', 0);
+        $this->assertDatabaseHas('booking_history', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Selesai->value,
+            'note' => 'Dikembalikan tepat waktu (tanpa denda)',
+        ]);
+        $this->assertSame(CarStatus::Tersedia->value, $mobil->fresh()->status);
+    }
+
+    public function test_admin_tidak_boleh_memilih_denda_dan_tanpa_denda_sekaligus(): void
+    {
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::Terlambat,
+            'end_date' => now()->subDay(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.selesaikan', $rental), [
+                'konfirmasi' => 1,
+                'tanpa_denda' => 1,
+            ])
+            ->assertSessionHasErrors([
+                'konfirmasi' => 'Pilih salah satu cara penyelesaian.',
+                'tanpa_denda' => 'Pilih salah satu cara penyelesaian.',
+            ]);
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Terlambat->value,
+        ]);
+        $this->assertDatabaseCount('payment', 0);
+    }
+
+    public function test_pengembalian_tepat_waktu_tetap_mencatat_waktu_sekarang(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::Berjalan,
+            'end_date' => now()->addDay(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.selesaikan', $rental), ['tanpa_denda' => 1])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('rental', [
+            'rental_id' => $rental->rental_id,
+            'status' => RentalStatus::Selesai->value,
+            'late_fee' => 0,
+            'returned_at' => '2026-11-24 10:00:00',
+        ]);
+        $this->assertDatabaseCount('payment', 0);
+    }
+
+    public function test_detail_transaksi_terlambat_menyediakan_tombol_selesaikan_tanpa_denda(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::Terlambat,
+            'end_date' => '2026-11-23 23:59:59',
+            'price_per_day' => 500000,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.transaksi.show', $rental))
+            ->assertOk()
+            ->assertSee('Pengembalian Terlambat')
+            ->assertSee('Selesaikan Tanpa Denda')
+            ->assertSee('name="tanpa_denda"', false);
+    }
+
     public function test_admin_membatalkan_pesanan_dengan_alasan_wajib(): void
     {
         $this->travelTo('2026-11-24 10:00:00');

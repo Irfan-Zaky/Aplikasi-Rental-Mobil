@@ -319,10 +319,12 @@ Urutan wajib:
 2. Admin mencari transaksi berdasarkan kode booking, lalu menekan Selesaikan Transaksi. Sistem mengisi `returned_at = now()`.
 3. Bila `returned_at <= end_date` → rental `Selesai`, mobil `Tersedia` (bila status `Disewa`), `late_fee = 0`.
 4. Bila `returned_at > end_date` → tampilkan modal S-09 berisi lama keterlambatan dan nominal denda yang dihitung server. Admin memilih Ya/Tidak:
-   - `late_fee = ceil(menit keterlambatan / 60) × config('rental.late_fee_rate_per_hour') × price_per_day`, dibulatkan ke rupiah bulat.
-   - Server menghitung ulang nominal saat konfirmasi; nilai dari form tidak dipercaya.
-   - Buat payment `type = Denda`, `method = Tunai`, `amount = late_fee`, status `Berhasil`, `confirmed_by` = admin. Tanpa baris `cash`.
-   - Rental `Selesai`, mobil `Tersedia` (bila status `Disewa`).
+   - **Ya (Konfirmasi & Selesaikan):**
+     - `late_fee = ceil(menit keterlambatan / 60) × config('rental.late_fee_rate_per_hour') × price_per_day`, dibulatkan ke rupiah bulat.
+     - Server menghitung ulang nominal saat konfirmasi; nilai dari form tidak dipercaya.
+     - Buat payment `type = Denda`, `method = Tunai`, `amount = late_fee`, status `Berhasil`, `confirmed_by` = admin. Tanpa baris `cash`.
+     - Rental `Selesai`, mobil `Tersedia` (bila status `Disewa`), catatan history "Dikembalikan terlambat".
+   - **Tidak (Selesaikan Tanpa Denda):** jalan keluar bila admin terlambat menekan tombol, padahal customer mengembalikan mobil tepat waktu. Simpan `returned_at = end_date`, `late_fee = 0`, tanpa payment `Denda`; rental `Selesai`, mobil `Tersedia` (bila status `Disewa`), catatan history "Dikembalikan tepat waktu (tanpa denda)". Kedua pilihan tidak boleh dikirim sekaligus.
 
 Perhitungan denda otomatis wajib. Admin tidak mengisi nominal manual.
 

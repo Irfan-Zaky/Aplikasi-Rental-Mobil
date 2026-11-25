@@ -195,8 +195,7 @@
     @if ($bisaDiselesaikan && $terlambat)
         <div class="modal fade" id="modalDenda" tabindex="-1" aria-labelledby="modalDendaLabel" aria-hidden="true">
             <div class="modal-dialog">
-                <form action="{{ route('admin.transaksi.selesaikan', $rental) }}" method="POST" class="modal-content form-konfirmasi" data-pesan="Konfirmasi pengembalian terlambat ini?">
-                    @csrf
+                <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title fw-bold" id="modalDendaLabel">Pengembalian Terlambat</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
@@ -208,13 +207,21 @@
                         <div class="alert alert-warning fw-bold mb-0">
                             Rp {{ number_format($dendaOtomatis, 0, ',', '.') }}
                         </div>
-                        <input type="hidden" name="konfirmasi" value="1">
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn text-white" style="background-color: #ff7a3d;">Konfirmasi & Selesaikan</button>
+                    <div class="modal-footer flex-column gap-2">
+                        <form action="{{ route('admin.transaksi.selesaikan', $rental) }}" method="POST" class="form-konfirmasi w-100" data-pesan="Konfirmasi pengembalian terlambat ini?">
+                            @csrf
+                            <input type="hidden" name="konfirmasi" value="1">
+                            <button type="submit" class="btn text-white w-100" style="background-color: #ff7a3d;">Konfirmasi & Selesaikan</button>
+                        </form>
+                        <form action="{{ route('admin.transaksi.selesaikan', $rental) }}" method="POST" class="form-konfirmasi w-100" data-pesan="Selesaikan tanpa denda? Pastikan customer benar-benar mengembalikan mobil tepat waktu.">
+                            @csrf
+                            <input type="hidden" name="tanpa_denda" value="1">
+                            <button type="submit" class="btn btn-outline-secondary w-100">Selesaikan Tanpa Denda</button>
+                        </form>
+                        <button type="button" class="btn btn-link text-decoration-none" data-bs-dismiss="modal">Batal</button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     @endif

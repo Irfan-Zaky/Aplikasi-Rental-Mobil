@@ -28,6 +28,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ->withoutOverlapping(30);
     })
     ->withMiddleware(function (Middleware $middleware): void {
+        // ngrok meneruskan Host lokal, tetapi menyimpan host publik di X-Forwarded-Host.
+        // Percayakan header tersebut dari proxy lokal agar URL tidak di-generate ke domain lokal.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
         $middleware->preventRequestForgery(except: ['webhooks/qris']);
 
         $middleware->alias([

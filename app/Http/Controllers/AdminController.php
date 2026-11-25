@@ -274,12 +274,29 @@ class AdminController extends Controller
      */
     public function selesaikan(Request $request, Rental $rental): RedirectResponse
     {
-        $validated = $request->validate(
-            now()->greaterThan($rental->end_date)
-                ? ['konfirmasi' => ['required', 'accepted']]
-                : [],
-            ['konfirmasi.accepted' => 'Konfirmasi denda diperlukan untuk pengembalian terlambat.']
-        );
+        $aturanValidasi = [];
+
+        if (now()->greaterThan($rental->end_date)) {
+            $konfirmasiDikirim = $request->filled('konfirmasi');
+            $tanpaDendaDikirim = $request->filled('tanpa_denda');
+
+            $aturanValidasi = match (true) {
+                $konfirmasiDikirim && $tanpaDendaDikirim => [
+                    'konfirmasi' => ['prohibited'],
+                    'tanpa_denda' => ['prohibited'],
+                ],
+                $tanpaDendaDikirim => ['tanpa_denda' => ['accepted']],
+                default => ['konfirmasi' => ['required', 'accepted']],
+            };
+        }
+
+        $validated = $request->validate($aturanValidasi, [
+            'konfirmasi.accepted' => 'Konfirmasi denda diperlukan untuk pengembalian terlambat.',
+            'konfirmasi.required' => 'Pilih konfirmasi denda atau selesaikan tanpa denda.',
+            'konfirmasi.prohibited' => 'Pilih salah satu cara penyelesaian.',
+            'tanpa_denda.accepted' => 'Konfirmasi pengembalian tanpa denda tidak valid.',
+            'tanpa_denda.prohibited' => 'Pilih salah satu cara penyelesaian.',
+        ]);
 
         $admin = $request->user();
 
@@ -293,21 +310,24 @@ class AdminController extends Controller
             );
 
             $terlambat = now()->greaterThan($rentalTerkunci->end_date);
+            $dendaDikonfirmasi = $terlambat && filled($validated['konfirmasi'] ?? null);
+            $tanpaDenda = $terlambat && filled($validated['tanpa_denda'] ?? null);
 
-            if ($terlambat && empty($validated['konfirmasi'])) {
+            if ($terlambat && ! $dendaDikonfirmasi && ! $tanpaDenda) {
                 abort(422, 'Konfirmasi denda diperlukan untuk pengembalian terlambat.');
             }
 
-            $lateFee = $terlambat
+            $returnedAt = $tanpaDenda ? $rentalTerkunci->end_date : now();
+            $lateFee = $dendaDikonfirmasi
                 ? $this->lateFeeCalculator->hitung($rentalTerkunci->end_date, $rentalTerkunci->price_per_day)
                 : 0;
 
             $rentalTerkunci->update([
-                'returned_at' => now(),
+                'returned_at' => $returnedAt,
                 'late_fee' => $lateFee,
             ]);
 
-            if ($terlambat) {
+            if ($dendaDikonfirmasi) {
                 Payment::create([
                     'rental_id' => $rentalTerkunci->rental_id,
                     'type' => PaymentType::Denda,
@@ -320,11 +340,13 @@ class AdminController extends Controller
                 ]);
             }
 
-            $rentalTerkunci->transitionTo(
-                RentalStatus::Selesai,
-                $admin,
-                $terlambat ? 'Dikembalikan terlambat' : 'Dikembalikan tepat waktu'
-            );
+            $catatan = match (true) {
+                $tanpaDenda => 'Dikembalikan tepat waktu (tanpa denda)',
+                $dendaDikonfirmasi => 'Dikembalikan terlambat',
+                default => 'Dikembalikan tepat waktu',
+            };
+
+            $rentalTerkunci->transitionTo(RentalStatus::Selesai, $admin, $catatan);
         });
 
         return back()->with('success', 'Transaksi berhasil diselesaikan.');
