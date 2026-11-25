@@ -8,6 +8,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\PemesananController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Webhooks\QrisWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -21,6 +22,8 @@ Route::get('/', function () {
 Route::get('/', fn () => redirect()->route('customer.landing'))->name('landing');
 
 Route::get('/katalog', fn () => redirect()->route('customer.katalog'))->name('katalog');
+
+Route::post('/webhooks/qris', QrisWebhookController::class)->name('webhooks.qris');
 
 Route::prefix('customer')->name('customer.')->group(function () {
     Route::view('/landing-page', 'customer.landing-page')->name('landing');
@@ -63,6 +66,7 @@ Route::prefix('customer')->name('customer.')->group(function () {
         Route::get('/ringkasan-pemesanan', [PemesananController::class, 'ringkasan'])->name('ringkasan-pemesanan');
         Route::post('/ringkasan-pemesanan', [PemesananController::class, 'ringkasanStore'])->name('ringkasan-pemesanan.store');
         Route::get('/pilihan-pembayaran', [PemesananController::class, 'pilihanPembayaran'])->name('pilihan-pembayaran');
+        Route::get('/pembayaran-qris/status', [PemesananController::class, 'statusQris'])->name('pembayaran-qris.status');
         Route::get('/pembayaran-qris', [PemesananController::class, 'pembayaranQris'])->name('pembayaran-qris');
         Route::get('/pembayaran-tunai', [PemesananController::class, 'pembayaranTunai'])->name('pembayaran-tunai');
     });

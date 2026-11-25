@@ -40,6 +40,11 @@ class Car extends Model
         ];
     }
 
+    public function rentals(): HasMany
+    {
+        return $this->hasMany(Rental::class, 'car_id');
+    }
+
     public function fotos(): HasMany
     {
         return $this->hasMany(CarPhoto::class, 'car_id');

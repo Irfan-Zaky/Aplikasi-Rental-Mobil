@@ -65,9 +65,20 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td colspan="6" class="text-center text-muted small py-4">Tidak ada pesanan yang menunggu konfirmasi</td>
-                            </tr>
+                            @forelse ($daftarMenunggu as $menunggu)
+                                <tr>
+                                    <td class="py-3 ps-3">{{ $menunggu->kode }}</td>
+                                    <td>{{ $menunggu->customer }}</td>
+                                    <td>{{ $menunggu->mobil }}</td>
+                                    <td>{{ $menunggu->metode }}</td>
+                                    <td>{{ $menunggu->total }}</td>
+                                    <td class="pe-3">{{ $menunggu->status }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted small py-4">Tidak ada pesanan yang menunggu konfirmasi</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

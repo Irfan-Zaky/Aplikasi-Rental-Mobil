@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentType;
 use App\Enums\RentalStatus;
 use App\Http\Requests\CustomerProfileUpdateRequest;
 use App\Models\Rental;
@@ -109,7 +111,7 @@ class CustomerController extends Controller
 
         $rental = $request->user()
             ->rentals()
-            ->with(['mobil.fotoUtama', 'addOn', 'payments'])
+            ->with(['mobil.fotoUtama', 'addOn', 'payments.qris', 'payments.cash'])
             ->findOrFail($id);
 
         $tahap = match ($rental->status) {
@@ -123,11 +125,31 @@ class CustomerController extends Controller
         };
 
         $total = $rental->total_rental + ($rental->late_fee ?? 0);
+        $paymentSewa = $rental->payments->firstWhere('type', PaymentType::Sewa);
+
+        $kodeBooking = filled($rental->booking_code)
+            ? $rental->booking_code
+            : 'Menunggu konfirmasi pembayaran';
+        $invoice = filled($rental->invoice_number)
+            ? $rental->invoice_number
+            : 'Menunggu konfirmasi pembayaran';
+
+        $tautanPembayaran = match ($paymentSewa?->method) {
+            PaymentMethod::QRIS => $paymentSewa?->qris?->qr_code
+                ? route('customer.pembayaran-qris', ['id' => $rental->rental_id])
+                : null,
+            PaymentMethod::Tunai => $paymentSewa?->cash?->payment_code
+                ? route('customer.pembayaran-tunai', ['id' => $rental->rental_id])
+                : null,
+            default => null,
+        };
 
         $pesanan = (object) [
             'id' => $rental->rental_id,
             'tahap' => $tahap,
-            'kode' => $rental->booking_code ?? $rental->trx_code,
+            'kode' => $kodeBooking,
+            'kode_booking' => $kodeBooking,
+            'invoice' => $invoice,
             'nama_mobil' => $rental->mobil ? ($rental->mobil->merk.' '.$rental->mobil->nama_mobil) : '-',
             'tgl_sewa' => $rental->start_date->format('d M').' - '.$rental->end_date->format('d M Y'),
             'layanan' => $rental->self_driver ? 'Lepas Kunci' : 'Dengan Sopir',
@@ -138,6 +160,9 @@ class CustomerController extends Controller
             'nomor_hp' => $rental->customer_phone,
             'total_biaya' => 'Rp '.number_format($total, 0, ',', '.'),
             'status' => $rental->status->value,
+            'metode' => $paymentSewa?->method?->value ?? '-',
+            'status_pembayaran' => $paymentSewa?->status?->value ?? '-',
+            'tautan_pembayaran' => $tautanPembayaran,
         ];
 
         return view('customer.detail-pesanan', [

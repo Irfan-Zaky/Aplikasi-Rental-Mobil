@@ -15,7 +15,9 @@ use App\Models\Car;
 use App\Models\Cash;
 use App\Models\Payment;
 use App\Models\Rental;
+use App\Services\Midtrans\MidtransClient;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -23,11 +25,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Throwable;
 
 class PemesananController extends Controller
 {
     private const DRAFT_KEY = 'pemesanan_draft';
+
+    public function __construct(private MidtransClient $midtrans) {}
 
     /**
      * Display the selected car detail (F002).
@@ -412,28 +418,67 @@ class PemesananController extends Controller
     /**
      * Display the QRIS payment screen, creating or reusing its payment (C-15).
      */
-    public function pembayaranQris(): View|RedirectResponse
+    public function pembayaranQris(Request $request): View|RedirectResponse
     {
-        return $this->tampilkanPembayaran(PaymentMethod::QRIS);
+        return $this->tampilkanPembayaran(PaymentMethod::QRIS, $request);
+    }
+
+    /**
+     * Return the current QRIS payment status for the customer's polled screen (C-15).
+     */
+    public function statusQris(Request $request): JsonResponse
+    {
+        $rentalId = $request->integer('id') ?: session('pemesanan_terakhir');
+
+        $rental = $request->user()->rentals()->find($rentalId);
+
+        if (! $rental) {
+            return response()->json(['message' => 'Transaksi tidak ditemukan.'], 404);
+        }
+
+        $payment = $rental->payments()
+            ->where('type', PaymentType::Sewa)
+            ->where('method', PaymentMethod::QRIS)
+            ->orderByDesc('payment_id')
+            ->first();
+
+        if (! $payment) {
+            return response()->json(['message' => 'Pembayaran QRIS tidak ditemukan.'], 404);
+        }
+
+        return response()->json([
+            'status' => $payment->status->value,
+            'paid' => in_array($payment->status, [PaymentStatus::MenungguKonfirmasi, PaymentStatus::Berhasil], true),
+        ]);
     }
 
     /**
      * Display the cash payment screen, creating or reusing its payment (C-16).
      */
-    public function pembayaranTunai(): View|RedirectResponse
+    public function pembayaranTunai(Request $request): View|RedirectResponse
     {
-        return $this->tampilkanPembayaran(PaymentMethod::Tunai);
+        return $this->tampilkanPembayaran(PaymentMethod::Tunai, $request);
     }
 
-    private function tampilkanPembayaran(PaymentMethod $metode): View|RedirectResponse
+    private function tampilkanPembayaran(PaymentMethod $metode, Request $request): View|RedirectResponse
     {
-        $rental = Rental::query()
-            ->with('payments')
-            ->where('account_id', auth()->id())
-            ->find(session('pemesanan_terakhir'));
+        $rentalId = $request->integer('id') ?: session('pemesanan_terakhir');
 
-        if (! $rental || $rental->status !== RentalStatus::MenungguPembayaran) {
+        $rental = Rental::query()
+            ->with(['payments.qris', 'payments.cash'])
+            ->where('account_id', auth()->id())
+            ->find($rentalId);
+
+        $statusDiperbolehkan = $metode === PaymentMethod::QRIS
+            ? [RentalStatus::MenungguPembayaran, RentalStatus::MenungguVerifikasi]
+            : [RentalStatus::MenungguPembayaran];
+
+        if (! $rental || ! in_array($rental->status, $statusDiperbolehkan, true)) {
             return redirect()->route('customer.katalog');
+        }
+
+        if ($request->filled('id')) {
+            session(['pemesanan_terakhir' => $rental->rental_id]);
         }
 
         $payment = $rental->payments->first(fn (Payment $item): bool => $item->type === PaymentType::Sewa
@@ -447,14 +492,34 @@ class PemesananController extends Controller
             );
         }
 
+        if ($rental->status === RentalStatus::MenungguVerifikasi && $payment === null) {
+            return redirect()->route('customer.katalog');
+        }
+
+        if ($payment === null && $metode === PaymentMethod::QRIS) {
+            try {
+                $payment = $this->buatPaymentSewa($rental, $metode);
+            } catch (Throwable) {
+                return redirect()->route('customer.pilihan-pembayaran')
+                    ->with('error', 'Gagal membuat pembayaran QRIS. Silakan coba lagi.');
+            }
+        }
+
         $payment ??= $this->buatPaymentSewa($rental, $metode);
         $totalBiaya = $this->rupiah($rental->total_rental);
         $sisaWaktu = $this->formatSisaWaktu($payment->expires_at);
 
         if ($metode === PaymentMethod::QRIS) {
             return view('customer.pembayaran-qris', [
+                'qrUrl' => $payment->qris?->qr_code,
                 'totalBiaya' => $totalBiaya,
                 'sisaWaktu' => $sisaWaktu,
+                'rentalId' => $rental->rental_id,
+                'pembayaranDiterima' => in_array(
+                    $payment->status,
+                    [PaymentStatus::MenungguKonfirmasi, PaymentStatus::Berhasil],
+                    true,
+                ),
             ]);
         }
 
@@ -494,11 +559,57 @@ class PemesananController extends Controller
             ]);
 
             if ($metode === PaymentMethod::QRIS) {
-                $qrRef = 'QRIS-'.Str::upper(Str::random(12));
+                $qrRef = sprintf(
+                    '%s-%d-%s',
+                    $rentalTerkunci->trx_code,
+                    now()->timestamp,
+                    Str::upper(Str::random(6)),
+                );
+
+                $mobil = $rentalTerkunci->mobil;
+                $driverFee = (int) ($rentalTerkunci->addOn?->driver_fee ?? 0);
+                $itemDetails = [[
+                    'id' => 'RENTAL-'.$rentalTerkunci->trx_code,
+                    'price' => $rentalTerkunci->subtotal,
+                    'quantity' => 1,
+                    'name' => 'Sewa '.($mobil ? $mobil->merk.' '.$mobil->nama_mobil : 'Mobil'),
+                ]];
+
+                if ($driverFee > 0) {
+                    $itemDetails[] = [
+                        'id' => 'DRIVER',
+                        'price' => $driverFee,
+                        'quantity' => 1,
+                        'name' => 'Biaya sopir',
+                    ];
+                }
+
+                try {
+                    $response = $this->midtrans->chargeQris(
+                        $qrRef,
+                        $rentalTerkunci->total_rental,
+                        (int) config('rental.qris_ttl_minutes'),
+                        [
+                            'first_name' => $rentalTerkunci->customer_name,
+                            'phone' => $rentalTerkunci->customer_phone,
+                        ],
+                        $itemDetails,
+                    );
+                } catch (Throwable) {
+                    throw new RuntimeException('Gagal membuat pembayaran QRIS.');
+                }
+
+                $qrUrl = collect($response['actions'] ?? [])
+                    ->firstWhere('name', 'generate-qr-code')['url'] ?? null;
+
+                if (! filled($qrUrl)) {
+                    throw new RuntimeException('URL QR Midtrans tidak ditemukan.');
+                }
 
                 $payment->qris()->create([
                     'qr_ref' => $qrRef,
-                    'qr_code' => 'SIMULASI-'.$qrRef,
+                    'qr_code' => $qrUrl,
+                    'raw_payload' => $response,
                 ]);
             } else {
                 do {

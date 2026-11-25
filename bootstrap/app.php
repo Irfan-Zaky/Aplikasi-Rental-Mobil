@@ -18,8 +18,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('rentals:expire')
             ->everyMinute()
             ->withoutOverlapping(5);
+
+        $schedule->command('rentals:tick')
+            ->everyMinute()
+            ->withoutOverlapping(5);
+
+        $schedule->command('mobils:purge-inactive')
+            ->daily()
+            ->withoutOverlapping(30);
     })
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->preventRequestForgery(except: ['webhooks/qris']);
+
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'customer' => EnsureUserIsCustomer::class,

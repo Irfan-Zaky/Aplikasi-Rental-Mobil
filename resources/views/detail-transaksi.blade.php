@@ -60,7 +60,7 @@
 
                                 <div class="bg-light p-3 rounded-4 d-flex justify-content-between align-items-center mt-auto border">
                                     <span class="text-muted small fw-medium">Kode Booking</span>
-                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 rounded-pill fw-bold">{{ $transaksi->kode_booking ?? 'BK-104829' }}</span>
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 rounded-pill fw-bold">{{ $transaksi->kode_booking ?: '-' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -77,7 +77,7 @@
                                 </li>
                                 <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
                                     <span class="text-muted small">Kode pembayaran</span>
-                                    <strong class="text-dark small">{{ $transaksi->kode_pembayaran ?? 'TNI-2841-9820' }}</strong>
+                                    <strong class="text-dark small">{{ $transaksi->kode_pembayaran ?: '-' }}</strong>
                                 </li>
                                 <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
                                     <span class="text-muted small">Harga/hari</span>
@@ -203,10 +203,12 @@
                     </div>
                     <div class="modal-body">
                         <p class="text-muted small mb-3">
-                            Keterlambatan {{ $lamaTerlambat }} hari. Masukkan nominal denda secara manual.
+                            Keterlambatan {{ $lamaTerlambat }} hari. Denda dihitung otomatis oleh sistem.
                         </p>
-                        <label for="late_fee" class="form-label fw-medium small">Nominal denda (Rp)</label>
-                        <input type="number" name="late_fee" id="late_fee" class="form-control" min="1" step="1" required>
+                        <div class="alert alert-warning fw-bold mb-0">
+                            Rp {{ number_format($dendaOtomatis, 0, ',', '.') }}
+                        </div>
+                        <input type="hidden" name="konfirmasi" value="1">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>

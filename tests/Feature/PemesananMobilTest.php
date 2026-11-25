@@ -12,7 +12,9 @@ use App\Models\Car;
 use App\Models\Payment;
 use App\Models\Rental;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -200,6 +202,23 @@ class PemesananCarTest extends TestCase
     {
         $this->travelTo('2026-11-24 10:00:00');
 
+        Http::preventStrayRequests();
+        $orderId = null;
+        Http::fake(function (HttpRequest $request) use (&$orderId) {
+            $data = $request->data();
+            $orderId = $data['transaction_details']['order_id'];
+
+            return Http::response([
+                'status_code' => '201',
+                'order_id' => $orderId,
+                'transaction_status' => 'pending',
+                'actions' => [[
+                    'name' => 'generate-qr-code',
+                    'url' => 'https://sandbox.midtrans.test/qr/'.$orderId.'.png',
+                ]],
+            ], 201);
+        });
+
         $customer = Account::factory()->create();
         $rental = Rental::factory()->create([
             'account_id' => $customer->account_id,
@@ -211,7 +230,8 @@ class PemesananCarTest extends TestCase
             ->withSession(['pemesanan_terakhir' => $rental->rental_id])
             ->get(route('customer.pembayaran-qris'))
             ->assertOk()
-            ->assertSee('Rp 750.000');
+            ->assertSee('Rp 750.000')
+            ->assertSee('https://sandbox.midtrans.test/qr/');
 
         $payment = $rental->payments()->firstOrFail();
 
@@ -220,11 +240,45 @@ class PemesananCarTest extends TestCase
             ->and($payment->status)->toBe(PaymentStatus::MenungguPembayaran)
             ->and($payment->amount)->toBe(750000)
             ->and($payment->expires_at->toDateTimeString())->toBe('2026-11-24 10:10:00')
-            ->and($payment->qris)->not->toBeNull();
+            ->and($payment->qris->qr_ref)->toBe($orderId)
+            ->and($payment->qris->qr_code)->toBe('https://sandbox.midtrans.test/qr/'.$orderId.'.png')
+            ->and($payment->qris->raw_payload['transaction_status'])->toBe('pending');
 
         expect($rental->fresh()->expires_at->toDateTimeString())->toBe('2026-11-24 10:10:00');
 
+        Http::assertSent(function (HttpRequest $request) use ($rental): bool {
+            $data = $request->data();
+
+            return $request->url() === config('midtrans.base_url').'/v2/charge'
+                && $data['payment_type'] === 'gopay'
+                && $data['transaction_details']['gross_amount'] === $rental->total_rental
+                && $data['gopay']['enable_callback'] === false
+                && $data['custom_expiry']['expiry_duration'] === 10;
+        });
+
         $this->assertDatabaseCount('payment', 1);
+    }
+
+    public function test_gagal_charge_midtrans_tidak_meninggalkan_payment(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(['*/v2/charge' => Http::response(['status_code' => '500'], 500)]);
+
+        $customer = Account::factory()->create();
+        $rental = Rental::factory()->create([
+            'account_id' => $customer->account_id,
+            'status' => RentalStatus::MenungguPembayaran,
+            'total_rental' => 750000,
+        ]);
+
+        $this->actingAs($customer)
+            ->withSession(['pemesanan_terakhir' => $rental->rental_id])
+            ->get(route('customer.pembayaran-qris'))
+            ->assertRedirect(route('customer.pilihan-pembayaran'))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseCount('payment', 0);
+        $this->assertDatabaseCount('qris', 0);
     }
 
     public function test_halaman_tunai_membuat_kode_dan_memakai_ulang_payment(): void

@@ -10,8 +10,10 @@ use App\Enums\PaymentType;
 use App\Enums\RentalStatus;
 use App\Models\Account;
 use App\Models\AddOn;
+use App\Models\BookingHistory;
 use App\Models\Car;
 use App\Models\Payment;
+use App\Models\Qris;
 use App\Models\Rental;
 use Database\Seeders\TransaksiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -368,7 +370,41 @@ class TransaksiFilterDanRiwayatTest extends TestCase
         ]);
     }
 
-    public function test_admin_tidak_dapat_mengonfirmasi_pesanan_yang_belum_terverifikasi(): void
+    public function test_admin_mengonfirmasi_pembayaran_tunai_langsung(): void
+    {
+        $this->travelTo('2026-11-24 10:00:00');
+
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::MenungguPembayaran,
+        ]);
+        $payment = Payment::factory()->create([
+            'rental_id' => $rental->rental_id,
+            'type' => PaymentType::Sewa,
+            'method' => PaymentMethod::Tunai,
+            'status' => PaymentStatus::MenungguPembayaran,
+            'expires_at' => now()->addHours(2),
+        ]);
+        $payment->cash()->create(['payment_code' => 'TNI-1234-5678']);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.transaksi.konfirmasi-pembayaran', $rental))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('payment', [
+            'payment_id' => $payment->payment_id,
+            'status' => PaymentStatus::Berhasil->value,
+            'confirmed_by' => $this->admin->account_id,
+        ]);
+
+        $rental->refresh();
+
+        expect($rental->status)->toBe(RentalStatus::PembayaranBerhasil)
+            ->and($rental->booking_code)->toStartWith('BK-')
+            ->and($rental->invoice_number)->toBe('INV-2026-0001');
+    }
+
+    public function test_admin_tidak_dapat_mengonfirmasi_qris_yang_belum_dibayar(): void
     {
         $rental = Rental::factory()->create([
             'account_id' => $this->customer->account_id,
@@ -376,7 +412,8 @@ class TransaksiFilterDanRiwayatTest extends TestCase
         ]);
         $payment = Payment::factory()->create([
             'rental_id' => $rental->rental_id,
-            'status' => PaymentStatus::MenungguKonfirmasi,
+            'method' => PaymentMethod::QRIS,
+            'status' => PaymentStatus::MenungguPembayaran,
         ]);
 
         $this->actingAs($this->admin)
@@ -389,7 +426,7 @@ class TransaksiFilterDanRiwayatTest extends TestCase
         ]);
         $this->assertDatabaseHas('payment', [
             'payment_id' => $payment->payment_id,
-            'status' => PaymentStatus::MenungguKonfirmasi->value,
+            'status' => PaymentStatus::MenungguPembayaran->value,
         ]);
         $this->assertDatabaseCount('booking_history', 0);
     }
@@ -433,24 +470,28 @@ class TransaksiFilterDanRiwayatTest extends TestCase
             'account_id' => $this->customer->account_id,
             'car_id' => $mobil->car_id,
             'status' => RentalStatus::Terlambat,
-            'end_date' => now()->subDay(),
+            'end_date' => now()->subMinutes(61),
+            'price_per_day' => 500000,
         ]);
 
         $this->actingAs($this->admin)
-            ->post(route('admin.transaksi.selesaikan', $rental), ['late_fee' => 150000])
+            ->post(route('admin.transaksi.selesaikan', $rental), [
+                'konfirmasi' => 1,
+                'late_fee' => 1,
+            ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('rental', [
             'rental_id' => $rental->rental_id,
             'status' => RentalStatus::Selesai->value,
-            'late_fee' => 150000,
+            'late_fee' => 60000,
             'returned_at' => '2026-11-24 10:00:00',
         ]);
         $this->assertDatabaseHas('payment', [
             'rental_id' => $rental->rental_id,
             'type' => PaymentType::Denda->value,
             'method' => PaymentMethod::Tunai->value,
-            'amount' => 150000,
+            'amount' => 60000,
             'status' => PaymentStatus::Berhasil->value,
             'confirmed_by' => $this->admin->account_id,
         ]);
@@ -467,7 +508,7 @@ class TransaksiFilterDanRiwayatTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post(route('admin.transaksi.selesaikan', $rental))
-            ->assertSessionHasErrors('late_fee');
+            ->assertSessionHasErrors('konfirmasi');
 
         $this->assertDatabaseHas('rental', [
             'rental_id' => $rental->rental_id,
@@ -547,5 +588,56 @@ class TransaksiFilterDanRiwayatTest extends TestCase
         $response->assertOk();
         $response->assertSee('BK-TEST99');
         $response->assertSee('Detail Pesanan');
+    }
+
+    public function test_detail_riwayat_menampilkan_riwayat_status_dari_booking_history(): void
+    {
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::Selesai,
+        ]);
+
+        BookingHistory::factory()->for($rental, 'rental')->create([
+            'sequence_no' => 1,
+            'status' => RentalStatus::MenungguPembayaran,
+            'note' => 'Pesanan dibuat melalui aplikasi',
+        ]);
+        BookingHistory::factory()->for($rental, 'rental')->create([
+            'sequence_no' => 2,
+            'status' => RentalStatus::PembayaranBerhasil,
+            'note' => 'Pembayaran dikonfirmasi admin',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.riwayat-transaksi.show', $rental))
+            ->assertOk()
+            ->assertSee('Riwayat Status')
+            ->assertSee('Pesanan dibuat melalui aplikasi')
+            ->assertSee('Pembayaran dikonfirmasi admin');
+    }
+
+    public function test_customer_detail_menampilkan_metode_dan_tautan_pembayaran_sebelum_konfirmasi(): void
+    {
+        $rental = Rental::factory()->create([
+            'account_id' => $this->customer->account_id,
+            'status' => RentalStatus::MenungguPembayaran,
+            'booking_code' => null,
+            'invoice_number' => null,
+        ]);
+        $payment = Payment::factory()->create([
+            'rental_id' => $rental->rental_id,
+            'type' => PaymentType::Sewa,
+            'method' => PaymentMethod::QRIS,
+            'status' => PaymentStatus::MenungguPembayaran,
+        ]);
+        Qris::factory()->for($payment, 'payment')->create();
+
+        $this->actingAs($this->customer)
+            ->get(route('customer.detail-pesanan', ['id' => $rental->rental_id]))
+            ->assertOk()
+            ->assertSee('Menunggu konfirmasi pembayaran')
+            ->assertSee(PaymentMethod::QRIS->value)
+            ->assertSee(route('customer.pembayaran-qris', ['id' => $rental->rental_id]), false)
+            ->assertSee('Lihat Pembayaran');
     }
 }
