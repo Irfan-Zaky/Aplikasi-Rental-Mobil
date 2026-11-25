@@ -514,6 +514,7 @@ class PemesananController extends Controller
                 'qrUrl' => $payment->qris?->qr_code,
                 'totalBiaya' => $totalBiaya,
                 'sisaWaktu' => $sisaWaktu,
+                'waktuBerakhir' => $payment->expires_at?->toIso8601String(),
                 'rentalId' => $rental->rental_id,
                 'pembayaranDiterima' => in_array(
                     $payment->status,

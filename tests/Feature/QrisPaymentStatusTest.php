@@ -29,6 +29,7 @@ function fixtureStatusQris(PaymentStatus $status, RentalStatus $rentalStatus): a
         'type' => PaymentType::Sewa,
         'method' => PaymentMethod::QRIS,
         'status' => $status,
+        'expires_at' => now()->addMinutes(10),
     ]);
 
     Qris::factory()->for($payment, 'payment')->create([
@@ -91,7 +92,7 @@ it('menampilkan halaman sukses dan arah ke dashboard saat pembayaran QRIS diteri
         ->assertSee('Pembayaran diterima')
         ->assertSee('Ke Dashboard Sekarang')
         ->assertSee(route('customer.beranda'))
-        ->assertDontSee('Scan dengan aplikasi pembayaran');
+        ->assertSee('data-paid="true"', false);
 });
 
 it('tetap menampilkan QR dan menyiapkan polling saat pembayaran masih menunggu', function (): void {
@@ -99,6 +100,7 @@ it('tetap menampilkan QR dan menyiapkan polling saat pembayaran masih menunggu',
 
     $fixture = fixtureStatusQris(PaymentStatus::MenungguPembayaran, RentalStatus::MenungguPembayaran);
     $statusUrl = route('customer.pembayaran-qris.status', ['id' => $fixture['rental']->rental_id]);
+    $waktuBerakhir = $fixture['payment']->expires_at->toIso8601String();
 
     $this->actingAs($fixture['customer'])
         ->withSession(['pemesanan_terakhir' => $fixture['rental']->rental_id])
@@ -106,5 +108,7 @@ it('tetap menampilkan QR dan menyiapkan polling saat pembayaran masih menunggu',
         ->assertOk()
         ->assertSee('Scan dengan aplikasi pembayaran')
         ->assertSee($statusUrl)
-        ->assertDontSee('Pembayaran diterima');
+        ->assertSee('id="qris-timer"', false)
+        ->assertSee('data-expires-at="'.$waktuBerakhir.'"', false)
+        ->assertSee('data-paid="false"', false);
 });

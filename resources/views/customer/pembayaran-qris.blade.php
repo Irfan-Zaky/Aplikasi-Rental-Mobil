@@ -12,6 +12,7 @@
         class="d-flex flex-column gap-3"
         data-status-url="{{ route('customer.pembayaran-qris.status', ['id' => $rentalId]) }}"
         data-dashboard-url="{{ route('customer.beranda') }}"
+        data-expires-at="{{ $waktuBerakhir ?? '' }}"
         data-paid="{{ $pembayaranDiterima ? 'true' : 'false' }}"
     >
         <section id="qris-sukses"
@@ -42,7 +43,7 @@
                     <img src="{{ asset('img/qris/clock-3.svg') }}" alt="clock" width="20" height="20" />
                     <span class="text-warning-emphasis fw-medium small">Sisa waktu pembayaran</span>
                 </div>
-                <strong class="text-warning-emphasis fw-bold">{{ $sisaWaktu ?? '09:59' }}</strong>
+                <strong id="qris-timer" class="text-warning-emphasis fw-bold">{{ $sisaWaktu ?? '09:59' }}</strong>
             </section>
 
             <section class="card rounded-4 border p-4 shadow-sm text-center">
@@ -88,8 +89,19 @@
                 return;
             }
 
-            let timer = null;
+            let timerPolling = null;
+            let timerHitungMundur = null;
             let dialihkan = false;
+
+            const hentikanTimer = () => {
+                if (timerPolling !== null) {
+                    window.clearInterval(timerPolling);
+                }
+
+                if (timerHitungMundur !== null) {
+                    window.clearInterval(timerHitungMundur);
+                }
+            };
 
             const tampilkanSukses = () => {
                 if (dialihkan) {
@@ -97,9 +109,7 @@
                 }
 
                 dialihkan = true;
-                if (timer !== null) {
-                    window.clearInterval(timer);
-                }
+                hentikanTimer();
 
                 document.getElementById('qris-pending')?.classList.add('d-none');
                 document.getElementById('qris-sukses')?.classList.remove('d-none');
@@ -109,12 +119,35 @@
                 }, 2000);
             };
 
+            const elemenTimer = document.getElementById('qris-timer');
+            const waktuBerakhir = Date.parse(root.dataset.expiresAt || '');
+
+            if (elemenTimer && Number.isFinite(waktuBerakhir)) {
+                const perbaruiHitungMundur = () => {
+                    const sisaDetik = Math.max(0, Math.floor((waktuBerakhir - Date.now()) / 1000));
+                    const jam = Math.floor(sisaDetik / 3600);
+                    const menit = Math.floor((sisaDetik % 3600) / 60);
+                    const detik = sisaDetik % 60;
+
+                    elemenTimer.textContent = [jam, menit, detik]
+                        .map((nilai) => String(nilai).padStart(2, '0'))
+                        .join(':');
+
+                    if (sisaDetik === 0) {
+                        window.clearInterval(timerHitungMundur);
+                    }
+                };
+
+                perbaruiHitungMundur();
+                timerHitungMundur = window.setInterval(perbaruiHitungMundur, 1000);
+            }
+
             if (root.dataset.paid === 'true') {
                 tampilkanSukses();
                 return;
             }
 
-            timer = window.setInterval(async () => {
+            timerPolling = window.setInterval(async () => {
                 try {
                     const response = await fetch(root.dataset.statusUrl, {
                         credentials: 'same-origin',
